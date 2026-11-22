@@ -88,12 +88,14 @@
       add('Collapse all groups', click('#btn-collapse-all'), 'collapse');
     }
     if ($('#btn-settings')) add('Preferences: language, theme, Claude usage, export folder, backup', click('#btn-settings'), 'settings', `${RT.modKey === 'Ctrl' ? 'Ctrl+' : '⌘'},`);
-    if (RT.account && RT.account.open) add('Claude Code account: sign in or out', () => RT.account.open(), 'user');
+    // (only Claude Code signs in and out from the app; the account window of the others shows the status and how to sign in)
+    if (RT.account && RT.account.open) add(RT.ai && RT.ai.caps().inAppLogin === false ? 'Claude Code account: status and how to sign in' : 'Claude Code account: sign in or out', () => RT.account.open(), 'user');
     // the items of the header's Help and More menus (a menu is not a button the tour can point at)
     if (RT.guide && RT.guide.open) {
       add('Open the Guide', () => RT.guide.open(), 'book-open');
       add('Show the keyboard shortcuts', () => RT.guide.open('files', 'keys'), KEYBOARD, '?');
     }
+    if (RT.diagnostics) add('Copy diagnostics for a bug report', () => RT.diagnostics.copy(), 'copy');
     if (RT.tour && RT.tour.start) {
       add('Take the tour', () => RT.tour.start(), 'compass', '', 40); // first of the tour entries when “tour” is typed
       add('Tour of this screen', () => RT.tour.start({ chapter: RT.tour.forChapterOfView() }), 'compass');
@@ -158,7 +160,12 @@
     }
     const rank = (rows, text) => rows.map((r) => { const s = score(words, text(r)); return [s > 0 ? s + (r.boost || 0) : 0, r]; }).filter(([s]) => s > 0).sort((a, b) => b[0] - a[0]);
     // an action is found by its name in the display language too ("脉络" finds "Check lineage of…")
-    const shownName = (n) => (RT.i18n && RT.i18n.lang && RT.i18n.lang() !== 'en' && RT.i18n.translate ? RT.i18n.translate(n) || '' : '');
+    // ... and by the AI provider's name the row shows ("Antigravity" finds "Tour: The Claude panel" when Antigravity is chosen)
+    const shownName = (n) => {
+      const i = RT.i18n; if (!i) return '';
+      const t = i.lang && i.lang() !== 'en' && i.translate ? i.translate(n) || n : n;
+      return i.rebrand ? i.rebrand(t) : t === n ? '' : t;
+    };
     const a = rank(acts, (r) => r.name + ' ' + shownName(r.name));
     const v = rank(views, (r) => r.name + ' ' + shownName(r.name));
     // a paper: its title counts most; author, year and cite key are found too

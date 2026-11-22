@@ -212,6 +212,10 @@ button.pg:hover { border-color: var(--accent); }
 dialog.rd-dlg { width: min(1100px, 95vw); }
 dialog.rd-dlg[open] { display: flex; flex-direction: column; height: min(760px, 88vh); }
 dialog.rd-dlg .dlg-actions { align-items: center; }
+/* Help › Copy diagnostics when the clipboard refused (diagnostics.js): the text, selected, to copy by hand */
+dialog.diag-dlg { width: min(820px, 95vw); }
+dialog.diag-dlg[open] { height: min(620px, 86vh); }
+dialog.diag-dlg .diag-text { flex: 1; width: 100%; box-sizing: border-box; min-height: 0; resize: none; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; }
 dialog.rd-dlg .dlg-actions button.ib { min-width: 36px; min-height: 30px; }
 .rd-hist { flex: 1; min-height: 0; display: grid; grid-template-columns: 270px 1fr; gap: 12px; }
 .rd-hist-list { overflow: auto; display: flex; flex-direction: column; gap: 4px; }

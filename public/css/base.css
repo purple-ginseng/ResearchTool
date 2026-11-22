@@ -204,6 +204,9 @@ header > .ib .ic { width: 18px; height: 18px; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: auto; }
 .toast:empty { display: none; }
 .toast.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+/* an error wraps (up to four lines): what to do often comes at the end of it */
+.toast.bad, .toast.bad .toast-msg { white-space: normal; overflow-wrap: anywhere; }
+.toast.bad:not(.has-act):not(:empty), .toast.bad .toast-msg { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
 .toast.ok { color: var(--ok); }
 /* a message with a button (Undo): the text shortens, the button stays */
 .toast.has-act { display: inline-flex; align-items: center; gap: 8px; }

@@ -19,6 +19,30 @@
   const head = $('.claude-head #claude-new');
   if (head) head.insertAdjacentHTML('beforebegin', `<button id="claude-account" class="ib" title="Claude Code account: check the sign-in, sign in or out" aria-label="Claude Code account">${RT.icon(I.user)}</button>`);
 
+  // Another AI provider than Claude (Preferences › AI): this dialog shows its CLI's status instead - installed,
+  // signed in - with the command that signs in, run by the user in a terminal (the app never signs in to it).
+  let other = null; // {p, s} while it shows another provider
+  const osKey = () => (/Win/i.test(navigator.platform) ? 'win' : /Mac/i.test(navigator.platform) ? 'mac' : 'linux');
+  const cmdBox = (c) => `<div class="acct-cmd"><code>${esc(c)}</code><button class="ib" data-copy="${esc(c)}" title="Copy the command" aria-label="Copy the command">${RT.icon('copy')}</button></div>`;
+  function paintOther() {
+    const { p, s } = other;
+    if (!s) { body.innerHTML = '<div class="acct-row"><span class="spin"></span> Checking…</div>'; return; }
+    const ver = s.version ? `<span class="muted" data-i18n-skip>${esc(p.cliName)} ${esc(s.version)}</span>` : '';
+    if (!s.installed) {
+      const inst = (p.install && (p.install[osKey()] || p.install.mac)) || '';
+      body.innerHTML = `<div class="acct-row" data-brand-keep><span class="acct-dot bad"></span><div><b>Command not found: <code>${esc(p.bin)}</code></b><br><span class="muted">The AI provider chosen in Preferences › AI is not installed on this computer.</span></div></div>
+        <ol class="acct-steps" data-brand-keep><li>Open a terminal and run:${cmdBox(inst)}${p.install && p.install.alt ? `<span class="muted">or</span>${cmdBox(p.install.alt)}` : ''}</li><li>Quit ResearchTool and open it again, so it finds the new command.</li><li>Sign in (see below), then check again.</li></ol>
+        ${s.problem ? `<p class="muted">${esc(s.problem)}</p>` : ''}`;
+      return;
+    }
+    const dot = s.signedIn === true ? 'ok' : s.signedIn === false ? 'bad' : 'warn';
+    const head = s.signedIn === true ? `<b>Signed in</b>${s.account ? ` <span data-i18n-skip>· ${esc(s.account)}</span>` : ''}` : s.signedIn === false ? '<b>Not signed in.</b>' : '<b>The sign-in could not be checked.</b>';
+    const login = p.login ? `<p class="muted">To sign in with your own account, run this in a terminal (ResearchTool never asks for a password or a key):</p>${cmdBox(p.login)}${p.loginNote && p.loginNote !== s.warning ? `<p class="muted">${esc(p.loginNote)}</p>` : ''}` : '';
+    body.innerHTML = `<div class="acct-row" data-brand-keep><span class="acct-dot ${dot}"></span><div>${head}<br>${ver}</div></div>
+      ${s.warning ? `<p class="set-bad" data-brand-keep>${esc(s.warning)}</p>` : ''}${s.problem ? `<p class="muted" data-i18n-skip>${esc(s.problem)}</p>` : ''}
+      <div data-brand-keep>${s.signedIn === true ? '' : login}
+      <p class="muted">With this provider the AI panel is read-only: it reads your files but does not change them. PDFs are sent as their extracted text.</p></div>`;
+  }
   let st = null;       // the last status from the server
   let flow = null;     // the running sign-in: { ctrl, url, waiting, lines, sending }
 
@@ -80,6 +104,15 @@
 
   async function refresh() {
     if (flow) return;
+    if (RT.ai && !RT.ai.isClaude()) { // another provider: its status, never a sign-in from here
+      const p = RT.ai.provider();
+      other = { p, s: null }; paintOther();
+      let s; try { s = (await RT.ai.status(p.id, true)).status[p.id]; } catch (e) { s = { installed: true, signedIn: null, problem: e.message }; }
+      if (other && other.p.id === p.id) { other.s = s; paintOther(); }
+      const b = $('#claude-account'); if (b) b.classList.toggle('acct-warn', !s.installed || s.signedIn === false);
+      return;
+    }
+    other = null;
     st = null; paint();
     try { st = await api('/api/claude/auth'); } catch (e) { st = { error: e.message }; }
     paint(); mark();
@@ -160,6 +193,8 @@
   // at start: say so once if Claude Code is there but signed out (a missing CLI is already reported by core.js)
   document.addEventListener('DOMContentLoaded', async () => {
     try {
+      if (RT.ai) await RT.ai.ready;
+      if (RT.ai && !RT.ai.isClaude()) return; // another AI provider: its status is shown when the dialog opens
       st = await api('/api/claude/auth'); mark();
       const cur = $('#toast').textContent; // another start-up message may be showing
       if (st.installed && !st.loggedIn && !st.unknown) toast((cur ? cur + ' — ' : '') + 'Claude Code is not signed in — open the Claude panel and click the person icon to sign in.', 'bad');

@@ -37,3 +37,10 @@
   .pf-nav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--line); }
   .pf-panes { padding: 4px 14px 14px; }
 }
+
+/* Preferences > AI: the provider's status line and the command boxes in it */
+.pf-ai-status { margin: 6px 0 4px; line-height: 1.6; font-size: 13px; }
+.pf-ai-status .acct-dot { display: inline-block; margin: 0 4px 0 0; vertical-align: middle; }
+.pf-cmd { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.pf-cmd code { padding: 1px 5px; border-radius: 4px; background: var(--soft-2); }
+.pf-cmd .ib { width: 22px; height: 22px; }

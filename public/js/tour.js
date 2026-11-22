@@ -29,7 +29,22 @@
   const DONE = 'rt.tour.done', DISMISSED = 'rt.tour.dismissed';
   const L = (s, ...a) => (RT.i18n && RT.i18n.t ? RT.i18n.t(s, ...a) : String(s).replace(/\{(\d+)\}/g, (m, i) => (a[i] !== undefined ? a[i] : m)));
   // a step's own text: translated here (exact entries of zh-tour.js), then {mod} -> ⌘ / Ctrl+
-  const T = (s) => { let t = s; try { t = (RT.i18n && RT.i18n.translate && RT.i18n.translate(s)) || s; } catch { t = s; } return String(t).replace(/\{mod\}/g, MOD); };
+  // ... and with the chosen AI provider's name for "Claude" (the card is data-i18n-skip, so the display layer does not)
+  const T = (s) => {
+    let t = s;
+    try { t = (RT.i18n && RT.i18n.translate && RT.i18n.translate(s)) || s; if (RT.i18n && RT.i18n.rebrand) t = RT.i18n.rebrand(t); } catch { t = s; }
+    return String(t).replace(/\{mod\}/g, MOD);
+  };
+  // a step's text for the chosen provider: step.alt holds the words for one that lacks a capability Claude Code has
+  // (alt.agentic: the panel cannot edit files, alt.readsPdf: works from the extracted text, alt.claude: any provider
+  // but Claude) - so no card claims what the provider does not do
+  const textOf = (s) => {
+    if (!s.alt || !RT.ai) return s.text;
+    const caps = RT.ai.caps() || {};
+    const k = Object.keys(s.alt).find((c) => (c === 'claude' ? !RT.ai.isClaude() : caps[c] === false));
+    return k ? s.alt[k] : s.text;
+  };
+  RT.tour.textOf = textOf;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const chOf = (id) => CHAPTERS.find((c) => c.id === id);
 
@@ -97,7 +112,7 @@
     CHAPTERS.forEach((ch, ci) => {
       const list = STEPS.filter((x) => x.ch === ch.id);
       list.forEach((s, k) => out.push({ id: s.id, chapter: ch.id, chapterTitle: ch.title, chapterIndex: ci + 1, step: k + 1, steps: list.length,
-        title: s.title.replace(/\{mod\}/g, MOD), text: s.text.replace(/\{mod\}/g, MOD), selector: sels(s).join(', ') || null,
+        title: s.title.replace(/\{mod\}/g, MOD), text: textOf(s).replace(/\{mod\}/g, MOD), selector: sels(s).join(', ') || null,
         view: ch.view || null, tab: s.tab || null, claude: !!s.claude, mode: s.mode || null }));
     });
     return out;
@@ -190,7 +205,7 @@
     $('#tour-count').textContent = L('Chapter {0}/{1} · step {2}/{3}', p.ci + 1, CHAPTERS.length, p.k + 1, p.n);
     $('#tour-bar').style.width = `${Math.round(((run.at + 1) / run.plan.length) * 100)}%`;
     $('#tour-title').textContent = T(p.s.title);
-    $('#tour-text').textContent = T(p.s.text);
+    $('#tour-text').textContent = T(textOf(p.s));
     $('#tour-missing').hidden = !!(run.el || run.pending || p.s.el == null || p.s.empty);
     // a fallback that is the PDF bar's ⋯ menu: the tool the card is about is folded into it at this width
     $('#tour-folded').hidden = !(run.el && !run.pending && p.s.id !== 'rd-more' && run.el.id === 'rd-pdf-more' && sels(p.s)[0] !== '#rd-pdf-more');
@@ -338,6 +353,7 @@
   let raf = 0;
   document.addEventListener('scroll', () => { if (run && !raf) raf = requestAnimationFrame(() => { raf = 0; place(); }); }, true);
   if (RT.i18n && RT.i18n.onChange) RT.i18n.onChange(() => paint());
+  if (RT.on) RT.on('ai:changed', () => paint()); // another provider chosen: its name, and its words for what it cannot do
 
   if (btn) { btn.innerHTML = RT.icon('compass'); btn.addEventListener('click', () => start()); }
 

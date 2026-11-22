@@ -478,6 +478,7 @@ function saveBuf(b, source = 'auto', o = {}) {
     const content = bufText(b), rev = b.rev;
     const body = { content, source };
     if (o.label) body.label = o.label;
+    if (o.by && source === 'claude') body.by = o.by;
     if (!o.force && b.hash) body.baseHash = b.hash;
     b.saving = true; renderSaveState();
     try {
@@ -524,12 +525,14 @@ async function saveAll(label) {
 
 // A change Claude proposed and the user accepted (write-ai.js). What is in the editor is saved first, so the 'Claude'
 // version of the history holds that change alone; edit() makes the change and returns false when it no longer applies.
-async function applyClaude(b, edit) {
+// opts.by: the id of the provider that made the change (RT.ai.id() when it was asked for): stored with the version.
+// opts.source / opts.label: an insert no AI wrote (a comparison table) is a plain 'manual' version with a label instead
+async function applyClaude(b, edit, { by, source = 'claude', label } = {}) {
   if (!b || b.closed || b.kind !== 'text') return false;
   if (b.conflict) { renderConflict(); toast(`${b.path} changed on disk — settle that in the bar above the editor first.`, 'bad'); return false; }
   if (!(await saveBuf(b, 'auto'))) return false;
   if (b.closed || edit() === false) return false;
-  const ok = await saveBuf(b, 'claude', { always: true });
+  const ok = await saveBuf(b, source, source === 'claude' ? { always: true, by: by || (RT.ai ? RT.ai.id() : 'claude') } : { always: true, label });
   if (ok && !b.dirty && b.pid === W.project?.id && W.opts.auto && RT.state.view === 'write') compile();
   return ok;
 }
@@ -2241,7 +2244,8 @@ function renderLog() {
   if (!W.showLog) return;
   const issues = !r ? '' : r.errors.map((e, i) => { const f = errFile(e); return `<div class="issue err${f ? ' go' : ''}" data-err="${i}" data-file="${esc(f || '')}" data-line="${e.line || ''}" tabindex="0"><span class="issue-kind">Error</span>${f ? `<span class="issue-at">${esc(f)}${e.line ? ':' + e.line : ''}</span>` : ''}<span class="issue-msg">${esc(e.msg)}</span></div>`; }).join('')
     + r.warnings.map((w, i) => `<div class="issue warn" data-warn="${i}" tabindex="0"><span class="issue-kind">Warning</span><span class="issue-msg">${esc(w)}</span></div>`).join('');
-  host.innerHTML = `<div class="log-head"><strong>Logs</strong><span class="muted">${r ? `${plural(ne, 'error')} · ${plural(nw, 'warning')}` : 'nothing compiled yet'}</span><span class="spacer"></span>${ne ? `<button id="log-fix" class="ib" title="Fix with Claude: send the errors to Claude Code, which edits the project files to fix them (you can also right-click a single error or warning)" aria-label="Fix with Claude">${RT.icon('sparkle')}</button>` : ''}<button id="log-close" class="tb" title="Back to the PDF" aria-label="Close the logs">${ic('close')}</button></div>
+  host.innerHTML = `<div class="log-head"><strong>Logs</strong><span class="muted">${r ? `${plural(ne, 'error')} · ${plural(nw, 'warning')}` : 'nothing compiled yet'}</span><span class="spacer"></span>${ne ? (canEdit() ? `<button id="log-fix" class="ib" title="Fix with Claude: send the errors to Claude Code, which edits the project files to fix them (you can also right-click a single error or warning)" aria-label="Fix with Claude">${RT.icon('sparkle')}</button>`
+    : `<button id="log-fix" class="ib" title="Suggest a fix with Claude: send the errors to the Claude panel, which says what to change (with this provider the panel does not edit files)" aria-label="Suggest a fix with Claude">${RT.icon('sparkle')}</button>`) : ''}<button id="log-close" class="tb" title="Back to the PDF" aria-label="Close the logs">${ic('close')}</button></div>
     <div class="log-body">${issues || (r ? '<div class="issue okay">No errors or warnings.</div>' : '')}
       <h4>Raw log</h4><pre class="log">${esc(r ? r.log || 'The log is empty.' : 'No compile log yet.')}</pre></div>`;
 }
@@ -2258,13 +2262,19 @@ function logExcerpt(msg) { // the part of the raw log around a message
   for (let n = 0; n < 14 && b >= 0 && b < log.length; n++) { const nx = log.indexOf('\n', b + 1); if (nx < 0) { b = log.length; break; } b = nx; }
   return log.slice(a, b).trim().slice(0, 2000);
 }
+// a provider that edits the project files itself (Claude Code): the others run read-only and suggest the change
+// (another provider chosen: the log's fix button says what it does now)
+RT.on('ai:changed', () => { if (W.lastCompile) renderLog(); });
+function canEdit() { return !(RT.ai && RT.ai.caps && RT.ai.caps().agentic === false); }
+function fixLabel(all) { return canEdit() ? (all ? `Fix all ${all} errors with Claude` : 'Fix with Claude') : all ? `Suggest fixes for all ${all} errors with Claude` : 'Suggest a fix with Claude'; }
 function askClaudeFix(problems, kind = 'error') { // problems: [{msg, at}]
   const p = W.project; if (!p || !problems.length) return;
   if (!RT.claude || !RT.claude.ask) return toast('The Claude panel is not available.', 'bad');
   const many = problems.length > 1, list = problems.slice(0, 8);
   const body = list.map((x, i) => `${many ? `${i + 1}. ` : ''}${x.msg}${x.at ? `\n   Reported at: ${x.at}` : ''}${x.excerpt ? `\n   Log excerpt:\n${x.excerpt.replace(/^/gm, '   | ')}` : ''}`).join('\n\n');
   RT.claude.ask(`Fix ${many ? `these LaTeX compile ${kind}s` : `this LaTeX compile ${kind}`} in my project "${p.name}"${p.mainFile ? ` (main file: ${p.mainFile})` : ''}.\n\n${body}\n\n`
-    + 'Read the files involved, find the real cause (for example two packages that clash, or a wrong option), and make the smallest edit to the project files that fixes it. Do not remove content to make the error go away. Then tell me in one or two sentences what you changed.');
+    + (canEdit() ? 'Read the files involved, find the real cause (for example two packages that clash, or a wrong option), and make the smallest edit to the project files that fixes it. Do not remove content to make the error go away. Then tell me in one or two sentences what you changed.'
+      : 'Read the files involved, find the real cause (for example two packages that clash, or a wrong option), and show the smallest change that fixes it as a short diff of the file. You cannot edit files: I will make the change myself. Do not remove content to make the error go away.'));
 }
 const errProblem = (e) => { const f = errFile(e); return { msg: e.msg, at: f ? f + (e.line ? ':' + e.line : '') : '', excerpt: logExcerpt(e.msg) }; };
 $('#log-panel').addEventListener('contextmenu', (e) => {
@@ -2276,8 +2286,8 @@ $('#log-panel').addEventListener('contextmenu', (e) => {
     const err = is.dataset.err != null ? r.errors[Number(is.dataset.err)] : null, warn = err ? null : r.warnings[Number(is.dataset.warn)];
     const prob = err ? errProblem(err) : { msg: String(warn), at: '', excerpt: logExcerpt(warn) };
     return menu(at, [
-      { label: 'Fix with Claude', icon: 'sparkle', run: () => askClaudeFix([prob], err ? 'error' : 'warning') },
-      ...(err && r.errors.length > 1 ? [{ label: `Fix all ${r.errors.length} errors with Claude`, icon: 'sparkle', run: () => askClaudeFix(r.errors.map(errProblem)) }] : []),
+      { label: fixLabel(0), icon: 'sparkle', run: () => askClaudeFix([prob], err ? 'error' : 'warning') },
+      ...(err && r.errors.length > 1 ? [{ label: fixLabel(r.errors.length), icon: 'sparkle', run: () => askClaudeFix(r.errors.map(errProblem)) }] : []),
       { label: 'Explain with Claude', run: () => RT.claude.ask(`Explain this LaTeX compile ${err ? 'error' : 'warning'} from my project "${W.project.name}" in plain words and say how to fix it. Do not change any file.\n\n${prob.msg}${prob.at ? `\nReported at: ${prob.at}` : ''}${prob.excerpt ? `\n\nLog excerpt:\n${prob.excerpt}` : ''}`) },
       { sep: true },
       ...(is.dataset.file ? [{ label: 'Go to the line', run: () => issueGo(is) }] : []),
@@ -2289,7 +2299,7 @@ $('#log-panel').addEventListener('contextmenu', (e) => {
     e.preventDefault();
     const text = sel.slice(0, 4000);
     return menu(at, [
-      { label: 'Fix with Claude', run: () => askClaudeFix([{ msg: 'This part of the compile log:', excerpt: text }], 'problem') },
+      { label: fixLabel(0), run: () => askClaudeFix([{ msg: 'This part of the compile log:', excerpt: text }], 'problem') },
       { label: 'Explain with Claude', run: () => RT.claude.ask(`Explain this part of the LaTeX compile log of my project "${W.project.name}" in plain words. Do not change any file.\n\n${text}`) },
       { sep: true },
       { label: 'Copy', run: () => copy(sel) },
@@ -2549,6 +2559,10 @@ $('#sync-to-code').addEventListener('click', () => syncToCode().catch((e) => toa
 
 // ---------------- history (full-width view: diff in the centre, versions on the right) ----------------
 const SRC = { manual: 'Saved', auto: 'Autosave', baseline: 'Before first edit', external: 'Edited outside', claude: 'Claude', restore: 'Restored' };
+// the kind of a version as shown: an AI ('claude') version names the provider that made it (v.by; older versions,
+// all by Claude, have none) and is kept out of the display layer's renaming (data-brand-keep), which would otherwise
+// name the provider chosen now
+const srcHtml = (v) => (v.source === 'claude' ? `<span data-brand-keep>${esc(RT.ai ? RT.ai.nameOf(v.by) : 'Claude')}</span>` : esc(SRC[v.source] || v.source));
 // translated here: the label shares its text node with the time and the kind of save (the diff's title)
 function dayLabel(ts) {
   const d = new Date(ts), day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
@@ -2563,8 +2577,8 @@ function groupVersions(vs, all) {
   const groups = [];
   for (const v of vs) {
     const g = groups[groups.length - 1];
-    if (all && g && g.source === v.source && (g.label || '') === (v.label || '') && Math.abs(new Date(g.ts) - new Date(v.ts)) <= 120000 && !g.versions.some((x) => x.file === v.file)) g.versions.push(v);
-    else groups.push({ ts: v.ts, source: v.source, label: v.label, versions: [v] });
+    if (all && g && g.source === v.source && (g.label || '') === (v.label || '') && (g.by || '') === (v.by || '') && Math.abs(new Date(g.ts) - new Date(v.ts)) <= 120000 && !g.versions.some((x) => x.file === v.file)) g.versions.push(v);
+    else groups.push({ ts: v.ts, source: v.source, label: v.label, by: v.by, versions: [v] });
   }
   return groups;
 }
@@ -2612,8 +2626,8 @@ function renderHistory() {
     const add = g.versions.reduce((n, v) => n + (Number(v.added) || 0), 0), del = g.versions.reduce((n, v) => n + (Number(v.removed) || 0), 0);
     const files = g.versions.map((v) => v.file);
     return `${head}<div class="hv${g === sel ? ' sel' : ''}" data-id="${esc(g.versions[0].id)}" tabindex="0">
-      <div class="hv-top"><span class="hv-time">${esc(hhmm(g.ts))}</span><span class="badge src-${esc(g.source)}">${esc(SRC[g.source] || g.source)}</span><span class="spacer"></span><span class="hv-add">+${add}</span><span class="hv-del">−${del}</span></div>
-      ${g.label ? `<div class="hv-chips"><span class="hv-chip" title="Label">${ic('ref')}${esc(g.label)}</span></div>` : ''}${h.all ? `<div class="hv-file muted" title="${esc(files.join('\n'))}">${files.length > 1 ? `${files.length} files: ` : ''}${esc(files.slice(0, 3).join(', '))}${files.length > 3 ? ` +${files.length - 3}` : ''}</div>` : ''}</div>`;
+      <div class="hv-top"><span class="hv-time">${esc(hhmm(g.ts))}</span><span class="badge src-${esc(g.source)}">${srcHtml(g)}</span><span class="spacer"></span><span class="hv-add">+${add}</span><span class="hv-del">−${del}</span></div>
+      ${g.label ? `<div class="hv-chips"><span class="hv-chip" title="Label" data-brand-keep>${ic('ref')}${esc(g.label)}</span></div>` : ''}${h.all ? `<div class="hv-file muted" title="${esc(files.join('\n'))}">${files.length > 1 ? `${files.length} files: ` : ''}${esc(files.slice(0, 3).join(', '))}${files.length > 3 ? ` +${files.length - 3}` : ''}</div>` : ''}</div>`;
   }).join('') || `<div class="muted hist-empty">${h.filter === 'labels' ? 'No labelled versions yet.<br>Use the tag button above to name one.' : !h.all && !W.active ? 'Open a file to see its history.' : 'No versions recorded yet.<br>Versions appear as you edit and save.'}</div>`;
   if (h.sel && !sel) h.sel = null;
   if (!h.sel) renderDiffEmpty();
@@ -2646,7 +2660,7 @@ async function loadDiff() {
   const changed = rows.some((x) => x.t !== 'eq');
   const files = h.all && g ? `<div class="diff-files"><span class="muted">${plural(g.versions.length, 'file')} changed in this version:</span>${g.versions.map((x) => `<button class="dfile${x.id === v.id ? ' on' : ''}" data-id="${esc(x.id)}" title="${esc(x.file)}">${ic(fileIcon({ path: x.file, type: 'file' }))}<span>${esc(x.file)}</span><span class="hv-add">+${Number(x.added) || 0}</span><span class="hv-del">−${Number(x.removed) || 0}</span></button>`).join('')}</div>` : '';
   host.innerHTML = `<div class="diff-head">
-      <div class="diff-title"><strong>${esc(v.file)}</strong> <span class="muted">${esc(dayLabel(v.ts))} ${esc(hhmm(v.ts))} · ${esc(SRC[v.source] || v.source)}</span>${v.label ? `<span class="hv-chip">${ic('ref')}${esc(v.label)}</span>` : ''}</div>
+      <div class="diff-title"><strong>${esc(v.file)}</strong> <span class="muted">${esc(dayLabel(v.ts))} ${esc(hhmm(v.ts))} · ${srcHtml(v)}</span>${v.label ? `<span class="hv-chip" data-brand-keep>${ic('ref')}${esc(v.label)}</span>` : ''}</div>
       <div class="spacer"></div>
       <div class="seg" id="diff-against" role="group" aria-label="Compare with"><button data-against="previous" class="ib${h.against === 'previous' ? ' on' : ''}" title="Changes in this version: what it changed compared with the one before it" aria-label="Changes in this version">${ic('delta')}</button><button data-against="current" class="ib${h.against === 'current' ? ' on' : ''}" title="Compared with now: what has changed between this version and the file as it is now" aria-label="Compared with now">${RT.icon('swap')}</button></div>
       <button id="hist-label" class="ib" title="${v.label ? 'Change or remove the label of this version' : 'Label this version…'}" aria-label="Label this version">${ic('ref')}</button><button id="hist-restore" class="primary ib" title="Restore this version (the current content stays in the history)" aria-label="Restore this version">${RT.icon('reset')}</button>

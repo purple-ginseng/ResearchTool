@@ -2,7 +2,9 @@
    active view registered with RT.claudeContext.register(viewId, fn).
    Every paper and every LaTeX project has its own conversation (messages + the CLI's session id), kept in this
    browser's localStorage under rt.claude.chats (bounded) and shown again after a reload. The answer is drawn while
-   it is written (text deltas of POST /api/claude); the Send button is a Stop button while a run is going. */
+   it is written (text deltas of POST /api/claude); the Send button is a Stop button while a run is going.
+   With another AI provider than Claude (Preferences › AI, RT.ai) the panel is a read-only chat: that CLI can read the
+   workspace but edits nothing. A conversation remembers its provider (p); another provider starts a new one. */
 (() => {
   const { $, $$ } = RT;
   RT.claude = RT.claude || {};
@@ -15,7 +17,8 @@
       <button id="claude-new" class="ib" title="New chat: clear the conversation about this paper or project and start a fresh one" aria-label="New chat">${RT.icon('plus')}</button>
     </div>
     <div id="claude-log">
-      <div class="msg hint" title="Runs your local claude CLI inside the workspace folder. It can read your library and notes and edit the files of your LaTeX project directly.">Local <code>claude</code> CLI — reads your library and notes, edits your LaTeX project. Try: “Draft a related-work paragraph from my key points.”</div>
+      <div class="msg hint" id="claude-hint" title="Runs your local claude CLI inside the workspace folder. It can read your library and notes and edit the files of your LaTeX project directly.">Local <code>claude</code> CLI — reads your library and notes, edits your LaTeX project. Try: “Draft a related-work paragraph from my key points.”</div>
+      <div class="msg hint ro" id="claude-ro" hidden><b>Read-only:</b> <span>Claude can read your library, notes and project files but cannot change them.</span> <span data-brand-keep>To let the AI edit your files, choose Claude Code in Preferences › AI.</span></div>
     </div>
     <div id="claude-sel" hidden>
       <span class="claude-sel-text"></span>
@@ -37,9 +40,10 @@
     let c = chats.get(key);
     if (c) return c;
     const st = readStore().chats[key];
-    c = { key, session: null, log: [], busy: false, abort: null, live: null, status: '', dead: false };
+    c = { key, session: null, p: 'claude', log: [], busy: false, abort: null, live: null, status: '', dead: false };
     if (st && typeof st === 'object') {
       if (typeof st.s === 'string' && /^[0-9a-f-]{8,64}$/i.test(st.s)) c.session = st.s;
+      if (typeof st.p === 'string' && /^[a-z]{2,12}$/.test(st.p)) c.p = st.p; // the AI provider of the session (older chats: Claude)
       if (Array.isArray(st.log)) c.log = st.log.filter((e) => Array.isArray(e) && KEEP.has(e[0]) && typeof e[1] === 'string').map((e) => ({ c: e[0], t: e[1] }));
     }
     chats.set(key, c);
@@ -51,7 +55,7 @@
     const o = readStore();
     if (!chat.log.length && !chat.session) delete o.chats[chat.key];
     else {
-      o.chats[chat.key] = { s: chat.session, t: Date.now(),
+      o.chats[chat.key] = { s: chat.session, p: chat.p || 'claude', t: Date.now(),
         log: chat.log.slice(-MAX_MSGS).map((e) => [e.c, e.t.length > MAX_MSG_CHARS ? e.t.slice(0, MAX_MSG_CHARS) + '\n\n… (shortened)' : e.t]) };
     }
     const oldest = () => Object.keys(o.chats).filter((k) => k !== chat.key).sort((a, b) => (o.chats[a].t || 0) - (o.chats[b].t || 0))[0];
@@ -135,7 +139,16 @@
     if (shown()) renderLog(); else stale = true;
     reflect();
   });
-  RT.on('status', (s) => { $('#claude-cmd').textContent = `cd "${s.workspace}" && claude`; });
+  let wsPath = '';
+  const showCmd = () => { if (wsPath) $('#claude-cmd').textContent = `cd "${wsPath}" && ${RT.ai ? RT.ai.provider().bin : 'claude'}`; };
+  RT.on('status', (s) => { wsPath = s.workspace; showCmd(); });
+  // another AI provider: its command in the hint and the terminal line, and the read-only note
+  RT.on('ai:changed', (p) => {
+    const code = $('#claude-hint code'); if (code) code.textContent = p.bin;
+    const agentic = !!(p.caps && p.caps.agentic);
+    $('#claude-ro').hidden = agentic; $('#claude-hint').hidden = !agentic; // ("edits your LaTeX project" is Claude's)
+    showCmd();
+  });
 
   function msgEl(cls, text) {
     const m = document.createElement('div'); m.className = 'msg ' + cls; m.textContent = text;
@@ -310,6 +323,10 @@
     $('#claude-input').value = '';
     $('#claude-input').focus();
     push(chat, 'user', prompt);
+    // a conversation that was held with another AI provider cannot be continued by this one
+    const prov = RT.ai ? RT.ai.id() : 'claude';
+    if (chat.session && (chat.p || 'claude') !== prov) { chat.session = null; push(chat, 'tool', '▸ This conversation was with another AI provider, so a new one starts here.'); }
+    chat.p = prov;
     reflect();
     chat.asked = false; // the question reached the server
     try {

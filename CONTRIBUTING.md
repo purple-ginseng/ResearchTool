@@ -25,14 +25,25 @@ The tests are plain Node scripts without a framework, server or network access; 
 ```bash
 node scripts/run-tests.js            # every scripts/test-*.js, with a summary; exit code 1 if one fails
 node scripts/i18n-extract.js --check # every UI string has a Chinese translation (exit code 1 otherwise)
-node scripts/smoke-server.js         # starts the real server on a free port with a temporary workspace and a fake
-                                     # claude, and checks the page, read-only API endpoints, the security gate and
+node scripts/smoke-server.js         # starts the real server on a free port with a temporary workspace and fake
+                                     # AI CLIs, and checks the page, read-only API endpoints, the security gate and
                                      # a project download (--pdf adds a PDF import, which needs poppler)
+node scripts/smoke-server.js --provider codex   # also switches to codex | grok | antigravity and runs key points
+                                                # and a panel turn through its fake CLI
 ```
 
 `node scripts/smoke-server.js --port N --tmp DIR` picks the port and the folder for the temporary workspace. A single
 test runs on its own too, for example `node scripts/test-platform.js` (it simulates Windows paths and commands, so it
 runs on any system).
+
+**The AI providers are never tested against a real CLI or account.** `scripts/test-ai.js` (part of `run-tests.js`)
+and the smoke test put fake `claude`, `codex`, `grok` and `agy` programs (`scripts/fixtures/fake-ai/`) first on a
+PATH that holds nothing else but node and a few helpers, with a temporary HOME, and run under a guard
+(`scripts/fixtures/fake-ai/guard.js`) that refuses to start any AI CLI outside the fakes' folder. The fakes check the
+read-only flags and log every call; `scripts/fixtures/fake-ai/provider-tests.js` holds the per-provider cases and
+`claude-golden.json` the exact argv of every Claude feature call. `RT_TEST_TMP=<dir>` puts the temporary workspace of
+`test-ai.js` in `<dir>`. Please keep it that way: a test that runs a real AI CLI would use the tester's account. When
+you change how a provider is called or read, update its fake and, for Claude, the golden file.
 
 Please run them before opening a pull request, and add a test next to the existing ones when you fix a bug in
 `lib/`.

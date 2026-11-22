@@ -125,7 +125,8 @@ test('every step has an English title and text: plain, short enough', () => {
 
 test('every step title and text has its Chinese translation (with {mod} kept)', () => {
   const missing = [];
-  for (const s of STEPS) for (const k of ['title', 'text']) {
+  for (const s0 of STEPS) for (const k of ['title', 'text', ...Object.keys(s0.alt || {}).map((a) => 'alt.' + a)]) {
+    const s = k.startsWith('alt.') ? { ...s0, [k]: s0.alt[k.slice(4)] } : s0;
     const t = zhOf(s[k]);
     if (!t || t === s[k] && /[a-z]{3}/.test(s[k]) && k === 'text') { missing.push(`${s.id}.${k}: ${s[k]}`); continue; }
     if (s[k].includes('{mod}') && !t.includes('{mod}')) missing.push(`${s.id}.${k}: {mod} lost`);
@@ -168,8 +169,13 @@ test('every selector parses; every chapter that needs a paper says what to do wi
 test('step options are known values', () => {
   const tabs = new Set(['notes', 'diagram', 'quiz', 'kp', 'details', 'related']);
   for (const s of STEPS) {
-    const extra = Object.keys(s).filter((k) => !['id', 'ch', 'el', 'title', 'text', 'tab', 'claude', 'mode', 'needs', 'wait', 'side'].includes(k));
+    const extra = Object.keys(s).filter((k) => !['id', 'ch', 'el', 'title', 'text', 'alt', 'tab', 'claude', 'mode', 'needs', 'wait', 'side'].includes(k));
     assert.deepEqual(extra, [], s.id + ': unknown option');
+    // alt: the words for a provider without one of Claude Code's capabilities (tour.js textOf), plain and short too
+    for (const [c, v] of Object.entries(s.alt || {})) {
+      assert.ok(['agentic', 'readsPdf', 'readsImage', 'inAppLogin', 'claude'].includes(c), s.id + ': alt.' + c);
+      assert.ok(typeof v === 'string' && v.trim() && !/[<>]/.test(v) && v.length <= 340, s.id + ': alt.' + c + ' text');
+    }
     if (s.tab) assert.ok(tabs.has(s.tab), s.id + ': tab ' + s.tab);
     if (s.mode) assert.ok(['home', 'project'].includes(s.mode), s.id + ': mode ' + s.mode);
     if (s.needs) assert.ok(['paper', 'project'].includes(s.needs), s.id + ': needs ' + s.needs);

@@ -95,13 +95,13 @@ const withPath = async (dirs, fn) => {
     assert.ok(!plat.buildPath('/usr/bin', { platform: 'linux', home: '/home/me' }).includes('/Library/TeX'));
   });
   await test('buildPath: Windows uses ";", ~\\.local\\bin, and TeX Live / MiKTeX / npm folders only when they exist', () => {
-    const dirs = new Set(['c:\\texlive\\2025\\bin\\windows', 'c:\\users\\me\\appdata\\local\\programs\\miktex\\miktex\\bin\\x64', 'c:\\users\\me\\appdata\\roaming\\npm']);
+    const dirs = new Set(['c:\\texlive\\2025\\bin\\windows', 'c:\\users\\me\\appdata\\local\\programs\\miktex\\miktex\\bin\\x64', 'c:\\users\\me\\appdata\\roaming\\npm', 'c:\\users\\me\\appdata\\local\\agy\\bin']);
     const env = { SystemDrive: 'C:', LOCALAPPDATA: 'C:\\Users\\me\\AppData\\Local', APPDATA: 'C:\\Users\\me\\AppData\\Roaming', ProgramFiles: 'C:\\Program Files' };
     const p = plat.buildPath('C:\\Windows\\system32;C:\\Users\\me\\AppData\\Roaming\\npm\\', { platform: 'win32', env, home: 'C:\\Users\\me',
       isDir: (d) => dirs.has(d.toLowerCase()), list: (d) => (d.toLowerCase() === 'c:\\texlive' ? ['2024', '2025', 'tlpkg'] : []) });
     const parts = p.split(';');
     assert.deepEqual(parts, ['C:\\Windows\\system32', 'C:\\Users\\me\\AppData\\Roaming\\npm\\', 'C:\\Users\\me\\.local\\bin',
-      'C:\\texlive\\2025\\bin\\windows', 'C:\\Users\\me\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64']);
+      'C:\\texlive\\2025\\bin\\windows', 'C:\\Users\\me\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64', 'C:\\Users\\me\\AppData\\Local\\agy\\bin']);
     assert.ok(!p.includes('/Library/TeX') && !p.includes(':/'), p);
   });
   await test('the server PATH of this machine still holds the original folders, joined with path.delimiter', () => {

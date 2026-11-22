@@ -1,8 +1,8 @@
 {
   "name": "researchtool",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
-  "description": "Local research workspace: reference library, PDF reader and notes, LaTeX editor with live preview, optional Claude Code panel",
+  "description": "Local research workspace: reference library, PDF reader and notes, LaTeX editor with live preview, optional AI panel (Claude Code, Codex, Grok Build or Antigravity)",
   "license": "MIT",
   "repository": "github:purple-ginseng/ResearchTool",
   "engines": {

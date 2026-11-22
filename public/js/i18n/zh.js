@@ -65,7 +65,7 @@
   "Cancel (Esc)":"取消（Esc）",
   "OK":"确定",
   "Group with Claude":"用 Claude 分组",
-  "Claude proposes research lines (“Line / Sub-line”) from what each paper builds on - the methods it starts from, its Preliminaries and Related Work, read from your PDFs on this Mac - besides titles and tags. The lines it prefers are set in Preferences › Claude. Nothing changes until you apply.":"Claude 会根据每篇论文的基础提出研究方向（“方向 / 子方向”）——它所基于的方法、预备知识和相关工作（从本机的 PDF 中读取）——以及标题和标签。偏好的方向在“偏好设置 › Claude”中设定。应用之前不会有任何改动。",
+  "Claude proposes research lines (“Line / Sub-line”) from what each paper builds on - the methods it starts from, its Preliminaries and Related Work, read from your PDFs on this Mac - besides titles and tags. The lines it prefers are set in Preferences › AI. Nothing changes until you apply.":"Claude 会根据每篇论文的基础提出研究方向（“方向 / 子方向”）——它所基于的方法、预备知识和相关工作（从本机的 PDF 中读取）——以及标题和标签。偏好的方向在“偏好设置 › AI”中设定。应用之前不会有任何改动。",
   "Keep papers I filed by hand where they are":"保留我手动归类的论文",
   "New imports":"新导入",
   "Group newly imported papers automatically":"自动为新导入的论文分组",
@@ -231,7 +231,7 @@
   "Estimating…":"正在估算…",
   "About {0} tokens in {1} · Claude usage: {2}":"约 {0} token，共 {1} · Claude 用量：{2}",
   "None of these papers has anything to read.":"这些论文都没有可读的内容。",
-  "An estimate of what is sent and written. Each paper is one small call: its brief, your note and key points, and the passages of the PDF that match the columns - never the whole PDF. The amount of text per paper follows “Claude usage” in Preferences › Claude.":"对发送和生成内容的估算。每篇论文只是一次小调用：它的简介、你的笔记和要点，以及 PDF 中与各列匹配的段落——绝不会发送整篇 PDF。每篇论文的文本量取决于偏好设置 › Claude 中的“Claude 用量”。",
+  "An estimate of what is sent and written. Each paper is one small call: its brief, your note and key points, and the passages of the PDF that match the columns - never the whole PDF. The amount of text per paper follows “Claude usage” in Preferences › AI.":"对发送和生成内容的估算。每篇论文只是一次小调用：它的简介、你的笔记和要点，以及 PDF 中与各列匹配的段落——绝不会发送整篇 PDF。每篇论文的文本量取决于偏好设置 › AI 中的“Claude 用量”。",
   "No estimate:":"无法估算：",
   "Stopped - “{0}” keeps what was filled.":"已停止——“{0}”保留已填写的内容。",
   "“{0}” is filled, {1} could not be read.":"“{0}”已填写，{1} 无法读取。",
@@ -496,7 +496,7 @@
   "to find them together). The matching passages are listed under each paper with their page; click one to open the paper at that page, note line or key point.":"作为整体查找）。匹配的段落会连同页码列在每篇论文下方；点击即可在该页、笔记行或要点处打开论文。",
   "Claude files every new paper into a category with a few tags. Categories are":"Claude 会把每篇新论文归入一个类别，并加上几个标签。类别是",
   "research lines":"研究方向",
-  ": a paper goes under the line of work it builds on (what its Preliminaries and Related Work start from), not its application words - a policy built on a VLA backbone is “VLA”, one that learns a world model is “World Models”. A line with 4 or more papers can have sub-lines, written “Line / Sub-line” (“Humanoid / Locomotion”); the list nests them under the line, and the ⋯ of a line renames, deletes or re-groups all of it. Preferences › Claude › “Research lines Claude should prefer” lists the names Claude prefers.":"：论文归入它所基于的工作方向（即它的预备知识和相关工作的出发点），而不是它的应用领域——基于 VLA 骨干网络的策略属于“VLA”，学习世界模型的属于“World Models”。拥有 4 篇或更多论文的方向可以有子方向，写作“方向 / 子方向”（“Humanoid / Locomotion”）；列表会把它们嵌套在方向之下，方向的 ⋯ 菜单可以重命名、删除或重新分组整个方向。偏好设置 › Claude › “Claude 应优先使用的研究方向”列出了 Claude 优先使用的名称。",
+  ": a paper goes under the line of work it builds on (what its Preliminaries and Related Work start from), not its application words - a policy built on a VLA backbone is “VLA”, one that learns a world model is “World Models”. A line with 4 or more papers can have sub-lines, written “Line / Sub-line” (“Humanoid / Locomotion”); the list nests them under the line, and the ⋯ of a line renames, deletes or re-groups all of it. Preferences › AI › “Research lines Claude should prefer” lists the names Claude prefers.":"：论文归入它所基于的工作方向（即它的预备知识和相关工作的出发点），而不是它的应用领域——基于 VLA 骨干网络的策略属于“VLA”，学习世界模型的属于“World Models”。拥有 4 篇或更多论文的方向可以有子方向，写作“方向 / 子方向”（“Humanoid / Locomotion”）；列表会把它们嵌套在方向之下，方向的 ⋯ 菜单可以重命名、删除或重新分组整个方向。偏好设置 › AI › “Claude 应优先使用的研究方向”列出了 Claude 优先使用的名称。",
   "chooses how the list is grouped and sorted.":"选择列表的分组和排序方式。",
   "The same step writes a":"同一步骤还会写一段",
   "brief":"简介",
@@ -605,7 +605,9 @@
   "Explain or translate in place":"原地解释或翻译",
   ": select text and press the sparkle of the small bar to have Claude explain it, give its foundations, its meaning or an example, translate it (into 中文 or English), or answer your own question. The answer opens in a card over the PDF, so the note stays as it is;":"：选中文本，点击小工具栏上的闪光按钮，让 Claude 解释它、给出其基础知识、含义或示例、翻译它（译为中文或英文），或回答你自己的问题。回答会显示在 PDF 上方的卡片中，笔记保持不变；",
   "Add to note":"添加到笔记",
-  "puts the passage (as a quote with its page) and the answer into the note. After a snapshot, a sparkle beside the region asks Claude about that figure or table.":"会把该段落（作为带页码的引文）和回答放入笔记。截图之后，区域旁的闪光按钮可以就该图表询问 Claude。",
+  "puts the passage (as a quote with its page) and the answer into the note.":"会把该段落（作为带页码的引文）和回答放入笔记。",
+  "puts the passage (as a quote with its page) and the answer into the note.{0}":"会把该段落（作为带页码的引文）和回答放入笔记。{0}",
+  "After a snapshot, a sparkle beside the region asks Claude about that figure or table.":"截图之后，区域旁的闪光按钮可以就该图表询问 Claude。",
   "Page citations":"页码引用",
   ": Claude ends what it takes from the paper with its page, such as (p. 4), and marks the rest as (general knowledge). In an answer card, a diagram card, a quiz explanation, the Claude panel and Claude's comments in the note, click the page to see it in the PDF.":"：Claude 会在取自论文的内容后注明页码，例如 (p. 4)，其余内容标为 (general knowledge)。在回答卡片、图解卡片、测验解析、Claude 面板以及笔记中 Claude 的评论里，点击页码即可在 PDF 中查看。",
   "Page links":"页面链接",
@@ -743,7 +745,7 @@
   "in the toolbar) to improve the wording, shorten it by about a fifth, translate it into academic English, or give an instruction of your own. The proposal appears under the passage: removed words in red, new ones in green.":"工具栏中的按钮）即可改进措辞、缩短约五分之一、译成学术英语，或给出你自己的指令。建议会显示在段落下方：删除的词为红色，新增的为绿色。",
   "accepts it,":"接受，",
   "keeps your text,":"保留你的文本，",
-  "asks again. Nothing changes before you accept, and an accepted change is a “Claude” version in the history. “Find weak claims” answers in the Claude panel instead and changes nothing.":"重新询问。接受之前不会有任何改动，接受的修改会在历史中记为一个“Claude”版本。“查找薄弱论断”则在 Claude 面板中回答，不做任何修改。",
+  "asks again. Nothing changes before you accept, and an accepted change is kept in the history as a version by Claude. “Find weak claims” answers in the Claude panel instead and changes nothing.":"重新询问。接受之前不会有任何改动，接受的修改会在历史中记为一个“Claude”版本。“查找薄弱论断”则在 Claude 面板中回答，不做任何修改。",
   "Papers of this project":"此项目的论文",
   "(toolbar, or the project menu): the papers you added to the project in the Library, each with its reading status, how often it is cited and whether it has a note. Insert its":"（工具栏或项目菜单）：你在文献库中添加到此项目的论文，每篇都显示阅读状态、被引用次数以及是否有笔记。在光标处插入其",
   "at the cursor, open it in the Library, or take it out. Below are the papers the project cites but does not hold (add them with one click) and the cited papers you have not finished or have no note on.":"，在文献库中打开它，或将其移出。下方是项目引用但未包含的论文（一键添加），以及你尚未读完或没有笔记的已引用论文。",
@@ -788,7 +790,7 @@
   ": rewrite a selection with a comparison to accept or reject, and draft related work from papers of your library.":"：改写选区并对比以决定接受或拒绝，以及根据文献库中的论文起草相关工作。",
   "Terminal":"终端",
   ": the command at the bottom of the Claude panel opens Claude Code in the same data folder.":"：Claude 面板底部的命令会在同一数据文件夹中打开 Claude Code。",
-  "Preferences › Claude shows what each Claude feature used in the last 7 days: calls, tokens and the average time of one call. “Claude usage” there sets how much those features may spend (Economy, Balanced, Best quality; the Claude panel is not affected), and “How Claude explains” is the instruction added to every explanation - edit it to change how Claude teaches.":"偏好设置 › Claude 中会显示每项 Claude 功能在过去 7 天的用量：调用次数、token 数以及单次调用的平均时间。其中的“Claude 用量”设定这些功能可以花费多少（节省、均衡、最佳质量；Claude 面板不受影响），“Claude 如何讲解”是附加到每次讲解中的指令——编辑它即可改变 Claude 的讲解方式。",
+  "Preferences › AI shows what each Claude feature used in the last 7 days: calls, tokens and the average time of one call. “Claude usage” there sets how much those features may spend (Economy, Balanced, Best quality; the Claude panel is not affected), and “How Claude explains” is the instruction added to every explanation - edit it to change how Claude teaches.":"偏好设置 › AI 中会显示每项 Claude 功能在过去 7 天的用量：调用次数、token 数以及单次调用的平均时间。其中的“Claude 用量”设定这些功能可以花费多少（节省、均衡、最佳质量；Claude 面板不受影响），“Claude 如何讲解”是附加到每次讲解中的指令——编辑它即可改变 Claude 的讲解方式。",
   "If something does not work":"遇到问题时",
   "“Not signed in” or an authentication error: open the account window and sign in again.":"“未登录”或认证错误：打开账户窗口并重新登录。",
   "You have reached a usage limit: wait for it to reset, or sign in with another account.":"你已达到用量上限：等待其重置，或用另一个账户登录。",
@@ -2336,9 +2338,9 @@
   "{0} Nothing has changed yet.":"{0} 目前还没有任何改动。",
   "Ask again: another proposal for the same text":"重新询问：为同一段文本给出另一个建议",
   "Reject: keep my text":"拒绝：保留我的文本",
-  "Accept: put this in place of the marked text (kept as a Claude version in the history)":"接受：用它替换标记的文本（在历史中保留为一个 Claude 版本）",
+  "Accept: put this in place of the marked text (kept in the history as a version by Claude)":"接受：用它替换标记的文本（在历史中保留为一个 Claude 版本）",
   "The marked text was edited after you asked, so the proposal no longer fits. Select it and ask again.":"提问之后标记的文本已被编辑，因此建议不再适用。请选中它并重新询问。",
-  "Accepted — the change is a Claude version in the history.":"已接受——此修改在历史中是一个 Claude 版本。",
+  "Accepted — the change is kept in the history as a version by Claude.":"已接受——此修改在历史中是一个 Claude 版本。",
   "Abstract":"摘要",
   "The editor could not be started, so Claude cannot work on a selection.":"编辑器无法启动，因此 Claude 无法处理选区。",
   "Select the text Claude should work on first.":"请先选中 Claude 要处理的文本。",
@@ -2373,7 +2375,7 @@
   "Back: choose other papers or another angle":"返回：选择其他论文或换个角度",
   "Copy the LaTeX":"复制 LaTeX",
   "Write the draft with Claude":"用 Claude 写草稿",
-  "Insert the draft at the cursor (kept as a Claude version in the history)":"在光标处插入草稿（在历史中保留为一个 Claude 版本）",
+  "Insert the draft at the cursor (kept in the history as a version by Claude)":"在光标处插入草稿（在历史中保留为一个 Claude 版本）",
   "Insert the draft at the cursor":"在光标处插入草稿",
   "nothing to write from":"没有可依据的内容",
   "{0} chosen — at most {1} for one draft":"已选 {0} 篇——一份草稿最多 {1} 篇",
@@ -2389,7 +2391,7 @@
   "a key":"一个键",
   "Removed {0} of {1} that {2} not among the chosen papers: {3}":"已移除 {1} 中不属于所选论文的 {0}：{3}",
   "Could not reach the app. Check that ResearchTool is still running.":"无法连接到应用。请确认 ResearchTool 仍在运行。",
-  "Draft inserted, citing {0} paper{1} — it is a Claude version in the history.":"草稿已插入，引用了 {0} 篇论文——它在历史中是一个 Claude 版本。",
+  "Draft inserted, citing {0} paper{1} — it is kept in the history as a version by Claude.":"草稿已插入，引用了 {0} 篇论文——它在历史中是一个 Claude 版本。",
   "The file could not be saved, so the draft was not inserted. It is still here to copy.":"文件无法保存，因此草稿没有插入。它仍在这里，可以复制。",
   "This project ({0})":"此项目（{0}）",
   "All categories":"所有类别",
@@ -2915,7 +2917,7 @@
   "Inline math  $ … $":"行内公式  $ … $",
   "Uploading{0}":"正在上传{0}",
   "Next card":"下一张卡片",
-  "The language of first drafts and of Claude's answers in the note - the same setting as Preferences > Claude > First-draft language":"初稿以及笔记中 Claude 回答所用的语言——与“偏好设置 > Claude > 初稿语言”是同一设置",
+  "The language of first drafts and of Claude's answers in the note - the same setting as Preferences > AI > First-draft language":"初稿以及笔记中 Claude 回答所用的语言——与“偏好设置 > AI > 初稿语言”是同一设置",
   "key":"关键",
   "Your workspace has no backup and automatic backup is switched off":"你的工作区没有备份，且自动备份已关闭",
   // review pass: strings the edge-placeholder guard of i18n.js no longer takes by a short key
@@ -3621,7 +3623,10 @@
  "![Figure (p. {0})]({1}) {2}",
  "- {0} missing on disk, marked \"[missing image]\"",
  ":scope > .grp",
- "> [!ai] 💬 **Claude · {0}** — “{1}”"
+ "> [!ai] 💬 **{0} · {1}** — “{2}”",
+ "{0} > ⏳ {1} is writing… ⟦{2}⟧",
+ "% --- Draft by {0} from {1} paper{2} of the library: check every claim against the papers before you keep it ---",
+ "Read the files involved, find the real cause (for example two packages that clash, or a wrong option), and show the smallest change that fixes it as a short diff of the file. You cannot edit files: I will make the change myself. Do not remove content to make the error go away."
 ];
   // "3 papers", "1 question", "12 files": a count and a noun (singular or plural) -> "3 篇论文"
   const NOUNS = {
@@ -3655,12 +3660,12 @@
   // single UI words a placeholder may capture ("{0} - click to change the reading status"), translated there too
   const captureWords = ['To read', 'Reading', 'Done', 'Unread', 'Starred', 'Economy', 'Balanced', 'Best quality', 'English', 'Notes', 'Diagram', 'Practice', 'Key points', 'Details', 'Related', 'Figures', 'Library', 'Write', 'Editor', 'Error', 'Warning', 'error', 'warning', 'Category', 'Year', 'Project', 'Venue'];
   const zh = { dict, keep, notUi, rules, captureWords };
-  // the per-area fragments (zh-brand.js, zh-overview.js, zh-library.js, zh-reader.js, zh-dialogs.js, zh-tour.js): in the page they
+  // the per-area fragments (zh-brand.js, zh-overview.js, zh-library.js, zh-reader.js, zh-dialogs.js, zh-tour.js, zh-ai.js): in the page they
   // load before this file and push themselves onto RT_I18N_ZH_PARTS; in Node they are required here. A fragment's key
   // wins over the same key above; keep / notUi / rules / captureWords are added.
   let parts = [];
   if (typeof module === 'object' && module.exports && typeof require === 'function') {
-    for (const area of ['brand', 'overview', 'library', 'reader', 'dialogs', 'tour']) { try { parts.push(require('./zh-' + area + '.js')); } catch { /* not there */ } }
+    for (const area of ['brand', 'overview', 'library', 'reader', 'dialogs', 'tour', 'ai']) { try { parts.push(require('./zh-' + area + '.js')); } catch { /* not there */ } }
   } else parts = root.RT_I18N_ZH_PARTS || [];
   for (const part of parts) {
     if (!part) continue;

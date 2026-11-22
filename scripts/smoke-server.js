@@ -12,6 +12,15 @@
 //   node scripts/smoke-server.js --tmp <dir>     make the temporary workspace inside <dir>
 //   node scripts/smoke-server.js --pdf           also import a small generated PDF (needs pdftotext; without --pdf
 //                                                that step runs only when pdftotext is installed)
+//   node scripts/smoke-server.js --provider codex   choose another AI provider (codex | grok | antigravity) through the
+//                                                settings, and run key points and a panel turn through its fake CLI
+// Fake codex / grok / agy CLIs (scripts/fixtures/fake-ai) are on PATH too: GET /api/ai/status must find the
+// chosen one (codex by default) installed and signed in (Antigravity: "unknown until the first call") without any
+// model call. The server's PATH holds ONLY the fakes' folder (with links to pdftotext / zip ...) and a folder with
+// nothing but a link to node (never node's own folder: /opt/homebrew/bin holds a real codex and gemini), its HOME and
+// XDG folders are temporary, and the server runs under the guard (scripts/fixtures/fake-ai/guard.js, `node -r`): a
+// claude / codex / gemini / grok / agy outside the fakes' folder is refused before it starts, and every start is
+// logged - the smoke test checks that every one resolved to a fake.
 'use strict';
 const fs = require('node:fs');
 const os = require('node:os');
@@ -20,11 +29,14 @@ const net = require('node:net');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
 const Z = require('./zipread');
+const { installFakes, linkHelpers, nodeOnlyDir } = require('./fixtures/fake-ai/install');
 
 const ROOT = path.join(__dirname, '..');
 const argv = process.argv.slice(2);
 const opt = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : null; };
 const WANT_PDF = argv.includes('--pdf');
+const PROVIDER = opt('--provider');
+if (PROVIDER && !['codex', 'grok', 'antigravity'].includes(PROVIDER)) { console.error('--provider must be codex, grok or antigravity'); process.exit(2); }
 const IS_WIN = process.platform === 'win32';
 
 const freePort = () => new Promise((resolve, reject) => {
@@ -106,15 +118,30 @@ function check(name, ok, detail) {
   const top = fs.mkdtempSync(path.join(opt('--tmp') || os.tmpdir(), 'rt-smoke-'));
   const ws = path.join(top, 'workspace'), bin = path.join(top, 'bin'), log = path.join(top, 'claude-calls.log');
   fs.mkdirSync(ws, { recursive: true }); fs.mkdirSync(bin, { recursive: true });
+  const aiLog = path.join(top, 'ai-calls.jsonl'), SP = PROVIDER || 'codex';
   fs.writeFileSync(path.join(ws, 'settings.json'), JSON.stringify({ autoCategorize: false, backupAuto: false }));
   fakeClaude(bin, log);
-  const env = { ...process.env, PORT: String(port), RT_WORKSPACE: ws };
+  installFakes(bin, { names: ['codex', 'grok', 'agy'] });
+  const home = path.join(top, 'home'); fs.mkdirSync(home, { recursive: true });
+  const env = { ...process.env, PORT: String(port), RT_WORKSPACE: ws, FAKE_AI_LOG: aiLog, FAKE_AI_STATE: 'ok', GEMINI_API_KEY: 'gm-fake-smoke', HOME: home, USERPROFILE: home, RT_NO_EXTRA_PATH: '1' };
   const pathKey = Object.keys(env).find((k) => k.toUpperCase() === 'PATH') || 'PATH';
-  env[pathKey] = bin + path.delimiter + (env[pathKey] || '');
-  for (const k of Object.keys(env)) if (/^CLAUDE/.test(k)) delete env[k];
+  const helperDirs = linkHelpers(bin, env[pathKey], ['pdftotext', 'pdftoppm', 'pdfinfo', 'zip', 'unzip']); // (Windows: folders)
+  const nodeDir = nodeOnlyDir(path.join(top, 'node')), guardLog = path.join(top, 'guard.jsonl');
+  const serverPath = [bin, nodeDir, ...helperDirs];
+  env[pathKey] = serverPath.join(path.delimiter);
+  for (const k of Object.keys(env)) if (/^(CLAUDE|ANTHROPIC|OPENAI|CODEX|XAI|GROK|AGY|ANTIGRAVITY|GOOGLE|XDG_|APPDATA$|LOCALAPPDATA$)/i.test(k) || (/^GEMINI/.test(k) && k !== 'GEMINI_API_KEY')) delete env[k];
+  // the XDG folders (Linux: a CLI's config or sign-in) and the Windows app-data folders: temporary, like HOME
+  Object.assign(env, { XDG_CONFIG_HOME: path.join(home, '.config'), XDG_DATA_HOME: path.join(home, '.local', 'share'), XDG_CACHE_HOME: path.join(home, '.cache'), XDG_STATE_HOME: path.join(home, '.local', 'state'),
+    ...(IS_WIN ? { APPDATA: path.join(home, 'AppData', 'Roaming'), LOCALAPPDATA: path.join(home, 'AppData', 'Local') } : {}),
+    // (agy has no home variable of its own: ~/.gemini/antigravity*, ~/.gemini/config - in HOME above)
+    FAKE_AI_BIN: bin, FAKE_AI_GUARD_LOG: guardLog });
+  env.GEMINI_CLI_HOME = path.join(top, 'gemini-home'); // never the user's own Gemini CLI settings
+  env.CODEX_HOME = path.join(top, 'codex-home');       // ... nor Codex's
+  env.GROK_HOME = path.join(top, 'grok-home');         // ... nor Grok's: a fake stored sign-in
+  fs.mkdirSync(env.GROK_HOME, { recursive: true }); fs.writeFileSync(path.join(env.GROK_HOME, 'auth.json'), '{"fake":"session"}');
 
   console.log(`smoke test: node ${process.version} on ${process.platform}, port ${port}, workspace ${ws}\n`);
-  const server = spawn(process.execPath, [path.join(ROOT, 'server.js')], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+  const server = spawn(process.execPath, ['-r', path.join(__dirname, 'fixtures', 'fake-ai', 'guard.js'), path.join(ROOT, 'server.js')], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
   let serverOut = '';
   server.stdout.on('data', (d) => { serverOut += d; });
   server.stderr.on('data', (d) => { serverOut += d; });
@@ -153,8 +180,24 @@ function check(name, ok, detail) {
     check('GET /api/fs/tools -> which optional tools exist', tools.status === 200 && ['texcount', 'synctex', 'unzip', 'spell'].every((k) => typeof tools.json[k] === 'boolean'), tools.text);
     const status = await request(port, 'GET', '/api/status');
     check('GET /api/status -> the workspace, and the (fake) claude CLI found and run without a shell', status.status === 200 && status.json.workspace === ws && status.json.claude === true, status.text);
+    const dg = await request(port, 'GET', '/api/diagnostics');
+    check('GET /api/diagnostics -> versions and the AI status, with no workspace path, home folder or e-mail', dg.status === 200 && dg.json.app && /^\d+\.\d+\.\d+/.test(dg.json.app.version) && dg.json.workspace === '<workspace>' && dg.json.ai && dg.json.ai.installed === true
+      && ![ws, top, os.homedir(), os.userInfo().homedir, '@example'].some((x) => dg.text.includes(x)), dg.text.slice(0, 400));
     const auth = await request(port, 'GET', '/api/claude/auth');
     check('GET /api/claude/auth -> installed, version read, signed out', auth.status === 200 && auth.json.installed === true && auth.json.version === '9.9.9' && auth.json.loggedIn === false, auth.text);
+    // ---------- the AI providers: status of a (fake) CLI, never a model call ----------
+    const provs = await request(port, 'GET', '/api/ai/providers');
+    check('GET /api/ai/providers -> claude, codex, grok, antigravity; claude chosen by default', provs.status === 200 && provs.json.current === 'claude' && provs.json.providers.map((x) => x.id).join() === 'claude,codex,grok,antigravity', provs.text.slice(0, 300));
+    // Gemini CLI is not offered any more: an unknown provider, a clean 400
+    const gst = await request(port, 'GET', '/api/ai/status?p=gemini');
+    check('GET /api/ai/status?p=gemini -> 400 unknown provider (Gemini CLI is not offered)', gst.status === 400 && /Unknown AI provider/.test(gst.text), gst.status + ' ' + gst.text.slice(0, 200));
+    const ast = await request(port, 'GET', `/api/ai/status?p=${SP}&fresh=1`);
+    const s1 = ast.json && ast.json.status && ast.json.status[SP];
+    // (Antigravity has no sign-in check without a model call: unknown, null; its fake says 9.8.7, the real agy 1.5.14)
+    check(`GET /api/ai/status?p=${SP} -> the fake ${SP} found, its version read, ${SP === 'antigravity' ? 'sign-in unknown until the first call' : 'signed in'}`, ast.status === 200 && s1 && s1.installed === true && /^\d+\.\d+\.\d+$/.test(s1.version)
+      && (SP === 'antigravity' ? s1.signedIn === null && s1.version === '9.8.7' && /run “agy” once/.test(s1.warning || '') : s1.signedIn === true), ast.text.slice(0, 400));
+    const all = await request(port, 'GET', '/api/ai/status');
+    check('GET /api/ai/status -> all four providers reported', all.status === 200 && Object.keys(all.json.status).join() === 'claude,codex,grok,antigravity' && ['claude', 'codex', 'grok', 'antigravity'].every((k) => all.json.status[k] && all.json.status[k].installed === true), all.text.slice(0, 400));
     for (const p of ['/api/trash', '/api/categories', '/api/backup', '/api/venues', '/api/notes/recent', '/api/memberships', '/api/library/backups']) {
       const r = await request(port, 'GET', p);
       check(`GET ${p}`, r.status === 200 && r.json, r.status + ' ' + r.text.slice(0, 200));
@@ -207,6 +250,39 @@ function check(name, ok, detail) {
       }
     } else console.log('skip  PDF import: pdftotext is not installed (pass --pdf to require it)');
 
+    // ---------- another AI provider: switched in the settings, a feature and a panel turn through its fake ----------
+    if (PROVIDER) {
+      const put = await request(port, 'PUT', '/api/settings', { body: { aiProvider: PROVIDER }, headers: X });
+      check(`PUT /api/settings {aiProvider: ${PROVIDER}}`, put.status === 200 && put.json.aiProvider === PROVIDER, put.text.slice(0, 300));
+      const bad = await request(port, 'PUT', '/api/settings', { body: { aiProvider: 'nope' }, headers: X });
+      check('an unknown aiProvider -> 400', bad.status === 400, bad.status + ' ' + bad.text.slice(0, 200));
+      const st2 = await request(port, 'GET', '/api/status');
+      check(`GET /api/status -> the ${PROVIDER} CLI reported as the AI tool`, st2.status === 200 && st2.json.ai && st2.json.ai.provider === PROVIDER && st2.json.ai.installed === true, st2.text);
+      const items = (await request(port, 'GET', '/api/library')).json.items;
+      if (items.length) {
+        const kp = await request(port, 'POST', `/api/items/${items[0].id}/extract`, { body: { mode: 'claude' }, headers: X });
+        check(`key points through the fake ${PROVIDER}`, kp.status === 200 && kp.json.item.keypointSource === 'claude' && kp.json.item.keypoints.length >= 1, kp.status + ' ' + kp.text.slice(0, 300));
+      }
+      const chat = await request(port, 'POST', '/api/claude', { body: { prompt: 'Hello from the smoke test', context: {} }, headers: X });
+      const evs = chat.text.trim().split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return {}; } });
+      const done = evs.find((e) => e.type === 'done');
+      check(`a panel turn through the fake ${PROVIDER} (NDJSON: text, done with a session)`, chat.status === 200 && evs.some((e) => e.type === 'delta' || e.type === 'text') && done && !done.isError && done.sessionId, chat.text.slice(0, 500));
+      const back = await request(port, 'PUT', '/api/settings', { body: { aiProvider: 'claude' }, headers: X });
+      check('switching back to claude', back.status === 200 && back.json.aiProvider === 'claude');
+    }
+    // (the fake agy logs itself as "agy": the provider id is "antigravity")
+    const aiCalls = fs.existsSync(aiLog) ? fs.readFileSync(aiLog, 'utf8').trim().split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l)).map((c) => (c.p === 'agy' ? { ...c, p: 'antigravity' } : c)) : [];
+    // every folder of the server's PATH but the fakes' own: no claude / codex / gemini / grok / agy in any form
+    const AIN = ['claude', 'codex', 'gemini', 'grok', 'agy'], XS = ['', '.exe', '.cmd', '.bat', '.ps1', '.com'];
+    const found = serverPath.slice(1).flatMap((d) => AIN.flatMap((n) => XS.map((x) => path.join(d, n + x)))).filter((f) => fs.existsSync(f));
+    check('the server PATH holds only the fakes and node (no real claude / codex / gemini / grok / agy can be found)', found.length === 0 && fs.readdirSync(nodeDir).length === 1, found.join(', ') || fs.readdirSync(nodeDir).join(', '));
+    // the guard log of the server process: every AI CLI it started resolved to a fake, none was refused
+    const g = fs.existsSync(guardLog) ? fs.readFileSync(guardLog, 'utf8').trim().split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l)) : [];
+    const realBin = fs.realpathSync(bin), inBin = (f) => !!f && [path.resolve(f), (() => { try { return fs.realpathSync(f); } catch { return path.resolve(f); } })()].every((x) => x.startsWith(bin + path.sep) || x.startsWith(realBin + path.sep));
+    check('every claude / codex / gemini / grok / agy the server started resolved to its fake (guard log)', g.length >= 2 && g.some((x) => x.cmd === 'claude') && g.every((x) => x.ok && (x.file == null || inBin(x.file))), JSON.stringify(g).slice(0, 600));
+    check('the fake codex / grok / agy saw no forbidden flag, no login, and no user text in argv', aiCalls.length >= 1 && aiCalls.every((c) => !c.forbidden && !c.argv.some((a) => /smoke test|Smoke Test/.test(a))), JSON.stringify(aiCalls.map((c) => [c.p, ...c.argv])).slice(0, 800));
+    check(PROVIDER ? `only ${PROVIDER} ran a prompt` : 'no codex / grok / agy prompt was run (status only)', aiCalls.filter((c) => c.stdin != null || c.promptFile != null).every((c) => c.p === PROVIDER), JSON.stringify(aiCalls.map((c) => c.p)));
+
     // ---------- the real claude was never run ----------
     const calls = fs.existsSync(log) ? fs.readFileSync(log, 'utf8').trim().split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l)) : [];
     check('only the fake claude was called, and only for --version / auth status', calls.length >= 1 && calls.every((a) => a[0] === '--version' || (a[0] === 'auth' && a[1] === 'status')), JSON.stringify(calls));
@@ -219,6 +295,8 @@ function check(name, ok, detail) {
     stopped = true;
     if (failed) console.log('\n--- server output ---\n' + serverOut.slice(-4000));
     try { fs.rmSync(top, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }); } catch (e) { console.log('note: could not remove ' + top + ': ' + e.message); }
+    // the server's private AI folder (lib/ai/index.js: <os temp>/researchtool-ai-<sha1 of the workspace path>)
+    try { fs.rmSync(path.join(os.tmpdir(), 'researchtool-ai-' + require('node:crypto').createHash('sha1').update(path.resolve(ws)).digest('hex').slice(0, 12)), { recursive: true, force: true }); } catch { /* gone */ }
   }
   console.log(`\n${checks.length - failed} of ${checks.length} smoke checks passed${stopped ? ', server stopped' : ''}`);
   process.exit(failed ? 1 : 0);

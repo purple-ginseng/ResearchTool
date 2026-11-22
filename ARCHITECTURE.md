@@ -16,16 +16,39 @@ lib/platform.js           what differs between macOS, Linux and Windows (pure, p
                           insideAnyCase(), winBadName() (names Windows reads differently: refused by normRel and the zip
                           import there), lines() / lf() for \r\n tool output, wording (credential store, git install)
 lib/zip.js                writeZip(): a plain zip without the zip program (used when `zip` is missing, e.g. on Windows)
+lib/ai/index.js           the AI provider (Claude Code default, OpenAI Codex, xAI Grok Build, Google Antigravity `agy`;
+                          Gemini CLI is not offered - Google ended personal-account use on 2026-06-18): selection,
+                          ai.run / ai.spawn / ai.spawnChat (Claude: core.run / core.spawnTool with the same argv as before, via claude-compat.js), status,
+                          settings (see "AI providers (lib/ai)" below)
+lib/ai/child.js           AiChild: one call of codex / grok / agy that looks like a `claude -p` child (Claude's output format)
+lib/ai/claude-compat.js   every Claude feature call (ai.run / ai.spawn): the normal argv first; an older claude that refuses an
+                          option ("error: unknown option '--effort'") gets the call once more with the panel's options
+                          (+ --strict-mcp-config, --model; same tools allowlist), decided per call by the argv it used,
+                          remembered until `claude --version` changes (asked again at most once a minute). That set no
+                          longer has --setting-sources '' / --no-session-persistence / --system-prompt: like the panel,
+                          the calls load the user's and workspace's settings, hooks, permission rules and CLAUDE.md and
+                          are kept as sessions - so a call whose allowed tools are path-limited (the picture question,
+                          Read(//<image>)) never uses it. A refused --effort value alone: only --effort is left out.
+                          Refused again -> 'Claude Code needs an update: run "claude update", then try again. ...'
+lib/diagnostics.js        Help › Copy diagnostics: redact() (workspace / external projects / backup folder / tmp / home paths,
+                          also as /private aliases, then public/js/redact.js: other homes, drives, shares, URL user names,
+                          e-mail, keys and tokens) and the ring buffer of the last 20 AI call errors (first line);
+                          GET /api/diagnostics in routes/diagnostics.js
+public/js/redact.js       the redaction patterns shared by the server and the page (+ quoted(): quoted pieces of page errors)
+lib/ai/providers/*.js     claude.js (facts only), codex.js, grok.js, antigravity.js: argv, format parsing, errors, status
 lib/routes/*.js           one route module per feature; ALL are auto-loaded in file-name order:
   backup.js               /api/backup[/restore]  dated copies of the whole workspace (lib/backup.js; it also starts the daily
                           backup); the folder and the switch are saved with PUT /api/settings {backupDir, backupAuto}
+  diagnostics.js          GET /api/diagnostics  versions, OS, Node, AI provider status (no account), helper programs, last AI
+                          errors - redacted, no AI call, no user content (public/js/diagnostics.js builds the copied text)
   categories.js           /api/categories[/rename|delete|regroup|apply|lines] (rename / delete {line: true} = a whole research
                           line with its sub-lines; GET|PUT lines = Settings "Research lines Claude should prefer", settings.json
                           researchLines, absent = the built-in list, '' = none; PUT {reset:true}), POST /api/items/:id/categorize,
                           POST /api/items/:id/brief, POST /api/briefs {ids?} (write missing briefs), POST /api/briefs/stop          LIBRARY
   account.js              /api/claude/auth[/login|code|logout]  is the claude CLI installed and signed in; sign in / out
                           through `claude auth` (UI: public/js/account.js; the app never sees a password or token)
-  claude.js               POST /api/claude (NDJSON stream)
+  ai.js                   GET /api/ai/providers, GET /api/ai/status[?p=id][&fresh=1] (installed / version / signed in, no model call)
+  claude.js               POST /api/claude (NDJSON stream; with another AI provider a read-only chat through lib/ai)
   drafting.js             GET /api/writing/material (ids of the papers that have a note), POST /api/projects/:id/rewrite
                           {mode, instruction?, text, section?, before?, after?} -> {text, same, newKeys}, POST
                           /api/projects/:id/related-work {ids, angle?, heading?} -> {latex, papers, cited, uncited, thin,
@@ -360,7 +383,9 @@ public/js/project-papers.js which papers belong to which project and the working
                           the paper-package downloads; askPdfs(ids) asks (POST export-zip estimate) when the PDFs are over
                           100 MB: with them / without them / cancel (#pk-dlg through RT.write.ui.openDialog)
 public/js/claude.js       Claude panel
-public/js/account.js      "Claude Code account" dialog (person button in the Claude panel): status, sign in, sign out
+public/js/account.js      "Claude Code account" dialog (person button in the Claude panel): status, sign in, sign out; with
+                          another AI provider: that CLI's status and the terminal command that signs in
+public/js/ai.js           RT.ai: the chosen AI provider (id, name, caps, status), 'ai:changed'; sets the brand of i18n.js
 public/js/diagram.js      reader's Diagram tab: generate, hover cards, hand editing, layout -> RT.diagram
 public/js/quiz.js         reader's Practice tab (quiz, flash cards) and the Review dialog of the Library list (#btn-review,
                           #dlg-review) -> RT.quiz: show(host, item), forget(id), review(pid | {project, name}?) (the
@@ -503,7 +528,7 @@ public/js/write-ai.js     Write tab: Claude in the editor -> RT.writeAi: menu(an
                           proposal a line widget (.ai-prop) under it with the word diff and Accept / Reject / Ask again;
                           the document is not touched before Accept. Accept and "Insert" go through
                           RT.write.ed.applyClaude(buf, edit): save what is there, make the change, save it with source
-                          'claude' (PUT .../file accepts source 'auto' | 'claude', anything else is 'manual'). forget(buf)
+                          'claude' (PUT .../file accepts source 'auto' | 'claude', anything else is 'manual'; with 'claude' also `by`, the provider id). forget(buf)
                           is called by write.js when a file is closed, loaded again from disk or the project is left:
                           it stops the request and removes the proposal. The related-work dialog closes only after
                           the draft is saved in the file. A CLI result with is_error is always an error, never text.
@@ -520,10 +545,10 @@ public/css/*.css          fonts.css (@font-face only, linked before everything, 
 public/vendor/            third-party libraries (never a CDN at runtime)
 ```
 
-Scripts load in this order: `ui-boot` (in `<head>`), vendor, `icons`, `core`, `illustrations`, `i18n/zh-*`, `i18n/zh`,
-`i18n`, `prefs`, `tips`, `project-papers`, `claude`, `library-list`, `categories`, `organize`, `diagram`, `quiz`, `compare`,
+Scripts load in this order: `ui-boot` (in `<head>`), vendor, `icons`, `core`, `illustrations`, `i18n/zh-*` (`zh-ai`
+last), `i18n/zh`, `i18n`, `ai`, `prefs`, `tips`, `project-papers`, `claude`, `library-list`, `categories`, `organize`, `diagram`, `quiz`, `compare`,
 `related`, `lineage`, `pdfnav`, `highlights`, `figures`, `reader`, `texlint`, `refscan`, `write`, `write-ai`, `projects-home`,
-`overleaf`, `account`, `guide`, `tour-steps`, `tour`, `palette`, `overview`, `panes`, `safety` (the CSS order is in the
+`overleaf`, `account`, `guide`, `tour-steps`, `tour`, `palette`, `overview`, `panes`, `safety`, `redact`, `diagnostics` (the CSS order is in the
 module map; index.html is the authority). Each module is an IIFE that builds its markup inside its container **when the script
 runs** and attaches its API to an `RT.<name>` object created with `RT.x = RT.x || {}`. A module that loads earlier
 must only call a later module at event time, guarded: `if (RT.overleaf && RT.overleaf.mountSync) ...`.
@@ -595,7 +620,7 @@ warms it, replacing the PDF or deleting the item drops it); never call pdftotext
 | `keepCopy(force?)`, `listLibBackups()`, `restoreLibBackup(name)`, `libState()` | copies of library.json in `<workspace>/backups/library-<date>-<time>.json` (at most one per 10 minutes; newest 30 + one per day for 60 days), the list of them, putting one back (the replaced file is kept as `library-replaced-<time>.json`), `{damaged}` |
 | `claudeArgs('light' \| 'heavy', {tools, allowed, stream, partial})` | the flags of every `claude -p` call: no tools unless named, no MCP, no session, effort and model from the "Claude usage" mode. `aiMode()` -> `'economy' \| 'balanced' \| 'quality'` (`AI_MODES`) |
 | `teachStyle()`, `TEACH_DEFAULT`, `citeRule(language)` | the user's "How Claude explains" text (settings `teachStyle`, else the built-in one) - put it into every prompt that explains something; the fixed page-citation rule |
-| `recordUsage(feature, resultJson)`, `usageSummary()` | one line per AI call in `cache/ai-usage.jsonl`; sums for the Settings window. Features today: `chat`, `grouping`, `brief`, `key-points`, `draft`, `ask`, `translate`, `diagram`, `diagram-explain`, `quiz`, `compare`, `rewrite`, `related-work` |
+| `recordUsage(feature, resultJson)`, `usageSummary()` | one line per AI call in `cache/ai-usage.jsonl` (`p`: the provider when not Claude; `usd` only when the CLI reported a cost); sums for the Settings window (`byFeature`, `byProvider`). Features today: `chat`, `grouping`, `brief`, `key-points`, `draft`, `ask`, `translate`, `diagram`, `diagram-explain`, `quiz`, `compare`, `rewrite`, `related-work` |
 | `loadSettings()`, `saveSettings(obj)` | whole settings.json object (`exportDir` defaulted). Other keys live in the same file (`externalProjects`, `projectSettings`, `projectsV2`, `overleafLinks`, `aiMode`, `teachStyle`, `backupDir`, `backupAuto`): always read-modify-write the whole object |
 | `newId()` | 10 hex chars |
 | `safeName(s)` | `[A-Za-z0-9_-]`, max 60 |
@@ -618,6 +643,7 @@ warms it, replacing the PDF or deleting the item drops it); never call pdftotext
 Data shapes: item = `{id, citekey, type, fields{}, pdf, pdfName?, pages?, metaSource, keypoints[{id,text,page,category,note,s?}],
 keypointSource, added, textFound?, fileHash?, category ("Uncategorized" by default), tags[], categoryStatus?
 ('pending'|'done'|'failed'|'manual'), categoryReason?, categoryError?, brief? (a sentence or two shown in the list),
+keypointBy? (the AI provider that picked the key points when keypointSource is 'claude'),
 briefStatus? ('pending'|'failed'), briefError?, briefBy? ('user' = typed by hand, never replaced by a grouping call), status? ('unread'|'reading'|'done'; absent =
 to read), starred?, lastOpened? (ISO), reading? {page, frac, zoom}}`. `status`, `starred` and `reading` are set with
 `PUT /api/items/:id`; `POST /api/items/:id/opened` (sent by the reader when the user opens a paper) stamps
@@ -685,6 +711,142 @@ Cross-module backend hooks: `lib/routes/library.js` calls `notes.exportNotes(dir
 is deleted. Environment: `RT_WORKSPACE`, `PORT`, `RT_BURST_MS`, `RT_OVERLEAF_GIT_BASE`, `RT_OVERLEAF_NET_TIMEOUT_MS`,
 `RT_OVERLEAF_CLONE_TIMEOUT_MS`, `RT_CATEGORIZE_TIMEOUT_MS`, `RT_REGROUP_TIMEOUT_MS`, `RT_REGROUP_CHUNK`, `RT_BRIEF_BATCH` (papers per brief call), `RT_BACKUP_FIRST_MS` (delay of the first automatic backup check, default 90 s).
 `DELETE /api/items/:id` answers `{ok, bin}`; `POST /api/trash/<bin>/restore` is its Undo.
+
+### AI providers (lib/ai)
+
+One provider for the whole app: `settings.json` `aiProvider` (`claude` when absent or unknown - so is `gemini`, saved
+while Gemini CLI was offered: its `aiProviders` / `aiUseEnvKey` entries stay in the file and are ignored; Claude also
+leaves the key absent). Per provider `aiProviders: {codex: {model, categoryModel}, ...}` (names checked by
+`/^(?!-)[\w.\-\[\]:/]{1,80}$/`; Claude keeps its top-level `categoryModel` and `claudeArgs`) and `aiUseEnvKey: {codex:
+true}` (a boolean, false / absent by default for every provider; the app never stores, asks for or shows a key). A
+panel session id from the browser must match `ai.SESSION_RE` `/^[0-9a-f][0-9a-f-]{7,63}$/i` (never a leading `-`). Written by `PUT /api/settings` through
+`ai.configure(s, body)`; `GET /api/settings` adds `aiProvider`.
+
+**The interface the features use** (every call path of the app goes through it):
+
+| Call | Claude (default) | Codex / Grok / Antigravity |
+| --- | --- | --- |
+| `ai.run(claudeArgs, runOpts, {kind, model?, image?})` | `core.run('claude', claudeArgs, runOpts)` - the same call as before | an `AiChild` in JSON mode: `{code, out, err}` with `out` = Claude's JSON envelope (`{type:'result', result, is_error, session_id, usage, total_cost_usd?, duration_ms, _provider}`), `err` = the readable error when it failed, `code` -1 when the CLI could not be started |
+| `ai.spawn(claudeArgs, spawnOpts, {kind, stream, partial, model?})` | `core.spawnTool('claude', claudeArgs, spawnOpts)` | an `AiChild` whose stdout is Claude's stream-json (`system/init`, `stream_event` text / thinking deltas when `partial`, `assistant` text and `tool_use`, `result`) |
+| `ai.spawnChat({system, session, addDirs})` | (not used: routes/claude.js keeps its own Claude call) | the panel: a read-only chat (Codex in the workspace; Grok / Antigravity in the empty panel folder with the workspace added); `system` = the panel's context + `READ_ONLY_NOTE`, sent ahead of the message |
+| `ai.caps()` | `readsPdf`, `readsImage`, `agentic`, `sessions`, `partial` all true | Codex: `readsImage`; none reads PDFs or edits |
+
+So the features keep their one parser of Claude's output and their own prompts and post-processing; the only
+gating is `readsPdf` (the draft takes its text-only path, `[p. N]` markers kept) and `readsImage` (Grok / Antigravity
+refuse a picture question with a 400 before anything starts). `scripts/test-ai.js` checks that with no provider set
+every call path spawns `claude` with byte-identical argv, cwd, stdin and env names (snapshot
+`scripts/fixtures/fake-ai/claude-golden.json`, recorded on 8a4faf4 before lib/ai existed).
+
+**AiChild** (`lib/ai/child.js`): looks like a ChildProcess (stdin, stdout, stderr, pid, exitCode, kill(), 'error',
+'close'); the real CLI is started when the caller ends stdin. The private folder `AI_HOME` =
+`<os temp>/researchtool-ai-<sha1(workspace) 12>` (mode 0700, checked to be this user's, not a link and not readable by
+others - else a new random folder): feature calls run in `run/run-*` (empty, removed at close; `run/` is cleared at
+start), the Grok / Antigravity panel in `panel/` (emptied before each use; a stable path, as a CLI may keep
+conversations per folder), status checks in `panel/` too. It is outside the
+workspace on purpose: no CLI may find a `.grok` / `.agents` / `.mcp.json` / `AGENTS.md` of the workspace (or of a folder
+above it) as project configuration. The prompt goes on stdin; Grok gets `prompt.txt` (mode 0600) in the call's folder
+and `--verbatim`. A provider's `unsafe(stderr)` names output that means its read-only setup is not in effect: the run
+is killed at once and its result is an error with that text (Grok: "sandbox could not be applied", "names no tool, so
+other tools stay available", "always-approve is active"; Antigravity: the terminal sandbox turned off / not available,
+a refused `--settings` / `--mode`, flags an old agy does not know). A provider's line parser can do the same by setting
+`st.unsafe` (Antigravity: no `init` first, or one whose `permission_mode` is missing or not `request-review` / `strict`;
+a tool step naming a path outside `st.roots` - the run folder, in the panel the panel folder, the workspace and the
+added folders). After that nothing more of the run reaches the caller (no delta, message or result text). A provider
+with `minVersion` (Antigravity 1.5.13) is checked by `deps.gate` (index.js `versionGate`: `<bin> --version`, a passing
+answer cached 10 minutes and refreshed by every status check) before the CLI is started; below it, or with no version
+to read, the call is refused with "update" and the CLI never runs. The system text goes ahead of the prompt as
+`<instructions>…</instructions>` (none of these CLIs has a flag for it that would keep it out of argv). A provider
+module maps its CLI's output to `{type:'session'|'delta'|'message'|'thinking'|'tool'|'final'}`; when no successful
+`final` arrives, `failure({code, err, out, resumed})` says why in words (not signed in -> the login command; usage
+limit; a resume id the CLI does not know -> `lost: true`, the panel starts a new conversation). A killed call writes no
+result (the callers' "stopped" paths stay as they were).
+
+| | feature call (cwd: the empty temp folder) | panel (cwd: the workspace) |
+| --- | --- | --- |
+| codex | `exec --json --ephemeral --skip-git-repo-check --ignore-user-config --ignore-rules [-i <picture>] -s read-only -C <tmp> -c web_search="disabled" -c shell_environment_policy.inherit="core" [-c cli_auth_credentials_store=".."] -c features.shell_tool=false -c features.unified_exec=false [-m M] [-c model_reasoning_effort="low\|medium"] -` | cwd and `-C`: the workspace. `exec --json ... -s read-only -C <ws> <the same -c web_search / shell_environment_policy / store> -`; `exec resume <id> --json ... -c sandbox_mode="read-only" ... -` (the shell stays: Codex reads files only with it) |
+| antigravity | `agy --input-format stream-json --output-format stream-json --mode plan --sandbox --disable-slash-commands --print-timeout 600s --settings '{"agentMode":"plan","toolPermission":"request-review","permissions":R,"permission":R[,"modelProvider":"gemini"]}' [--model M] [--effort low\|medium] -p` with R = `{"allow":[],"ask":[],"deny":["command(*)","write_file(*)","read_url(*)","execute_url(*)","mcp(*)","read_file(*)"]}` (`-p` last: an agy before 1.1.18 took the next flag as its prompt); stdin: `{"event":"user","message":{"content":"<text>"}}` + newline | cwd: the empty panel folder. The same with `--print-timeout 1200s`, no `read_file(*)` in deny (it may read), `--add-dir <ws> [--add-dir <external project>] [--conversation <id>]` |
+| grok | `--prompt-file <tmp>/prompt.txt --verbatim --output-format json\|streaming-json --permission-mode dontAsk --sandbox read-only --no-memory --no-subagents --disable-web-search --tools todo_write --disallowed-tools run_terminal_cmd,search_replace,write,web_search,web_fetch,task,Shell,StrReplace,Delete,XSearch --max-turns 1 --cwd <tmp> [-m M] [--reasoning-effort low\|medium]` | cwd: the empty panel folder. The same with `--tools read_file,grep,list_dir`, without `--max-turns 1`, `--cwd <panel>`, `--add-dir <ws> [--add-dir <external project>]` or `[-r <id>]` |
+
+Never passed (the fake CLIs refuse them with exit 97): `--yolo`, `-y`, `--always-approve`, `--approve-for-me`,
+`--dangerously-*`, `bypassPermissions`, `workspace-write`, `danger-full-access`, `--with-api-key`, `login`, `logout`.
+Codex: an "unknown config key" for the effort makes the call run once more without it, and it is not sent again.
+
+Environment of a non-Claude child: an allowlist of the server's environment (`ENV_ALLOW` in lib/ai/index.js: PATH,
+PATHEXT, home / user names, TMP / TEMP / TMPDIR, LANG / LC_*, TZ, TERM, the Windows system and program folders,
+XDG_* folders, DBUS_SESSION_BUS_ADDRESS, proxy and certificate variables; FAKE_AI_* for the test suite's fakes), the
+provider's `envPass` (`CODEX_HOME`; `GROK_HOME`; `GOOGLE_CLOUD_LOCATION` for agy), its `keyVars` only when
+`aiUseEnvKey` says so (`OPENAI_API_KEY`, `CODEX_API_KEY`; `XAI_API_KEY`, `GROK_CODE_XAI_API_KEY`; agy: `GEMINI_API_KEY`,
+`AGY_ADC_AUTH`, `GOOGLE_APPLICATION_CREDENTIALS`, `GOOGLE_CLOUD_QUOTA_PROJECT` - never to Codex or Grok), plus `NO_COLOR=1` and `GROK_DISABLE_AUTOUPDATER=1`. So no other secret (`AWS_*`,
+`GITHUB_TOKEN`, `CURSOR_API_KEY`, `GROK_AUTH_PROVIDER_*`, `OPENAI_BASE_URL`, `GEMINI_CLI_TRUST_WORKSPACE` ...) reaches
+a CLI that runs model-chosen commands. Claude's calls keep `core.claudeEnv()` unchanged (the golden test pins it).
+
+Status (`ai.status(id)`, `/api/ai/status`) never calls a model: Claude = the account dialog's `claude --version` +
+`claude auth status`; Codex `codex --version` + `codex login status` (exit 0 / 1); Grok `grok --version` and its stored sign-in `$GROK_HOME/auth.json` (no `grok usage`:
+it needs the network and Grok's background service); Antigravity `agy --version` only, `signedIn: null` (ResearchTool
+does not check the sign-in: that would mean starting agy) with a warning (or, below agy 1.5.13, `outdated: true` and an "update" warning) that says whether `~/.gemini/antigravity-cli` exists (only its
+existence: nothing of `~/.gemini/antigravity*` is read), `true` only for an opted-in `GEMINI_API_KEY`. Status runs in the empty panel folder. `GET /api/status` keeps `claude` for Claude and adds `ai: {provider, name, bin, installed}`.
+
+Front end: `RT.ai` (public/js/ai.js). The UI text in the code keeps saying "Claude"; with another provider
+`RTI18n.setBrand({name, cliName, bin})` makes the display layer show "Codex" / "Codex CLI" / "codex CLI" instead
+(English and Chinese alike), except inside `[data-brand-keep]` and the parts the translator skips (answers, user
+text). Preferences › AI (`prefs.js` aiPane): the provider, its status line with the install / sign-in command for this
+OS, model fields, the env-key checkbox. Panel (`claude.js`): `#claude-ro` (read-only note) for a non-agentic
+provider; a conversation remembers its provider (`rt.claude.chats` entry `p`) and another provider starts a new one.
+The history source of AI versions stays `'claude'`; the version records the provider that made it in `by`
+(`'claude' | 'codex' | 'grok' | 'antigravity'`; older versions have none and were Claude's). Only an agentic provider
+(Claude Code) makes panel edits: with a read-only one the chat takes no snapshot and marks no project as Claude-active,
+so a change on disk during its run stays an `'external'` version.
+
+Saved content names the provider that produced it, never the one chosen when it is looked at: the server builds such
+text with `ai.name()` captured when the call starts (note drafts and their History labels `Draft by <name>`, the
+re-group reason, saved `categoryError` / `briefError` / compare row errors, `ai.notStarted()`), `/note/ask` and
+`/related-work` return `provider` (the note comment's head, the LaTeX comment above a related-work draft), key points
+store `keypointBy`. The page shows these names inside `[data-brand-keep]` (`RT.ai.nameOf(id)`), so the display layer
+does not rename them to the provider chosen now. Features that need a capability the provider lacks say so where they
+are offered: picture questions (`readsImage`: the note's right-click on a picture and the PDF snapshot sparkle), the
+compile log's fix (`agentic`: "Suggest a fix", asking for a diff), the Guide and the tour (`alt` texts of a step,
+`tour.js textOf`). Usage lines of another provider are kept even without token numbers; Preferences › AI shows them
+by provider too.
+
+**To verify with real accounts** (the formats come from help texts, published docs and the binaries' strings of
+codex-cli 0.171.0, grok 1.0.92 - no model was ever run while building this):
+- Codex: the `agent_message` item and its `text` field in `exec --json`; the `model_reasoning_effort` key; the
+  not-signed-in, usage-limit and unknown-resume-id texts; that `exec -s read-only` never stops to ask for approval;
+  that `exec resume` accepts `-c sandbox_mode="read-only"` (it has no `-s`); `-i` with a picture.
+- Codex: that `-c features.shell_tool=false` / `features.unified_exec=false` remove every command tool in exec
+  (and are only warnings on a version that does not know them); `web_search="disabled"`.
+- Grok Build: that `--prompt-file` alone runs one headless turn; the `streaming-json` event fields (`text`,
+  `thought`, `tool_call`, `usage`, `end`, where `sessionId` appears); that `--tools todo_write` / `read_file,grep,list_dir`
+  are accepted on the route `grok` takes headless (else the "names no tool" warning stops every call); the exact
+  stderr texts of an unapplied sandbox; the not-signed-in / limit texts; that `-r <id>` resumes from the panel folder.
+  Windows: npm's shim of `@xai-official/grok` runs its node launcher `bin/grok` (resolveCmd treats an extensionless
+  node-shim target like a .js one); the installer's `~/.grok/bin/grok.exe` is on PATH - but the calls stop there anyway
+  because Grok has no sandbox on Windows.
+- Antigravity (`agy` 1.5.14; its `--help`, `agy --version`, its changelog and the docs at antigravity.google/docs:
+  headless, permissions, modes, install). Seen with the real agy 1.5.14 (`--version`, the flags and `--settings`
+  without a prompt, and one short greeting turn, recorded in `scripts/fixtures/fake-ai/agy-1.5.14-turn.jsonl`; no
+  other model turn and no tool step): a bare `-p` is refused ("flag needs an argument: -p"), so `-p ""` goes last;
+  an unknown `--settings` key is refused (`unknown setting "permission"`), while `agentMode`, `toolPermission` and
+  `permissions` are accepted and `init.permission_mode` then reads `request-review`; every event's data is nested
+  under its name (`{"event":"init","init":{...}}`); `step_update` `{conversation_id, step_type: agent_response,
+  text_delta, usage}`; `result` `{conversation_id, status: SUCCESS, response, usage}`; `conversation_id` is a UUID.
+  Read from the docs (so likely right, but not yet tested): the stdin line `{"event":"user","message":{"content":...}}`
+  beyond a plain prompt; `--conversation <id>`; the permission rule kinds `command`, `write_file`, `read_file`,
+  `read_url`, `execute_url`, `mcp` and `deny` beating `allow`. Unverified: that plan mode plus the deny rules refuse
+  writes and commands in print mode (the changelog says headless runs "proceed through plan review automatically", so the deny rules are what
+  is relied on); whether `@path` in a stream-json message is expanded as a file mention (a word joiner is inserted
+  anyway); whether a never-trusted empty folder is accepted headless (the docs' first launch asks for workspace
+  trust); the exact stderr texts of an unapplied sandbox, a refused setting or mode (unsafe() matches broadly and
+  stops the call), of a soft-denied tool and of "authentication required"; the `AGY_ERROR` field names; the
+  `step_update` fields of a tool step and the names of their path parameters (the outside-path check looks at every
+  parameter named like path / file / dir / uri); `finished_reason` values beyond `print_timeout`; whether a user hook
+  or plugin (`~/.gemini/config`) can approve what the --settings deny rules refuse; whether a later agy keeps the
+  UUID `conversation_id` (only hex-and-dash ids are kept for `--conversation`; another format would silently start a
+  new conversation each turn); whether `agy --version` uses the network. A real run shows which rules agy loaded
+  without a model turn (print mode answers read-only slash commands, changelog): `agy -p "/permissions" --output-format json
+  --settings '<the settings above>'`. Status shows "could not be checked" until the first call (the changelog's
+  `-p "/usage"` might tell without a model turn - unverified, not used). No Homebrew install line: the official docs
+  name only install.sh / install.ps1 / install.cmd (Windows: `%LOCALAPPDATA%\agy\bin`, added to PATH when it exists).
 
 ### Papers of a project
 
@@ -1036,7 +1198,8 @@ than setting `font-family` in a module sheet. An author name inside a meta line 
 
 Use a separate `PORT` and `RT_WORKSPACE` for testing, so your own workspace on the default port is left untouched.
 
-All tests: `node scripts/run-tests.js`; the server end to end: `node scripts/smoke-server.js [--port N] [--tmp dir]`;
+All tests: `node scripts/run-tests.js` (`RT_TEST_TMP=<dir>` puts the temporary workspace of test-ai.js there); the
+server end to end: `node scripts/smoke-server.js [--port N] [--tmp dir] [--provider codex|grok|antigravity]`;
 translations complete: `node scripts/i18n-extract.js --check` (exit code 1 otherwise).
 
 ```bash
@@ -1052,8 +1215,18 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:4841/api/export     #
 kill %1; rm -rf /tmp/rt-test
 ```
 
-`RT_BURST_MS=0` makes every autosave its own history version. For features that call Claude put a fake `claude`
-executable first on `PATH`; for Overleaf set `RT_OVERLEAF_GIT_BASE=file:///tmp/x/remotes` and create a bare repository
+`RT_BURST_MS=0` makes every autosave its own history version. For features that call an AI CLI put the fake CLIs first
+on `PATH` (`require('./scripts/fixtures/fake-ai/install').installFakes(dir)`: claude, codex, grok, agy; they log to
+`$FAKE_AI_LOG` and fail on purpose with `FAKE_AI_STATE=signedout|quota|slow|malformed|lost|badconfig|nosandbox|timeout|softdeny|badmode|nomode|noinit|outside|old|noversion`).
+test-ai.js and smoke-server.js give the code under test a PATH of ONLY the fakes' folder and a folder holding nothing
+but a link to node (`nodeOnlyDir`; never node's own folder - /opt/homebrew/bin holds a real codex and gemini;
+pdftotext / zip ... are linked into the fakes' folder by name with `linkHelpers`, never an AI CLI),
+`RT_NO_EXTRA_PATH=1` (lib/core.js then adds no Homebrew / ~/.local/bin folders), a temporary HOME and XDG folders, and
+no CLAUDE / OPENAI / CODEX / XAI / GROK / AGY / ANTIGRAVITY / GEMINI / GOOGLE variables (agy has no home variable of
+its own). Both run the code under `scripts/fixtures/fake-ai/guard.js` (test-ai.js requires it first, the smoke test
+starts `node -r guard.js server.js`): it wraps node:child_process and refuses - before anything starts - a claude /
+codex / gemini / grok / agy outside `$FAKE_AI_BIN` (gemini too: Gemini CLI has no fake and is never started), and logs every such start; both suites fail unless every start
+resolved to a fake (test-ai.js also checks that a decoy `codex` later on PATH is refused and never runs); for Overleaf set `RT_OVERLEAF_GIT_BASE=file:///tmp/x/remotes` and create a bare repository
 named by a 24-hex id there (branch `master`). Questions are asked with `RT.confirm` / `RT.ask` (in-page dialogs), never the native
 `confirm()` / `prompt()`. A test workspace gets its own backup folder (`<RT_WORKSPACE>-backups`). Run `node --check` on every JS file you touch
 (`for f in server.js lib/*.js lib/routes/*.js public/js/*.js; do node --check $f; done`). In the browser: open

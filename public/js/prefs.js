@@ -57,7 +57,7 @@
   }).catch(() => {});
 
   // ---------------- the dialog ----------------
-  const PANES = [['general', 'General', 'settings'], ['claude', 'Claude', 'sparkle'], ['library', 'Library & files', 'folder'], ['write', 'Editor', 'editor']];
+  const PANES = [['general', 'General', 'settings'], ['claude', 'AI', 'sparkle'], ['library', 'Library & files', 'folder'], ['write', 'Editor', 'editor']];
   const STARTS = ['library', 'overview', 'last'];
   const startView = () => { const v = ls.get('rt.ui.startView', 'library'); return STARTS.includes(v) ? v : 'library'; };
   const where = (browser) => `<span class="pf-where badge${browser ? ' info' : ''}" title="${browser ? 'Kept in this browser only (localStorage): another browser or computer has its own' : 'Saved in the workspace (settings.json): every browser that opens this workspace uses it'}">${browser ? 'This browser' : 'Workspace'}</span>`;
@@ -94,6 +94,16 @@
       </section>
 
       <section class="pf-pane" id="pf-pane-claude" role="tabpanel" aria-labelledby="pf-tab-claude" hidden>
+        <h4>AI provider ${where(false)}</h4>
+        <p class="muted" data-brand-keep>The command-line AI tool on this computer that the AI features use, signed in with your own account. ResearchTool never asks for an API key and never stores one.</p>
+        <div class="set-row"><select id="ai-provider" class="pf-narrow" aria-label="AI provider" data-i18n-skip></select><button id="ai-check" type="button" class="ib" title="Check again whether it is installed and signed in" aria-label="Check again">${icon('refresh')}</button></div>
+        <div id="ai-status" class="pf-ai-status" role="status" data-brand-keep></div>
+        <div id="ai-other" data-brand-keep hidden>
+          <p class="muted" id="ai-caps"></p>
+          <div class="set-row"><label for="ai-model" class="pf-lab">Model</label><input type="text" id="ai-model" class="pf-narrow" spellcheck="false" maxlength="80" placeholder="the CLI's default" aria-label="Model" data-i18n-skip></div>
+          <div class="set-row"><label for="ai-cat-model" class="pf-lab">Model for grouping</label><input type="text" id="ai-cat-model" class="pf-narrow" spellcheck="false" maxlength="80" placeholder="the same model" aria-label="Model for grouping" data-i18n-skip></div>
+          <label class="set-check"><input type="checkbox" id="ai-env-key"> <span id="ai-env-key-text">Use an API key from the environment ResearchTool was started with, instead of my account</span></label>
+        </div>
         <h4>First-draft language ${where(false)}</h4>
         <p class="muted">The language Claude writes a reading note's first draft in (“Generate first draft”), and the language of “Ask Claude” answers and figure captions in a note. The note's “More” menu changes the same setting.</p>
         <select id="pref-draft-lang" class="pf-narrow" aria-label="First-draft language" data-i18n-skip><option value="zh">中文</option><option value="en">English</option></select>
@@ -189,19 +199,25 @@
       $('#backup-state').textContent = ''; if (RT.safety && RT.safety.backupState) RT.safety.backupState($('#backup-state'));
       $('#ai-usage').textContent = u.week && u.week.calls ? `AI features today: ${u.today.calls} calls, ${k(u.today.tokens)} tokens · last 7 days: ${u.week.calls} calls, ${k(u.week.tokens)} tokens` : 'No AI calls recorded yet.';
       // what each feature used in the last 7 days, and how long one of its calls takes on average
-      const NAMES = { grouping: 'Grouping', brief: 'Briefs', 'key-points': 'Key points', ask: 'Explanations', translate: 'Translations', quiz: 'Quizzes', draft: 'Note drafts', diagram: 'Diagrams', 'diagram-explain': 'Diagram examples', chat: 'Claude panel', rewrite: 'Rewrites in the editor', 'related-work': 'Related-work drafts', compare: 'Tables and questions across papers' };
+      const NAMES = { grouping: 'Grouping', brief: 'Briefs', 'key-points': 'Key points', ask: 'Explanations', translate: 'Translations', quiz: 'Quizzes', draft: 'Note drafts', diagram: 'Diagrams', 'diagram-explain': 'Diagram examples', chat: 'AI panel', rewrite: 'Rewrites in the editor', 'related-work': 'Related-work drafts', compare: 'Tables and questions across papers' };
       const secs = (f) => (f.timed ? (f.ms / f.timed / 1000).toFixed(f.ms / f.timed < 9950 ? 1 : 0) + ' s' : '—');
       const rows = Object.entries(u.byFeature || {}).sort((a, b) => b[1].tokens - a[1].tokens);
       $('#ai-features').hidden = !rows.length;
       $('#ai-features').innerHTML = rows.length ? '<tr><th>Last 7 days</th><th>Calls</th><th>Tokens</th><th title="Average time of one call">Time per call</th></tr>'
-        + rows.map(([name, f]) => `<tr><td>${esc(NAMES[name] || name)}</td><td>${f.calls}</td><td>${k(f.tokens)}</td><td>${secs(f)}</td></tr>`).join('') : '';
+        + rows.map(([name, f]) => `<tr><td>${esc(NAMES[name] || name)}</td><td>${f.calls}</td><td>${k(f.tokens)}</td><td>${secs(f)}</td></tr>`).join('')
+        // the same calls by the provider that made them (the rows above are of every provider): its own name, never
+        // renamed to the provider chosen now
+        + '<tr><th>By provider</th><th>Calls</th><th>Tokens</th><th title="Average time of one call">Time per call</th></tr>'
+        + Object.entries(u.byProvider || {}).sort((a, b) => b[1].calls - a[1].calls)
+          .map(([id, f]) => `<tr><td data-brand-keep>${esc(RT.ai ? RT.ai.nameOf(id) : id)}</td><td>${f.calls}</td><td>${k(f.tokens)}</td><td>${secs(f)}</td></tr>`).join('') : '';
       try { const l = await api('/api/categories/lines'); $('#research-lines').value = l.lines || ''; $('#lines-reset').dataset.def = l.default || ''; } catch { /* older server: the field stays empty */ }
+      await aiPane.load();
       showPane(pane || ls.get('rt.ui.prefsPane', 'general'));
       if (!dlg.open) dlg.showModal();
     } catch (e) { toast(e.message, 'bad'); }
   }
   // closing without Save: a previewed theme goes back
-  dlg.addEventListener('close', () => { if (pickedTheme !== theme()) applyTheme(theme()); });
+  dlg.addEventListener('close', () => { if (pickedTheme !== theme()) applyTheme(theme()); if (RT.ai && RT.ai.preview) RT.ai.preview(null); });
   $('#set-cancel').addEventListener('click', () => dlg.close());
   $('#pf-close').addEventListener('click', () => dlg.close());
   $('#btn-settings').addEventListener('click', () => open());
@@ -212,7 +228,80 @@
   });
   $('#set-backups').addEventListener('click', () => { dlg.close(); if (RT.safety) RT.safety.open(); });
 
-  const settingsBody = () => ({ exportDir: $('#export-dir').value, aiMode: $('#ai-mode').value, teachStyle: $('#teach-style').value, backupDir: $('#backup-dir').value, backupAuto: $('#backup-auto').checked,
+  // ---------------- the AI provider (lib/ai): choice, status, hints, model ----------------
+  const aiPane = (() => {
+    let info = null, status = {}, edits = {}; // edits: id -> {model, categoryModel, useEnvKey} typed in this dialog
+    const osKey = () => (/Win/i.test(navigator.platform) ? 'win' : /Mac/i.test(navigator.platform) ? 'mac' : 'linux');
+    const prov = (id) => (info && info.providers.find((p) => p.id === id)) || null;
+    const sel = () => $('#ai-provider').value || 'claude';
+    const cmd = (c) => `<span class="pf-cmd"><code>${esc(c)}</code><button type="button" class="ib" data-ai-copy="${esc(c)}" title="Copy the command" aria-label="Copy the command">${icon('copy')}</button></span>`;
+    function keep() { const id = sel(); if (id === 'claude' || !prov(id)) return; edits[id] = { model: $('#ai-model').value.trim(), categoryModel: $('#ai-cat-model').value.trim(), useEnvKey: $('#ai-env-key').checked }; }
+    function paint() {
+      const id = sel(), p = prov(id), s = status[id];
+      if (!p) return;
+      const el = $('#ai-status');
+      const data = (t) => `<span data-i18n-skip>${esc(t)}</span>`; // names, versions, accounts: shown as they are
+      // a warning is the server's own sentence (translated); a problem is what the CLI printed (shown as it is)
+      const extra = s ? (s.warning ? `<br><span class="set-bad">${esc(s.warning)}</span>` : '') + (s.problem ? `<br><span class="muted">${data(s.problem)}</span>` : '') : '';
+      if (!s) el.innerHTML = '<span class="spin"></span> Checking…';
+      else if (!s.installed) {
+        const inst = (p.install && (p.install[osKey()] || p.install.mac)) || p.bin;
+        el.innerHTML = `<span class="acct-dot bad"></span> <b>Not installed on this computer.</b> <span>Install it in a terminal, then start ResearchTool again:</span> ${cmd(inst)}${p.install && p.install.alt ? ` ${cmd(p.install.alt)}` : ''}${extra}`;
+      } else {
+        const state = s.signedIn === true ? 'Installed, signed in' : s.signedIn === false ? 'Installed, not signed in' : 'Installed; the sign-in could not be checked';
+        const how = s.signedIn === true ? '' : id === 'claude' ? ' <span>Sign in with the person button in the AI panel.</span>' : p.login ? ` <span>To sign in with your own account, run this in a terminal:</span> ${cmd(p.login)}` : '';
+        // what the sign-in needs (Antigravity: run agy once), unless the warning says it already
+        const note = s.signedIn !== true && p.loginNote && p.loginNote !== s.warning ? `<br><span class="muted">${esc(p.loginNote)}</span>` : '';
+        el.innerHTML = `<span class="acct-dot ${s.signedIn === true ? 'ok' : s.signedIn === false ? 'bad' : 'warn'}"></span> ${data(p.cliName + (s.version ? ' ' + s.version : ''))} · <span>${state}</span>${s.account ? ` (${esc(s.account)})` : ''}.${how}${note}${extra}`;
+      }
+      const other = id !== 'claude';
+      $('#ai-other').hidden = !other;
+      if (!other) return;
+      const e = edits[id] || { model: p.model || '', categoryModel: p.categoryModel || '', useEnvKey: !!p.useEnvKey };
+      $('#ai-model').value = e.model; $('#ai-cat-model').value = e.categoryModel; $('#ai-env-key').checked = e.useEnvKey;
+      $('#ai-env-key-text').innerHTML = `<span>Use an API key from the environment ResearchTool was started with, instead of my account (off unless you tick it):</span> ${(p.keyVars || []).map((k) => `<code data-i18n-skip>${esc(k)}</code>`).join(' ')}`;
+      $('#ai-caps').innerHTML = ['With this provider the AI panel is read-only: it reads your files but does not edit them.', 'First drafts are written from the text extracted from the PDF.',
+        p.caps && p.caps.readsImage ? 'Questions about a picture in a note work.' : 'Questions about a picture in a note are not possible with this provider.', 'Only Claude Code edits files and reads PDFs itself.', p.configNote || '']
+        .filter(Boolean).map((t) => `<span>${esc(t)}</span>`).join(' ');
+    }
+    async function check(fresh) {
+      const id = sel();
+      // only the provider on show (each check starts that CLI once: --version, codex login status)
+      try { const r = await RT.ai.status(id, fresh); Object.assign(status, r.status); } catch (e) { status[id] = { installed: true, signedIn: null, problem: e.message }; }
+      paint();
+    }
+    async function load() {
+      edits = {}; status = {};
+      try { info = await api('/api/ai/providers'); } catch { info = { current: 'claude', providers: RT.ai ? RT.ai.providers() : [] }; }
+      $('#ai-provider').innerHTML = info.providers.map((p) => `<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
+      $('#ai-provider').value = info.current;
+      paint(); check(false);
+    }
+    $('#ai-provider').addEventListener('focus', keep);
+    // the rest of the dialog names the provider picked here at once ("Ask Codex", "Codex usage"); Cancel puts it back
+    const preview = () => { if (RT.ai && RT.ai.preview) RT.ai.preview(sel()); };
+    $('#ai-provider').addEventListener('change', () => { paint(); preview(); if (!status[sel()]) check(true); });
+    for (const f of ['#ai-model', '#ai-cat-model', '#ai-env-key']) $(f).addEventListener('change', keep);
+    $('#ai-check').addEventListener('click', () => { status[sel()] = null; paint(); check(true); });
+    $('#pf-pane-claude').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-ai-copy]'); if (!b) return;
+      try { await navigator.clipboard.writeText(b.dataset.aiCopy); toast('Copied', 'ok'); } catch { toast('Could not copy to the clipboard', 'bad'); }
+    });
+    // what PUT /api/settings gets: the provider, and the model / key choice of every provider that was edited
+    function body() {
+      keep();
+      const out = { aiProvider: sel() };
+      const ids = Object.keys(edits);
+      if (ids.length) {
+        out.aiProviders = Object.fromEntries(ids.map((id) => [id, { model: edits[id].model, categoryModel: edits[id].categoryModel }]));
+        out.aiUseEnvKey = Object.fromEntries(ids.map((id) => [id, edits[id].useEnvKey]));
+      }
+      return info ? out : {};
+    }
+    return { load, body };
+  })();
+
+  const settingsBody = () => ({ ...aiPane.body(), exportDir: $('#export-dir').value, aiMode: $('#ai-mode').value, teachStyle: $('#teach-style').value, backupDir: $('#backup-dir').value, backupAuto: $('#backup-auto').checked,
     draftLanguage: $('#pref-draft-lang').value === 'en' ? 'en' : 'zh', autoCategorize: $('#pref-auto-cat').checked, categoryLanguage: $('#pref-cat-lang').value });
   // the native folder chooser of macOS; when it is not available the path is typed
   $('#backup-pick').addEventListener('click', async (e) => {
@@ -239,6 +328,7 @@
     try {
       const body = settingsBody();
       await api('/api/settings', { method: 'PUT', json: body });
+      if (RT.ai) RT.ai.refresh(); // the provider's name on buttons and messages, the panel mode
       await api('/api/categories/lines', { method: 'PUT', json: { lines: $('#research-lines').value } });
       setDraftCache(body.draftLanguage);
       // this browser

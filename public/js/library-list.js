@@ -583,7 +583,7 @@
     const tags = tagsOf(i);
     let state = '';
     if (i.categoryStatus === 'pending') state = '<span class="grouping" title="Claude is choosing a category"><span class="spin"></span>Grouping…</span>';
-    else if (i.categoryStatus === 'failed') state = `<span class="grp-failed" title="${esc(i.categoryError || 'Grouping failed')}">${RT.icon('warning')}<span>Not grouped</span></span><button class="mini ib" data-retry="${esc(i.id)}" title="Retry grouping: ask Claude again" aria-label="Retry grouping">${RT.icon('refresh')}</button>`;
+    else if (i.categoryStatus === 'failed') state = `<span class="grp-failed" data-brand-keep title="${esc(i.categoryError || 'Grouping failed')}">${RT.icon('warning')}<span>Not grouped</span></span><button class="mini ib" data-retry="${esc(i.id)}" title="Retry grouping: ask Claude again" aria-label="Retry grouping">${RT.icon('refresh')}</button>`;
     const kp = (i.keypoints || []).length;
     const chips = (i.pdf ? '' : '<span class="badge nopdf" title="No PDF attached: open the paper to attach one">No PDF</span>')
       + (kp ? `<span class="badge kp" title="Key points">${KP_IC}${kp}</span>` : '')
@@ -1168,7 +1168,7 @@
   const missingBriefs = () => items.filter((i) => !i.brief && i.briefStatus !== 'pending' && i.categoryStatus !== 'pending');
   // the menu item ends in "…": ask first, as the Overview does (writeBriefs(null) itself starts Claude at once)
   async function confirmBriefs(n) {
-    const ok = await RT.confirm(`Claude writes the missing briefs of ${plural(n, 'paper')} in the background. This uses your Claude plan. Start now?`,
+    const ok = await RT.confirm(`Claude writes the missing briefs of ${plural(n, 'paper')} in the background. This uses your Claude account. Start now?`,
       { title: 'Write the missing briefs', okText: 'Write briefs', icon: 'sparkle' });
     if (ok) await writeBriefs(null);
   }
@@ -1404,7 +1404,7 @@
       if (j.kind === 'bib') return { cls: 'ok', html: `Done · ${esc(j.note || '')}${open}`, done: true, final: true };
       // added without a PDF: the row stays until it is cleared, and opening the paper shows "Attach PDF"
       if (j.noPdf && it && !it.pdf) return { cls: 'dup', html: `Added without a PDF${j.note ? ': ' + esc(j.note) : ''}. <a href="#" data-open="${esc(it.id)}">Open it to attach the PDF</a>`, final: true };
-      if (it && it.categoryStatus === 'failed') return { cls: 'ok', html: `Done · not grouped <button class="mini ib" data-retry="${esc(it.id)}" title="Retry grouping${it.categoryError ? esc(' (' + it.categoryError + ')') : ''}" aria-label="Retry grouping">${RT.icon('refresh')}</button>${open}`, done: true, final: true };
+      if (it && it.categoryStatus === 'failed') return { cls: 'ok', html: `Done · not grouped <button class="mini ib" data-retry="${esc(it.id)}" data-brand-keep title="Retry grouping${it.categoryError ? esc(' (' + it.categoryError + ')') : ''}" aria-label="Retry grouping">${RT.icon('refresh')}</button>${open}`, done: true, final: true };
       return { cls: 'ok', html: `Done${it && catOf(it) !== UNCAT ? ` · <span class="cat-dot" style="background:${esc(color(catOf(it)))}"></span>${esc(catOf(it))}` : ''}${open}`, done: true, final: true };
     }
     if (j.state === 'uploading') return { cls: 'busy', html: `<span class="spin"></span>Uploading${j.pct && j.pct < 100 ? ` ${j.pct}%` : ''}` };
