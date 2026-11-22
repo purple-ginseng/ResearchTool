@@ -1,0 +1,20 @@
+# Your data: the workspace and its backups are never part of the repository
+workspace/
+backups/
+*-backups/
+
+# Local tool and editor folders
+.claude/
+.vscode/
+.idea/
+
+# OS and runtime litter
+.DS_Store
+node_modules/
+*.log
+npm-debug.log*
+*.tmp
+
+# Local environment files
+.env
+.env.*

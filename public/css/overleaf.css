@@ -1,0 +1,52 @@
+/* Overleaf import / sync controls (owned by OVERLEAF). Uses the variables from base.css, so light and dark both work. */
+
+/* ---- sync control (RT.overleaf.mountSync) ---- */
+.ol-sync { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; font-size: 12px; }
+.ol-sync .ol-status { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 110px; min-width: 0; border-color: transparent; background: transparent;
+  padding: 3px 4px; color: var(--muted); text-align: left; overflow: hidden; }
+.ol-sync .ol-status:hover { background: var(--soft); border-color: transparent; }
+.ol-sync .ol-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ol-sync .ol-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.ol-sync .ol-status.ok .ol-dot { background: var(--ok); }
+.ol-sync .ol-status.changes .ol-dot { background: var(--accent); }
+.ol-sync .ol-status.changes { color: var(--ink); }
+.ol-sync .ol-status.warn .ol-dot { background: var(--warn); }
+.ol-sync .ol-status.warn { color: var(--warn); }
+.ol-sync .ol-status.bad .ol-dot { background: var(--bad); }
+.ol-sync .ol-status.bad { color: var(--bad); }
+.ol-sync.busy .ol-dot { animation: ol-pulse 1s ease-in-out infinite; }
+@keyframes ol-pulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .ol-sync.busy .ol-dot { animation: none; } }
+.ol-sync .ol-actions { display: inline-flex; align-items: center; gap: 4px; flex: none; margin-left: auto; }
+.ol-sync .ol-actions button.ib { padding: 3px 6px; min-height: 24px; }
+.ol-sync .ol-menu button { display: flex; align-items: center; gap: 8px; }
+.ol-sync .ol-menu .ic { color: var(--muted); }
+.ol-sync .ol-menu { width: 170px; left: auto; right: 0; top: 28px; }
+
+/* ---- dialogs ---- */
+dialog.ol-dlg { width: min(560px, 92vw); }
+.ol-dlg p { margin: 8px 0; line-height: 1.45; }
+.ol-form label { display: block; margin: 10px 0 0; font-size: 13px; font-weight: 600; }
+.ol-form label input { margin-top: 4px; font-weight: 400; }
+.ol-hint { font-size: 12.5px; }
+.ol-msg { margin-top: 10px; font-size: 13px; overflow-wrap: anywhere; }
+.ol-msg.bad { color: var(--bad); }
+.ol-login { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--soft); padding: 4px 12px; font-size: 13px; }
+.ol-login ol { margin: 6px 0 8px; padding-left: 20px; }
+.ol-login li { margin: 6px 0; line-height: 1.45; }
+.ol-login code, .ol-files code { font: 12px/1.4 var(--mono); }
+.ol-login li > code { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+.ol-cmd { display: flex; align-items: flex-start; gap: 8px; margin-top: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 6px 8px; }
+.ol-cmd code { flex: 1; min-width: 0; overflow-wrap: anywhere; user-select: all; }
+.ol-cmd button { flex: none; padding: 3px 6px; min-height: 24px; }
+.ol-login li > .ic, .ol-hint .ic { width: 14px; height: 14px; vertical-align: -2.5px; color: var(--ink); }
+.ol-dlg .dlg-actions button.ib { min-width: 34px; min-height: 30px; }
+.ol-files { margin: 8px 0; padding: 8px 12px 8px 28px; max-height: 180px; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--soft); }
+.ol-files li { margin: 2px 0; overflow-wrap: anywhere; }
+.ol-dlg .dlg-actions { flex-wrap: wrap; }
+/* the busy spinner sits on the accent-coloured primary button: draw it in the button's own text colour */
+.ol-dlg button.primary .spin { border-color: color-mix(in srgb, currentColor 35%, transparent); border-top-color: currentColor; }
+
+/* the two choices of the conflict dialog are consequential: icon plus a one-word caption */
+button.ol-choice { gap: 6px; padding: 5px 11px; }
+button.ol-choice span { font-size: 12.5px; }

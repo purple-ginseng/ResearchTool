@@ -1,0 +1,323 @@
+/* Lineage window (lineage.js): #dlg-lineage - origin papers | history line / prior works / derivative works | details. */
+dialog.lg { width: 98vw; max-width: 1700px; height: 94vh; max-height: 94vh; padding: 0; overflow: hidden; }
+dialog.lg[open] { display: flex; flex-direction: column; }
+.lg-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex: none; }
+.lg-head h3 { margin: 0; font-size: 16px; }
+.lg-ic { color: var(--accent); display: inline-flex; }
+#lg-scope { width: auto; max-width: 340px; padding: 4px 8px; }
+#lg-status { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+#lg-status .spin { width: 12px; height: 12px; }
+.lg-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 270px minmax(0, 1fr) 320px; }
+.lg-bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
+.lg-warn { color: var(--warn); }
+.lg-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.lg-dot.hollow { border: 1.6px solid var(--muted); background: transparent; }
+
+/* left: the origin papers */
+.lg-origin { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
+.lg-side-head { padding: 10px 12px 6px; font-size: 13px; }
+#lg-oq { margin: 0 10px 6px; width: auto; padding: 4px 8px; }
+.lg-olist { flex: 1; min-height: 0; overflow: auto; padding-bottom: 12px; }
+.lg-ohead { padding: 10px 12px 4px; text-transform: uppercase; letter-spacing: .04em; font-size: 10.5px; }
+.lg-orow { display: flex; gap: 8px; align-items: flex-start; width: 100%; text-align: left; border: 0; border-radius: 0; background: transparent; padding: 6px 12px; white-space: normal; border-left: 3px solid transparent; }
+.lg-orow:hover { background: var(--soft); }
+.lg-orow.sel { background: var(--sel); border-left-color: var(--accent); }
+.lg-orow .lg-dot { margin-top: 5px; }
+.lg-ot { display: flex; flex-direction: column; min-width: 0; }
+.lg-otitle { font-size: 12.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lg-ometa { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* the filter matches nothing in the set: the library papers outside it */
+.lg-outside { padding: 8px 12px 10px; }
+.lg-out-head { font-size: 12.5px; font-weight: 600; margin: 2px 0 8px; overflow-wrap: anywhere; }
+.lg-out-row { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; border-top: 1px solid var(--line); }
+.lg-out-row .lg-dot { margin-top: 5px; flex: none; }
+.lg-out-acts { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 5px; }
+.lg-out-acts button { font-size: 11.5px; padding: 2px 8px; border-radius: var(--radius-sm); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-out-more { font-size: 11px; padding-top: 6px; border-top: 1px solid var(--line); }
+.lg-nomatch { padding: 16px 12px; }
+
+/* centre */
+.lg-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.lg-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 12px; border-bottom: 1px solid var(--line); flex: none; }
+.lg-bar .seg button { padding: 5px 12px; }
+.lg-cnt { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.seg button.on .lg-cnt { color: inherit; opacity: .8; }
+.lg-tools { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lg-tools .seg button { padding: 4px 9px; font-size: 12px; }
+.lg-tools button.ib { font-size: 12px; }
+#lg-tq { width: 190px; padding: 4px 8px; }
+.lg-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.lg-view { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.lg-notes { position: relative; flex: none; padding-right: 34px; }
+.lg-note { margin: 8px 12px 0; max-width: none; flex: none; }
+.lg-notes-x { position: absolute; top: 8px; right: 8px; }
+.lg-foot { flex: none; padding: 6px 12px; border-top: 1px solid var(--line); font-size: 11px; }
+.lg-legend { flex: none; display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 6px 12px; font-size: 11.5px; align-items: center; }
+.lg-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg-empty { padding: 30px 20px; }
+
+/* the intro / progress sit at the top of the centre pane (never centred out of sight); the pane scrolls under them */
+.lg-view:has(> .lg-intro) { overflow: auto; }
+.lg-intro { flex: none; margin: 0 auto; width: 100%; max-width: 680px; padding: 22px 24px 30px; box-sizing: border-box; }
+.lg-intro-head { display: flex; align-items: flex-start; gap: 10px; }
+.lg-intro-head > .ic { flex: none; width: 26px; height: 26px; color: var(--accent); margin-top: 1px; }
+.lg-intro-head p { margin: 2px 0 0; font-size: 14px; }
+.lg-intro-go { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 14px 0 6px; }
+.lg-intro-go .lg-est { flex: 1 1 260px; font-size: 12px; }
+.lg-intro .notice { margin-top: 10px; }
+.lg-intro button.accent { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; flex: none; }
+.lg-progress { height: 6px; border-radius: 3px; background: var(--soft); overflow: hidden; margin: 10px 0; }
+.lg-progress > div { height: 100%; background: var(--accent); transition: width .4s; }
+
+/* history line */
+.lg-tl { flex: 1; min-height: 0; overflow: auto; position: relative; }
+.lg-tl:focus { outline: none; }
+.lg-tl-in { display: flex; position: relative; min-width: min-content; }
+.lg-lanes { position: sticky; left: 0; z-index: 2; flex: none; background: var(--panel); border-right: 1px solid var(--line); }
+/* the axis stays at the top while the chart scrolls down, and moves sideways with it */
+.lg-axis { position: sticky; top: 0; z-index: 3; display: flex; min-width: min-content; background: var(--panel); border-bottom: 1px solid var(--line); }
+.lg-axisname { position: sticky; left: 0; z-index: 1; flex: none; box-sizing: border-box; padding: 8px 10px 0; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; background: var(--panel); border-right: 1px solid var(--line); }
+.lg-axsvg { display: block; flex: none; }
+.lg-lname { position: absolute; left: 0; right: 0; padding: 6px 8px 0 10px; display: flex; flex-direction: column; gap: 1px; font-size: 12px; line-height: 1.3; overflow: hidden; border-left: 4px solid var(--c); }
+.lg-lname.sub { padding-left: 20px; }
+.lg-lname.prior { border-left-style: dashed; color: var(--muted); font-style: italic; }
+.lg-lline { font-weight: 650; font-size: 11.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-left: -10px; }
+.lg-lmain { display: flex; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; }
+.lg-lt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-lmain .lg-lcount { flex: none; }
+.lg-lname:not(.sub) .lg-lmain { font-weight: 600; }
+.lg-lmain .lg-dot { background: var(--c); width: 7px; height: 7px; }
+.lg-lcount { color: var(--muted); font-size: 10.5px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.lg-svg { display: block; flex: none; font-size: 11px; }
+.lg-lane { fill: transparent; }
+.lg-lane.odd { fill: color-mix(in srgb, var(--soft) 70%, transparent); }
+.lg-tick { stroke: var(--line); stroke-width: 1; }
+.lg-tick.major { stroke: color-mix(in srgb, var(--muted) 45%, var(--line)); }
+.lg-tlabel { fill: var(--muted); font-size: 10.5px; }
+.lg-tlabel.major { fill: var(--ink); font-weight: 600; font-size: 11.5px; }
+.lg-e { fill: none; stroke: color-mix(in srgb, var(--muted) 55%, transparent); stroke-width: 1.1; }
+.lg-e.prior { stroke-dasharray: 3 3; stroke: color-mix(in srgb, var(--muted) 40%, transparent); display: none; }
+/* the links of a prior work show only for the node in focus (dozens of them would hide the history line) */
+.lg-svg.focus .lg-e.prior.in, .lg-svg.focus .lg-e.prior.out { display: inline; }
+.lg-arrowhead { fill: color-mix(in srgb, var(--muted) 70%, transparent); stroke: none; }
+.lg-svg.focus .lg-e { opacity: .18; }
+.lg-svg.focus .lg-e.in, .lg-svg.focus .lg-e.out { opacity: 1; stroke-width: 2; }
+.lg-svg.focus .lg-e.in { stroke: var(--accent); }
+.lg-svg.focus .lg-e.out { stroke: color-mix(in srgb, var(--hl-pink) 55%, var(--accent)); }
+.lg-node { cursor: pointer; outline: none; }
+.lg-node circle { stroke-width: 1.5; }
+.lg-node.prior circle { fill: var(--panel); stroke-width: 1.8; }
+.lg-node.linked circle { fill-opacity: .45; }
+.lg-node text { fill: var(--ink); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; }
+.lg-node.prior text { fill: var(--muted); font-style: italic; }
+.lg-node:hover text, .lg-node:focus-visible text, .lg-node.sel text { font-weight: 700; }
+.lg-node:focus-visible circle, .lg-node.sel circle { stroke: var(--ink) !important; stroke-width: 2.4; }
+.lg-svg.focus .lg-node:not(.sel):not(.near):not(:hover) { opacity: .45; }
+.lg-hollow { fill: none; stroke: var(--muted); stroke-width: 1.6; }
+
+/* tables */
+.lg-tablewrap { flex: 1; min-height: 0; overflow: auto; }
+.lg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.lg-table th { position: sticky; top: 0; background: var(--panel); z-index: 1; text-align: left; border-bottom: 1px solid var(--line); padding: 0; font-weight: 600; white-space: nowrap; vertical-align: bottom; }
+.lg-table th.lg-c-count, .lg-table th.lg-c-relevance { white-space: normal; min-width: 64px; }
+.lg-table th.lg-c-count .lg-sort, .lg-table th.lg-c-relevance .lg-sort { text-align: right; line-height: 1.25; }
+.lg-sort { border: 0; background: transparent; padding: 7px 10px; font-weight: 600; color: var(--muted); border-radius: 0; }
+.lg-sort.on { color: var(--ink); }
+.lg-table td { padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.lg-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lg-table .lg-ttl { width: 46%; }
+.lg-table tr[data-row] { cursor: pointer; }
+.lg-table tr[data-row]:hover { background: var(--soft); }
+.lg-table tr.sel { background: var(--sel); }
+.lg-table tr.have td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
+.lg-table tr:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent); outline-offset: -2px; }
+.lg-rtitle { display: block; line-height: 1.35; }
+.lg-rmeta { display: block; font-size: 11px; margin-top: 1px; }
+.lg-act { width: 1%; white-space: nowrap; text-align: right; }
+.lg-act button { font-size: 12px; min-height: 26px; }
+.lg-act .lg-add { padding: 3px 7px; }
+.lg-act .lg-have { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.lg-hs { display: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* right: details */
+.lg-detail { border-left: 1px solid var(--line); overflow: auto; padding: 12px 14px 20px; min-height: 0; }
+.lg-dempty { padding: 30px 6px; text-align: center; }
+.lg-dhead { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.lg-dtitle { font-size: 15px; line-height: 1.35; margin: 6px 0 6px; overflow-wrap: anywhere; }
+.lg-dmeta { font-size: 12.5px; margin: 2px 0; overflow-wrap: anywhere; }
+.lg-dact { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.lg-btn { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 5px 11px; color: var(--ink); text-decoration: none; background: var(--panel); }
+.lg-btn:hover { border-color: var(--muted); }
+.lg-detail h4 { margin: 14px 0 4px; }
+.lg-links { display: flex; flex-direction: column; }
+.lg-link { display: flex; align-items: center; gap: 7px; border: 0; background: transparent; text-align: left; padding: 4px 4px; border-radius: var(--radius-sm); white-space: nowrap; font-size: 12.5px; min-width: 0; }
+.lg-link:hover { background: var(--soft); }
+.lg-link > span:nth-child(2) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lg-abs { font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; }
+
+/* tables: filters, selection, relevance, project bookmarks */
+.lg-fbar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 12px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.lg-fbar .seg button { padding: 3px 9px; font-size: 12px; }
+.lg-fbar select { width: auto; padding: 2px 6px; font-size: 12px; }
+.lg-fyear { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); }
+.lg-fyear input { width: 4.6em; padding: 2px 4px; font-size: 12px; }
+.lg-hidnote { font-size: 11.5px; }
+.lg-linkbtn { border: 0; background: transparent; padding: 0; color: var(--accent); text-decoration: underline; font-size: inherit; cursor: pointer; }
+.lg-selbar { flex: none; position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 12px; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); font-size: 12.5px; }
+.lg-selbar button.ib { font-size: 12px; }
+.lg-table .lg-c-chk { width: 1%; padding: 6px 2px 6px 10px; text-align: center; }
+.lg-table th.lg-c-chk { padding: 7px 2px 7px 10px; }
+.lg-table .lg-c-chk input { margin: 0; }
+.lg-table td.lg-c-relevance { color: var(--muted); }
+.lg-table tr.gen .lg-rtitle { color: var(--muted); }
+.lg-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.lg-chip { font-size: 10.5px; line-height: 1.5; padding: 0 6px; border-radius: var(--radius-pill); background: var(--soft); color: var(--muted); white-space: nowrap; }
+.lg-chip.gen { background: color-mix(in srgb, var(--warn) 16%, var(--panel)); color: var(--warn); }
+.lg-pchip { font-size: 12px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-pchip.none { color: var(--muted); border-style: dashed; }
+.lg-pchip.mini { padding: 2px 6px; }
+.lg-pchip .ic, .lg-pjbtn .ic { width: 13px; height: 13px; }
+.lg-act .lg-pj { color: var(--muted); min-width: 28px; }
+.lg-act .lg-pj.on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.lg-act .lg-pj.on .ic { fill: currentColor; }
+.lg-why { font-size: 12px; line-height: 1.45; margin-top: 6px; padding: 6px 8px; border-radius: var(--radius-sm); background: var(--soft); }
+.lg-pdlg .dlg-msg label { display: inline-flex; align-items: center; gap: 5px; }
+.lg-pdlg input[type="number"] { width: 5em; padding: 2px 5px; }
+
+/* history line: the focus of a one-paper set, library prior works, project members, the resizable lane names */
+.lg-lanes .lg-lresize { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 3; }
+.lg-lanes .lg-lresize:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.lg-lname.focus { color: var(--accent); font-weight: 700; }
+.lg-lane.focus { fill: color-mix(in srgb, var(--accent) 7%, transparent); }
+.lg-node.focus circle:not(.lg-fring):not(.lg-pring) { stroke: var(--ink) !important; stroke-width: 2.4; }
+.lg-node.focus text { font-weight: 700; font-size: 12.5px; }
+.lg-fring { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-dasharray: 3 2; }
+.lg-node.prior.inlib circle:not(.lg-pring) { stroke-width: 1.5; }
+.lg-node.prior.inlib text { fill: var(--ink); font-style: normal; }
+.lg-pring { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.lg-filled { fill: var(--muted); stroke: var(--muted); }
+.lg-tlabel.major { font-weight: 700; }
+
+/* narrower windows (1024 x 700): the chart and the tables get the room - narrow side columns, no detail column
+   until something is selected, notes on one line each (the full text on hover), the usage line only as a tooltip,
+   and the tables without the columns the detail pane repeats */
+@media (max-width: 1200px) {
+  .lg-body { grid-template-columns: 220px minmax(0, 1fr) 270px; }
+  .lg-body.nodetail { grid-template-columns: 220px minmax(0, 1fr) 0; }
+  .lg-body.nodetail .lg-detail { display: none; }
+  .lg-note { margin: 4px 10px 0; padding: 4px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+  .lg-notes-x { top: 3px; }
+  .lg-foot { display: none; }
+  .lg-legend { padding: 3px 10px; font-size: 11px; }
+  .lg-c-last, .lg-c-cited, .lg-c-relevance { display: none; }
+  .lg-hl { display: none; }
+  .lg-hs { display: inline; }
+  .lg-table .lg-ttl { width: auto; }
+  .lg-sort { padding: 7px 6px; }
+  .lg-table td { padding: 6px 6px; }
+}
+@media (max-width: 900px) {
+  .lg-body, .lg-body.nodetail { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+  .lg-origin { max-height: 22vh; border-right: 0; border-bottom: 1px solid var(--line); }
+  .lg-detail { max-height: 30vh; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* B3: origin papers with include boxes, the set left out, the estimate, the stale banner, the custom set */
+.lg-orow-w { display: flex; align-items: flex-start; }
+.lg-orow-w .lg-orow { flex: 1; min-width: 0; padding-left: 6px; }
+.lg-orow-w.out .lg-orow { opacity: .45; }
+.lg-incl { flex: none; margin: 8px 0 0 10px; }
+.lg-incl-sp { flex: none; width: 23px; }
+.lg-exbar { margin: 0 10px 6px; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 12px; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
+.lg-est { font-size: 12px; }
+.lg-stale { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lg-pop { position: absolute; top: 52px; left: 120px; z-index: 20; width: min(520px, calc(100% - 40px)); max-height: calc(100% - 80px); overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-3); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.lg-pop h4 { margin: 0; }
+.lg-pop p { margin: 0; font-size: 12px; }
+.lg-clines { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 6px 8px; }
+.lg-cl { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.lg-cl.sub { padding-left: 20px; }
+.lg-cq { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.lg-cq input { flex: 1; padding: 4px 8px; }
+.lg-cact { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* prior works: the foundations you don't have; intents; badges */
+.lg-miss { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 6px 12px; font-size: 12px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--warn) 6%, var(--panel)); }
+.lg-mitem { display: inline-flex; align-items: center; gap: 4px; }
+.lg-mitem .ib { padding: 1px 5px; font-size: 11px; }
+.lg-chip.int { background: color-mix(in srgb, var(--accent) 14%, var(--panel)); color: var(--accent); }
+.lg-chip.b-seminal { background: color-mix(in srgb, var(--warn) 18%, var(--panel)); color: var(--ink); }
+.lg-chip.b-recent { background: color-mix(in srgb, var(--ok) 16%, var(--panel)); color: var(--ink); }
+.lg-chip.b-rising { background: color-mix(in srgb, var(--accent) 18%, var(--panel)); color: var(--ink); }
+.lg-ctx { margin: 6px 0 8px; }
+.lg-ctx .lg-chips { margin: 2px 0 2px 16px; }
+.lg-quote { margin: 3px 0 3px 16px; padding: 3px 8px; border-left: 3px solid color-mix(in srgb, var(--accent) 45%, var(--line)); font-size: 12px; line-height: 1.4; color: var(--ink); }
+.lg-ctxnote { font-size: 11.5px; }
+
+/* B7: a young line, the recent works citing its ancestors */
+.lg-young { display: block; }
+.lg-recent { padding: 4px 12px 12px; }
+.lg-recent h4 { margin: 12px 0 6px; font-size: 13px; }
+
+/* B6: ancestry */
+.lg-anccol { fill: color-mix(in srgb, var(--soft) 80%, transparent); }
+.lg-bundle { fill: none; stroke-opacity: .42; stroke-linecap: round; transition: stroke-opacity .15s; }
+.lg-bundle:hover { stroke-opacity: .8; }
+.lg-bundle.dim { stroke-opacity: .08; }
+.lg-anc.dim { opacity: .45; }
+.lg-anc text.lg-alabel { font-style: normal; fill: var(--ink); font-weight: 600; }
+.lg-burst { fill: none; stroke: var(--warn); stroke-width: 2; stroke-dasharray: 2 2; }
+.lg-e.lg-aline { stroke-opacity: .75; }
+.lg-lname.pickable { cursor: pointer; }
+.lg-lname.pickable:hover, .lg-lname.pickable:focus-visible { background: var(--soft); outline: none; }
+.lg-lname.lsel { background: var(--sel); }
+
+/* B8: back to the Lineage window from the reader */
+/* in the page header beside the toast (it covers no content there); floating only when there is no header */
+.lg-back { display: inline-flex; align-items: center; gap: 2px; flex: none; }
+.lg-back button.primary { min-height: 26px; padding: 3px 10px; font-size: 12.5px; }
+.lg-back.float { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 60; padding: 4px; border-radius: var(--radius-lg); background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow-3); }
+.lg-back button.primary { display: inline-flex; align-items: center; gap: 6px; }
+.lg-note.lg-young, .lg-note.lg-stale { white-space: normal; }
+
+/* the app's toast while the window is open (lineage.js moves #toast into the dialog: the header is inert under it) */
+dialog.lg > .toast { position: absolute; left: 50%; bottom: 38px; transform: translateX(-50%); z-index: 30; max-width: min(760px, calc(100% - 40px)); padding: 7px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow-3); }
+dialog.lg > .toast:empty { display: none; }
+
+/* tables: the notes, the strip and the filters scroll with the table (the header row stays), so a short window
+   still shows rows; the selection bar is a footer that stays in view (it does not push the rows down); the
+   action columns stay at the right edge when the table is wider than the column */
+.lg-tablewrap { min-height: 240px; position: relative; }
+.lg-tablewrap > .lg-notes, .lg-tablewrap > .lg-note { position: relative; }
+.lg-selbar { position: sticky; top: auto; bottom: 0; border-bottom: 0; border-top: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.lg-table .lg-ttl { width: auto; min-width: 200px; }
+.lg-table td.lg-c-last { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+.lg-table tbody tr { background: var(--panel); }
+.lg-table th.lg-c-lib, .lg-table th.lg-c-proj, .lg-table td.lg-act-lib, .lg-table td.lg-act-proj { position: sticky; z-index: 1; }
+.lg-table td.lg-act-lib, .lg-table td.lg-act-proj { background: inherit; }
+.lg-table th.lg-c-proj, .lg-table td.lg-act-proj { right: 0; min-width: 34px; box-sizing: border-box; }
+.lg-table th.lg-c-lib, .lg-table td.lg-act-lib { right: 42px; box-shadow: -6px 0 6px -6px rgba(0, 0, 0, .18); }
+.lg-table th.lg-c-lib, .lg-table th.lg-c-proj { z-index: 2; }
+.lg-sortseg { flex-wrap: wrap; }
+.lg-detail .lg-dact > * { min-width: 0; max-width: 100%; }
+.lg-pjgrp { display: inline-flex; align-items: stretch; gap: 2px; min-width: 0; max-width: 100%; }
+.lg-pjgrp .lg-pjbtn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-pjgrp .lg-pchip { flex: none; }
+@media (max-width: 1200px) {
+  /* short windows: the strip and the selection bar on one line each (scrolling sideways), the legend on one line
+     (the full text on hover) - the rows get the height */
+  .lg-miss, .lg-selbar { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; }
+  .lg-miss { padding: 4px 10px; }
+  .lg-selbar { padding: 4px 10px; }
+  .lg-fbar { gap: 4px 8px; padding: 4px 10px; }
+  .lg-view > .lg-legend { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+/* the table fits its column: long chips and the two-word headers wrap */
+.lg-table .lg-chip { white-space: normal; overflow-wrap: anywhere; }
+.lg-table th.lg-c-count .lg-sort, .lg-table th.lg-c-relevance .lg-sort { white-space: normal; max-width: 92px; }
+
+/* icons in the Lineage window (RT.icon names): the caret of the project chip and the sort direction of a table column */
+.lg-pchip .lg-caret { width: 12px; height: 12px; margin-left: 3px; vertical-align: -2px; }
+.lg-sort .lg-sortic { width: 12px; height: 12px; margin-left: 3px; vertical-align: -2px; color: var(--accent); }
+.lg-pjbtn .ic { vertical-align: -2px; margin-right: 4px; }

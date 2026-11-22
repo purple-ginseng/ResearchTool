@@ -1,0 +1,38 @@
+/* PDF navigation shared by the Library reader and the Write preview (pdfnav.js): the Find box and its counter,
+   marks of a search in the text layer, the link layer over a page, the side panel (matches / table of contents),
+   the picture of a link's target and the bar that shows where a jump landed. */
+.pn-find { position: relative; display: inline-flex; align-items: center; flex: none; }
+.pn-find .pn-find-ic { position: absolute; left: 7px; width: 14px; height: 14px; color: var(--subtle, var(--muted)); pointer-events: none; }
+input.pn-search { width: 128px; padding: 3px 7px 3px 26px; flex: none; border-radius: var(--radius-pill, 999px); }
+.pn-hits { min-width: 44px; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { input.pn-search { width: 100px; } }
+
+.textLayer mark.pn-hit { background: rgba(255,196,0,.45); color: transparent; border-radius: 2px; padding: 0; margin: 0; }
+.textLayer mark.pn-hit.cur { background: rgba(255,90,0,.55); }
+
+.pn-links { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.pn-link { position: absolute; pointer-events: auto; border-radius: 2px; cursor: pointer; }
+.pn-link:hover, .pn-link:focus-visible { background: color-mix(in srgb, var(--accent) 22%, transparent); outline: 1px solid color-mix(in srgb, var(--accent) 60%, transparent); }
+.pn-target { position: absolute; left: 0; right: 0; height: 22px; z-index: 3; pointer-events: none; background: linear-gradient(90deg, rgba(255,150,0,.5), rgba(255,150,0,.12)); mix-blend-mode: multiply; animation: pn-fade 2.2s ease-out forwards; }
+@keyframes pn-fade { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
+
+.pn-panel { position: absolute; left: 0; bottom: 0; z-index: 4; width: 290px; display: flex; flex-direction: column; background: var(--panel); border-right: 1px solid var(--line); box-shadow: 4px 0 18px rgba(0,0,0,.16); }
+.pn-panel.pn-bottom { left: 0; right: 0; width: auto; height: 42%; border-right: 0; border-top: 1px solid var(--line); box-shadow: 0 -4px 18px rgba(0,0,0,.16); }
+.pn-head { display: flex; align-items: center; gap: 6px; padding: 5px 6px 5px 10px; border-bottom: 1px solid var(--line); flex: none; }
+.pn-head .pn-close { padding: 3px 5px; min-height: 24px; border-color: transparent; background: transparent; }
+.pn-list { flex: 1; min-height: 0; overflow: auto; padding: 4px; }
+.pn-empty { padding: 12px 10px; color: var(--muted); font-size: 12.5px; white-space: normal; }
+.pn-empty .spin { margin-right: 6px; }
+button.pn-row { display: flex; align-items: baseline; gap: 8px; width: 100%; border: 0; background: transparent; border-radius: 5px; padding: 5px 8px; text-align: left; white-space: normal; font-size: 12.5px; line-height: 1.4; color: var(--ink); }
+button.pn-row:hover, button.pn-row:focus-visible { background: var(--soft); outline: none; }
+button.pn-row.cur { background: var(--sel); }
+button.pn-row:disabled { color: var(--muted); }
+.pn-row .pn-pg { flex: none; color: var(--accent); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pn-row .pn-snip { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.pn-row .pn-snip b { background: rgba(255,196,0,.4); border-radius: 2px; font-weight: 600; }
+.pn-row.pn-ol .pn-pg { color: var(--muted); }
+.pn-row.pn-ol.top .pn-snip { font-weight: 600; }
+
+.pn-peek { position: absolute; z-index: 6; pointer-events: none; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 28px rgba(0,0,0,.28); max-width: calc(100% - 12px); }
+.pn-peek canvas { display: block; max-width: 100%; background: #fff; border-radius: 4px; }
+.pn-peek-cap { padding: 3px 4px 0; font-size: 11.5px; color: var(--muted); }

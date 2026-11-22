@@ -1,0 +1,72 @@
+/* Claude panel (aside#claude). */
+#claude { width: var(--claude-w, 380px); flex: none; position: relative; display: flex; flex-direction: column; border-left: 1px solid var(--line); background: var(--panel); min-height: 0; }
+#claude[hidden] { display: none; }
+.claude-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border-bottom: 1px solid var(--line); min-height: 44px; box-sizing: border-box; }
+.claude-head button.ib { padding: 4px 6px; min-height: 28px; flex: none; }
+.claude-head strong { flex: none; font: 600 14px/1.2 var(--font-title, inherit); letter-spacing: -.01em; }
+.claude-mark { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: var(--radius-sm, 6px); background: var(--gradient-brand, var(--accent-fill)); color: #fff; }
+.claude-mark .ic { width: 14px; height: 14px; }
+.claude-head .spacer { flex: 1; min-width: 0; }
+#claude-ctx { min-width: 0; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; font-family: var(--mono); font-size: 11.5px; }
+#claude-ctx[hidden] { display: none; }
+#claude-log { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+.msg { padding: 9px 12px; border-radius: var(--radius-lg, 14px); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.msg.user { background: var(--sel); color: var(--ink); align-self: flex-end; max-width: 88%; border-bottom-right-radius: var(--radius-xs, 4px); }
+.msg.bot { background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow-xs, none); border-bottom-left-radius: var(--radius-xs, 4px); }
+.msg.hint { color: var(--muted); font-size: 12.5px; border: 1px dashed var(--line-strong, var(--line)); background: transparent; }
+.msg.tool { font: 11.5px var(--mono); color: var(--subtle, var(--muted)); padding: 0 4px; }
+.msg.err { color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 55%, var(--line)); background: var(--bad-soft, transparent); }
+#claude-form { position: relative; display: flex; align-items: flex-end; gap: 6px; margin: 10px; padding: 6px 6px 6px 4px; border: 1px solid var(--line); border-radius: var(--radius-lg, 14px); background: var(--raised, var(--panel)); box-shadow: var(--shadow-1, none); transition: border-color .12s, box-shadow .12s; }
+#claude-form:focus-within { border-color: var(--focus); box-shadow: var(--shadow-focus, 0 0 0 3px color-mix(in srgb, var(--focus) 30%, transparent)); }
+#claude-input { flex: 1; min-width: 0; width: auto; border: 0; background: transparent; box-shadow: none; resize: none; padding: 6px 8px; outline: none; }
+#claude-input:focus, #claude-input:focus-visible { outline: none; box-shadow: none; border: 0; }
+#claude-send { flex: none; width: 34px; height: 34px; padding: 0; border-radius: var(--radius-md, 10px); background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-fill-ink, #fff); }
+#claude-send:hover:not(:disabled) { filter: brightness(1.08); }
+#claude-send.stop { background: var(--bad); border-color: var(--bad); color: #fff; }
+/* "Claude is working" line at the end of the log, and the answer while it is written */
+.msg.wait { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; padding: 2px 4px; }
+.msg.wait .spin { flex: none; }
+.msg.bot.live:not(.md)::after, .msg.bot.live .claude-md > :last-child:not(ul, ol, pre, table, blockquote)::after,
+.msg.bot.live .claude-md > :is(ul, ol):last-child > li:last-child::after { content: "▍"; color: var(--accent); margin-left: 1px; animation: claude-caret 1s steps(2, start) infinite; }
+@keyframes claude-caret { to { visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .msg.bot.live::after, .msg.bot.live .claude-md ::after { animation: none !important; } }
+/* the selection that goes along with the next question */
+#claude-sel { display: flex; align-items: center; gap: 6px; margin: 10px 10px -4px; padding: 4px 4px 4px 10px; border: 1px solid var(--line); border-radius: var(--radius-md, 10px); background: var(--soft-2, var(--soft)); color: var(--muted); font-size: 12px; }
+#claude-sel[hidden] { display: none; }
+#claude-sel .claude-sel-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#claude-sel button.ib { flex: none; padding: 2px 4px; min-height: 20px; }
+.claude-foot { padding: 0 12px 8px; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 900px) {
+  #claude { position: fixed; right: 0; top: 46px; bottom: 0; width: min(380px, 100vw); z-index: 30; }
+}
+
+/* Claude's answers drawn as Markdown (claude.js, pretty()) */
+.msg.md { white-space: normal; }
+.claude-md.vditor-reset { font-size: 13.5px; line-height: 1.6; color: inherit; background: transparent; padding: 0; overflow-wrap: anywhere; }
+.claude-md.vditor-reset > :first-child { margin-top: 0; }
+.claude-md.vditor-reset > :last-child { margin-bottom: 0; }
+.claude-md.vditor-reset h1, .claude-md.vditor-reset h2, .claude-md.vditor-reset h3, .claude-md.vditor-reset h4 { font-size: 14.5px; line-height: 1.4; margin: 14px 0 6px; padding: 0; border: 0; }
+.claude-md.vditor-reset h1 { font-size: 16px; } .claude-md.vditor-reset h2 { font-size: 15px; }
+.claude-md.vditor-reset p, .claude-md.vditor-reset ul, .claude-md.vditor-reset ol, .claude-md.vditor-reset blockquote, .claude-md.vditor-reset pre, .claude-md.vditor-reset table { margin: 0 0 9px; }
+.claude-md.vditor-reset ul, .claude-md.vditor-reset ol { padding-left: 20px; }
+.claude-md.vditor-reset blockquote { padding: 4px 10px; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); color: inherit; border-radius: 0 6px 6px 0; }
+.claude-md.vditor-reset blockquote > :last-child { margin-bottom: 0; }
+.claude-md.vditor-reset table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 12.5px; }
+.claude-md.vditor-reset th, .claude-md.vditor-reset td { padding: 4px 8px; border: 1px solid var(--line); }
+.claude-md.vditor-reset th { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.claude-md.vditor-reset tr { background: transparent; }
+.claude-md.vditor-reset code:not(.hljs) { font: 12px var(--mono); padding: 1px 4px; border-radius: 4px; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.claude-md.vditor-reset pre > code { font: 12px/1.5 var(--mono); border-radius: 6px; max-height: 420px; }
+.claude-md.vditor-reset hr { margin: 10px 0; }
+.claude-md.vditor-reset img { max-width: 100%; }
+.claude-md .katex { font-size: 1.02em; }
+
+/* dragging the left edge resizes the panel (panes.js) */
+.pane-resize { position: absolute; top: 0; bottom: 0; width: 9px; z-index: 6; cursor: col-resize; touch-action: none; }
+.pane-resize::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: transparent; transition: background .12s; }
+.pane-resize:hover::after, .pane-resize.on::after { background: var(--accent); }
+#claude > .pane-resize { left: -1px; }
+body.pane-dragging { cursor: col-resize; user-select: none; -webkit-user-select: none; }
+body.pane-dragging iframe, body.pane-dragging canvas { pointer-events: none; }
+@media (max-width: 900px) { .pane-resize { display: none; } }

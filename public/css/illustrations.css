@@ -1,0 +1,28 @@
+/* Illustration palette (illustrations.js; from the Purple Ginseng design system). Every illustration reads these with
+   its light value as the fallback. Dark: by the system unless Preferences > Theme says Light, or Theme = Dark - the
+   same guards as the tokens in base.css; the two dark blocks must stay the same. */
+:root {
+  --ill-primary: #7b4cc2; --ill-primary-soft: #ece3fa; --ill-primary-mid: #b89be6; --ill-primary-deep: #4a2a86;
+  --ill-pink: #d1477f; --ill-pink-soft: #fbe1ec; --ill-yellow: #c9971a; --ill-yellow-bright: #f2c14e; --ill-yellow-soft: #fcefc7;
+  --ill-leaf: #4f9a72; --ill-leaf-soft: #d9eee2; --ill-paper: #ffffff; --ill-edge: #e4def0; --ill-line: #ddd6ea; --ill-line-strong: #b9aed0;
+  --ill-ink: #2b2340; --ill-muted: #8d84a3; --ill-bg: #f4effb; --ill-bg-2: #fcf0f5; --ill-shadow: #3a1f6b; --ill-shadow-opacity: 0.08; --ill-on-accent: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --ill-primary: #a37ee8; --ill-primary-soft: #33284c; --ill-primary-mid: #6f55a3; --ill-primary-deep: #d6c4f7;
+  --ill-pink: #ec7aa8; --ill-pink-soft: #5e2c4a; --ill-yellow: #e2b443; --ill-yellow-bright: #f0c95f; --ill-yellow-soft: #6b5520;
+  --ill-leaf: #72c49a; --ill-leaf-soft: #1f3a2d; --ill-paper: #2a2439; --ill-edge: #3e3553; --ill-line: #4a4062; --ill-line-strong: #6c6187;
+  --ill-ink: #ece6f7; --ill-muted: #9d94b4; --ill-bg: #221b31;
+  /* translucent so the second blob reads as a soft halo, not an opaque grey disc */
+  --ill-bg-2: color-mix(in srgb, var(--ill-pink) 14%, transparent); --ill-shadow: #000000; --ill-shadow-opacity: 0.32; --ill-on-accent: #ffffff;
+  }
+}
+:root[data-theme="dark"] {
+  --ill-primary: #a37ee8; --ill-primary-soft: #33284c; --ill-primary-mid: #6f55a3; --ill-primary-deep: #d6c4f7;
+  --ill-pink: #ec7aa8; --ill-pink-soft: #5e2c4a; --ill-yellow: #e2b443; --ill-yellow-bright: #f0c95f; --ill-yellow-soft: #6b5520;
+  --ill-leaf: #72c49a; --ill-leaf-soft: #1f3a2d; --ill-paper: #2a2439; --ill-edge: #3e3553; --ill-line: #4a4062; --ill-line-strong: #6c6187;
+  --ill-ink: #ece6f7; --ill-muted: #9d94b4; --ill-bg: #221b31;
+  /* translucent so the second blob reads as a soft halo, not an opaque grey disc */
+  --ill-bg-2: color-mix(in srgb, var(--ill-pink) 14%, transparent); --ill-shadow: #000000; --ill-shadow-opacity: 0.32; --ill-on-accent: #ffffff;
+}
+.rt-ill { display: block; max-width: 100%; height: auto; }

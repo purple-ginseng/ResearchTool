@@ -1,0 +1,85 @@
+<!-- ResearchTool brand: crest, shield only. Original artwork, (c) ResearchTool. Hand-drawn SVG; not traced from any existing arms. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="170 230 260 320" role="img" aria-labelledby="as-t">
+  <title id="as-t">ResearchTool crest</title>
+  <defs>
+  <linearGradient id="as-gold" x1="0" y1="0" x2="0.35" y2="1">
+    <stop offset="0" stop-color="#f0d27a"/><stop offset="0.45" stop-color="#e2bd55"/>
+    <stop offset="0.75" stop-color="#c9971a"/><stop offset="1" stop-color="#a87d14"/>
+  </linearGradient>
+  <linearGradient id="as-field" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8a5bd0"/><stop offset="0.55" stop-color="#7b4cc2"/>
+    <stop offset="1" stop-color="#5a3496"/>
+  </linearGradient>
+  <linearGradient id="as-mant" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9468d6"/><stop offset="0.5" stop-color="#7b4cc2"/>
+    <stop offset="1" stop-color="#4a2a80"/>
+  </linearGradient>
+  <pattern id="as-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+    <line x1="0" y1="0" x2="0" y2="5" stroke="#2e1a52" stroke-width="0.9" stroke-opacity="0.28"/>
+  </pattern></defs>
+  
+  <g>
+    <path d="M180 240H420V350C420 440 372 500 300 540C228 500 180 440 180 350Z" fill="url(#as-field)"/>
+    <path d="M180 240H420V350C420 440 372 500 300 540C228 500 180 440 180 350Z" fill="url(#as-hatch)"/>
+    <clipPath id="as-clip"><path d="M180 240H420V350C420 440 372 500 300 540C228 500 180 440 180 350Z"/></clipPath>
+    <g clip-path="url(#as-clip)">
+      <!-- chevron or -->
+      <path d="M160 441L300 325L440 441L440 476L300 360L160 476Z" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.6"/>
+      <path d="M166 446L300 335L434 446M166 466L300 351L434 466" fill="none" stroke="#9a7210" stroke-width="0.9" stroke-dasharray="2 2.2"/>
+    </g>
+    <!-- ginseng on the chevron: berries at the apex, leaves on the limbs -->
+    <g stroke="#2e1a52" stroke-width="0.8">
+      <circle cx="300" cy="333" r="3.4" fill="#d1477f"/>
+      <circle cx="294.2" cy="338" r="3.4" fill="#d1477f"/><circle cx="305.8" cy="338" r="3.4" fill="#d1477f"/>
+      <circle cx="300" cy="343" r="3.4" fill="#d1477f"/>
+      <circle cx="294.2" cy="348" r="3.1" fill="#d1477f"/><circle cx="305.8" cy="348" r="3.1" fill="#d1477f"/>
+    </g>
+    <g fill="#fff" fill-opacity="0.75"><circle cx="299" cy="331.8" r="1"/><circle cx="293.2" cy="336.8" r="1"/><circle cx="304.8" cy="336.8" r="1"/><circle cx="299" cy="341.8" r="1"/></g>
+    <g transform="translate(238 391) rotate(-50) scale(1.05)"><path transform="rotate(-64)" d="M0 0C-4 -3.5 -4.2 -8 0 -10C4.2 -8 4 -3.5 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(-32)" d="M0 0C-4 -4.55 -4.2 -10.4 0 -13C4.2 -10.4 4 -4.55 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(0)" d="M0 0C-4 -5.25 -4.2 -12 0 -15C4.2 -12 4 -5.25 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(32)" d="M0 0C-4 -4.55 -4.2 -10.4 0 -13C4.2 -10.4 4 -4.55 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(64)" d="M0 0C-4 -3.5 -4.2 -8 0 -10C4.2 -8 4 -3.5 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><circle r="1.6" fill="#7b4cc2"/></g>
+    <g transform="translate(362 391) rotate(50) scale(1.05)"><path transform="rotate(-64)" d="M0 0C-4 -3.5 -4.2 -8 0 -10C4.2 -8 4 -3.5 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(-32)" d="M0 0C-4 -4.55 -4.2 -10.4 0 -13C4.2 -10.4 4 -4.55 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(0)" d="M0 0C-4 -5.25 -4.2 -12 0 -15C4.2 -12 4 -5.25 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(32)" d="M0 0C-4 -4.55 -4.2 -10.4 0 -13C4.2 -10.4 4 -4.55 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><path transform="rotate(64)" d="M0 0C-4 -3.5 -4.2 -8 0 -10C4.2 -8 4 -3.5 0 0Z" fill="#7b4cc2" stroke="#2e1a52" stroke-width="0.5"/><circle r="1.6" fill="#7b4cc2"/></g>
+
+    <!-- dexter chief: the lamp of learning -->
+    <g stroke="#2e1a52" stroke-width="1.4" stroke-linejoin="round">
+      <path d="M267.21 273.57L253.43 271.14M268.88 269L261.95 265M272 265.28L263 254.55M276.21 262.84L273.48 255.33M281 262L281 248M285.79 262.84L288.52 255.33M290 265.28L299 254.55M293.12 269L300.05 265M294.79 273.57L308.57 271.14" stroke="#e2bd55" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M211 351H245L239 341H217Z" fill="url(#as-gold)"/>
+      <path d="M222 341H234V333H222Z" fill="url(#as-gold)"/>
+      <path d="M198 316C186 309 182 330 198 331" fill="none" stroke="#2e1a52" stroke-width="7"/><path d="M198 316C186 309 182 330 198 331" fill="none" stroke="url(#as-gold)" stroke-width="4"/>
+      
+      <path d="M196 322C196 308 211 301 228 301C246 301 258 308 266 312L277 297C279 294 284 295 283 299L276 316C270 328 250 335 228 335C210 335 196 330 196 322Z" fill="url(#as-gold)"/>
+      <path d="M201 323C218 331 248 331 268 320" fill="none" stroke="#4a2a80" stroke-width="0.9"/><g fill="#4a2a80" stroke="none"><circle cx="214" cy="321" r="1.2"/><circle cx="228" cy="323" r="1.2"/><circle cx="242" cy="322" r="1.2"/></g>
+      <path d="M217 302C219 293 237 293 239 302Z" fill="url(#as-gold)"/>
+      <circle cx="228" cy="291" r="3.2" fill="url(#as-gold)"/>
+      <path d="M281 294C274 287 276 277 283 264C285 273 291 279 289 287C288 292 285 294 281 294Z" fill="#e2bd55"/>
+      <path d="M282 291C279 287 280 282 283 276C285 281 287 285 285 289Z" fill="#fbf7ee" stroke="none"/>
+    </g>
+
+    <!-- sinister chief: the tree of citations -->
+    <path d="M362 352L340 320M362 352L384 320M340 320L326 290M340 320L350 284M384 320L374 284M384 320L398 290M340 320L374 284M350 284L362 262M374 284L362 262" fill="none" stroke="#2e1a52" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M362 352L340 320M362 352L384 320M340 320L326 290M340 320L350 284M384 320L374 284M384 320L398 290M340 320L374 284M350 284L362 262M374 284L362 262" fill="none" stroke="url(#as-gold)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="362" cy="262" r="5.2" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="362" cy="262" r="2.18" fill="#4a2a80"/><circle cx="326" cy="290" r="5.2" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="326" cy="290" r="2.18" fill="#4a2a80"/><circle cx="350" cy="284" r="5.2" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="350" cy="284" r="2.18" fill="#4a2a80"/><circle cx="374" cy="284" r="5.2" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="374" cy="284" r="2.18" fill="#4a2a80"/><circle cx="398" cy="290" r="5.2" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="398" cy="290" r="2.18" fill="#4a2a80"/><circle cx="340" cy="320" r="6.2" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="340" cy="320" r="2.6" fill="#4a2a80"/><circle cx="384" cy="320" r="6.2" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="384" cy="320" r="2.6" fill="#4a2a80"/><circle cx="362" cy="352" r="7.5" fill="url(#as-gold)" stroke="#2e1a52" stroke-width="1.2"/><circle cx="362" cy="352" r="3.15" fill="#4a2a80"/>
+
+    <!-- in base: the open book with a highlighted line and a pink marker ribbon -->
+    <g stroke="#2e1a52" stroke-width="1.4" stroke-linejoin="round">
+      <path d="M298 482L296.5 503L300 498.5L303.5 503L302 482Z" fill="#d1477f"/>
+      <path d="M300 436C284 426 260 423 238 428L240 482C262 477 284 479 300 488C316 479 338 477 360 482L362 428C340 423 316 426 300 436Z" fill="#9a7210"/>
+      <path d="M300 432C285 422 263 419 243 424L245 474C265 469 286 471 300 480Z" fill="url(#as-gold)"/>
+      <path d="M300 432C315 422 337 419 357 424L355 474C335 469 314 471 300 480Z" fill="url(#as-gold)"/>
+      <path d="M300 432V480" fill="none"/>
+    </g>
+    <path d="M292 438C280 432 266 430 251 432M308 438C320 432 334 430 349 432M292 445.5C280 439.5 266 437.5 251 439.5M308 445.5C320 439.5 334 437.5 349 439.5M292 453C280 447 266 445 251 447M308 453C320 447 334 445 349 447M292 460.5C280 454.5 266 452.5 251 454.5M308 460.5C320 454.5 334 452.5 349 454.5M292 468C280 462 266 460 251 462M308 468C320 462 334 460 349 462" fill="none" stroke="#4a2a80" stroke-width="1" stroke-linecap="round" stroke-opacity="0.85"/>
+    <path d="M291 445.5C279 439.5 265 437.5 252 439.5" fill="none" stroke="#d1477f" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round"/>
+
+    <!-- the quill, surmounting the book -->
+    <g stroke="#2e1a52" stroke-width="1.2" stroke-linejoin="round">
+      <path d="M320 452C333 447 343 437 345 430C350 422 353 413 353 402C346 406 337 414 330 426C326 434 322 443 320 452Z" fill="#fbf7ee"/>
+      <path d="M307 470L351 404" fill="none" stroke-width="1.6"/>
+      <path d="M304.5 474L309 466L311.5 468Z" fill="#2e1a52"/>
+      <path d="M325 444L334 441M328 437L339 432M332 430L343 424M336 423L347 415M333 435L329 431M338 427L334 421" fill="none" stroke="#4a2a80" stroke-width="0.7"/>
+    </g>
+
+    <!-- double outline -->
+    <path d="M180 240H420V350C420 440 372 500 300 540C228 500 180 440 180 350Z" fill="none" stroke="#2e1a52" stroke-width="6.5"/>
+    <path d="M180 240H420V350C420 440 372 500 300 540C228 500 180 440 180 350Z" fill="none" stroke="url(#as-gold)" stroke-width="3.6"/>
+    <path d="M189 249H411V350C411 434 366 490 300 529C234 490 189 434 189 350Z" fill="none" stroke="url(#as-gold)" stroke-width="1.1" stroke-opacity="0.9"/>
+  </g>
+</svg>

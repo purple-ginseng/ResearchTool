@@ -1,0 +1,26 @@
+/* Fast hover hints (tips.js): a small dark label above (or below) the element, with an arrow pointing at it.
+   A popover in the top layer, so it shows above modal dialogs; it never takes the pointer. */
+.rt-tip {
+  --tip-bg: #2a1f3a; --tip-ink: #f6f1fc;
+  position: fixed; inset: auto; left: 0; top: 0; margin: 0; z-index: 2147483000;
+  max-width: min(280px, calc(100vw - 12px)); width: max-content; height: auto; overflow: visible;
+  padding: 5px 9px; border: 0; border-radius: 6px; background: var(--tip-bg); color: var(--tip-ink);
+  font: 400 12px/1.4 var(--font-body); letter-spacing: .005em; text-align: left; white-space: normal; overflow-wrap: anywhere;
+  box-shadow: 0 4px 14px rgba(20, 10, 40, .28); pointer-events: none; user-select: none;
+  display: none; opacity: 0; transition: opacity .09s ease-out, transform .09s ease-out;
+}
+.rt-tip.on { display: block; opacity: 1; }
+.rt-tip[data-side="top"] { transform-origin: var(--rt-tip-x, 50%) 100%; }
+.rt-tip[data-side="bottom"] { transform-origin: var(--rt-tip-x, 50%) 0; }
+@starting-style { .rt-tip.on { opacity: 0; transform: translateY(2px); } }
+.rt-tip[popover]:not(:popover-open) { display: none; }
+.rt-tip::after { /* the arrow */
+  content: ''; position: absolute; left: var(--rt-tip-x, 50%); width: 8px; height: 8px; margin-left: -4px;
+  background: var(--tip-bg); transform: rotate(45deg); border-radius: 1px;
+}
+.rt-tip[data-side="top"]::after { bottom: -4px; }
+.rt-tip[data-side="bottom"]::after { top: -4px; }
+.rt-tip-text { position: relative; z-index: 1; display: block; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rt-tip { --tip-bg: #f1eafb; --tip-ink: #1d1527; box-shadow: 0 4px 14px rgba(0, 0, 0, .5); } }
+:root[data-theme="dark"] .rt-tip { --tip-bg: #f1eafb; --tip-ink: #1d1527; box-shadow: 0 4px 14px rgba(0, 0, 0, .5); }
+@media (prefers-reduced-motion: reduce) { .rt-tip { transition: none; } @starting-style { .rt-tip.on { opacity: 1; transform: none; } } }

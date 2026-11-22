@@ -1,0 +1,58 @@
+/* Categories: the small ask / confirm dialog, context menus and the "Group with Claude" dialog. */
+dialog.dlg-small { width: min(420px, 92vw); }
+#dlg-ask button.danger { background: var(--bad); border-color: var(--bad); color: var(--on-status, #fff); }
+#dlg-ask .dlg-actions button.ib, #dlg-regroup .dlg-actions button.ib { min-width: 36px; }
+
+/* the context menus (RT.categories.menu): the look of RT.menu (.rt-menu in base.css) */
+.ctx-menu { position: fixed; z-index: 60; min-width: 200px; max-width: min(340px, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow: auto; display: flex; flex-direction: column; padding: 5px; background: var(--raised, var(--panel)); border: 1px solid var(--line); border-radius: var(--radius-lg, 10px); box-shadow: var(--shadow-3, 0 8px 28px rgba(0,0,0,.18)); }
+.ctx-menu button { display: flex; align-items: center; border: 0; background: transparent; text-align: left; border-radius: var(--radius-sm); padding: 6px 9px; white-space: normal; color: var(--ink); min-height: 0; }
+.ctx-menu button:hover, .ctx-menu button:focus-visible { background: var(--sel); color: var(--accent); outline: none; }
+.ctx-menu button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.ctx-menu button.danger { color: var(--bad); }
+.ctx-menu button.danger:hover, .ctx-menu button.danger:focus-visible { background: var(--bad-soft, var(--soft-2)); color: var(--bad); }
+.ctx-head { padding: 7px 9px 3px; font: 400 11px/1.3 var(--font-meta, inherit); letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); }
+.ctx-check { display: inline-flex; flex: none; width: 16px; margin-right: 8px; color: var(--accent); }
+.ctx-check .ic { width: 16px; height: 16px; }
+.ctx-menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+
+#dlg-regroup { width: min(860px, 94vw); max-height: 88vh; }
+#dlg-regroup[open] { display: flex; flex-direction: column; }
+#dlg-regroup > div { min-height: 0; display: flex; flex-direction: column; }
+#dlg-regroup > div[hidden] { display: none; }
+#dlg-regroup h4 { margin: 14px 0 6px; flex: none; }
+#dlg-regroup h4 #rg-none { margin-left: -4px; }
+#rg-apply .spin { border-color: color-mix(in srgb, var(--accent-fill-ink, #fff) 35%, transparent); border-top-color: var(--accent-fill-ink, #fff); }
+#dlg-regroup h4 button.ib { min-height: 0; padding: 3px 6px; color: var(--ink); }
+#dlg-regroup h4 button.ib .ic { width: 14px; height: 14px; }
+#rg-apply .rg-n { font-variant-numeric: tabular-nums; font-weight: 600; }
+#dlg-regroup .rg-hint { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.rg-check { display: flex; align-items: center; gap: 7px; padding: 3px 0; }
+.rg-check select { width: auto; }
+.rg-scope { margin: 4px 0 6px; }
+.rg-bar { height: 6px; border-radius: var(--radius-pill); background: var(--soft); overflow: hidden; }
+#rg-bar-fill { height: 100%; width: 4%; background: var(--gradient-brand, var(--accent)); transition: width .4s; }
+#rg-cats { display: flex; flex-direction: column; gap: 4px; max-height: 34vh; overflow: auto; flex: none; }
+.rg-cat { display: grid; grid-template-columns: 10px minmax(160px, 320px) auto 1fr; align-items: center; gap: 8px; }
+.rg-cat .cat-dot { width: 9px; height: 9px; margin: 0; }
+.rg-line { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding: 2px 0; }
+.rg-line .cat-dot { width: 10px; height: 10px; margin: 0; }
+.rg-cat.rg-sub { padding-left: 18px; grid-template-columns: 10px minmax(160px, 302px) auto 1fr; }
+.rg-count { font-size: 11.5px; margin-bottom: 2px; }
+.rg-cat input { padding: 3px 7px; }
+.rg-cat input.invalid { border-color: var(--bad); }
+.rg-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#rg-moves { overflow: auto; min-height: 60px; border: 1px solid var(--line); border-radius: var(--radius-md, 8px); }
+#rg-moves > .muted { padding: 12px; }
+.rg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.rg-table th { position: sticky; top: 0; background: var(--soft); text-align: left; font-weight: 600; padding: 5px 8px; font-size: 11.5px; color: var(--muted); }
+.rg-table td { padding: 5px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+.rg-table tr.off td { opacity: .45; }
+.rg-table tr.off .rg-to { text-decoration: line-through; }
+.rg-title { max-width: 380px; }
+.rg-from { color: var(--muted); white-space: nowrap; }
+.rg-to { font-weight: 600; white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .rg-cat, .rg-cat.rg-sub { grid-template-columns: 10px 1fr auto; } .rg-desc { display: none; }
+  .rg-from, .rg-to { white-space: normal; }
+}

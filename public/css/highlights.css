@@ -1,0 +1,46 @@
+/* Colour highlights on the PDF of a paper (highlights.js): the layer of marks between the page picture and its text
+   layer, the colour dots, the card of one highlight and the list of all highlights. */
+.hl-layer { position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: multiply; }
+.hl-mark i, .hl-kp i { position: absolute; border-radius: 2px; }
+.hl-mark i { background: var(--hl-yellow); }
+.hl-mark[data-color="green"] i { background: var(--hl-green); }
+.hl-mark[data-color="blue"] i { background: var(--hl-blue); }
+.hl-mark[data-color="pink"] i { background: var(--hl-pink); }
+/* a highlight with a comment carries a small dot at its end */
+.hl-mark.noted i:last-child::after { content: ''; position: absolute; right: -4px; top: -4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+/* the sentence of a key point: underlined, barely tinted */
+.hl-kp i { background: color-mix(in srgb, var(--accent) 9%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--accent) 75%, transparent); border-radius: 0; }
+.hl-mark.hl-blink i { animation: hl-blink 1.7s ease-out; }
+@keyframes hl-blink { 0%, 45% { box-shadow: 0 0 0 3px rgba(255,120,0,.85); } 100% { box-shadow: 0 0 0 3px rgba(255,120,0,0); } }
+.rd-pages.hl-over .textLayer, .rd-pages.hl-over .textLayer span { cursor: pointer; }
+.rd-pages.snap .hl-layer { opacity: .5; }
+
+.hl-sw { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--hl-yellow); border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent); pointer-events: none; }
+.hl-sw[data-color="green"] { background: var(--hl-green); }
+.hl-sw[data-color="blue"] { background: var(--hl-blue); }
+.hl-sw[data-color="pink"] { background: var(--hl-pink); }
+.rd-selpop { align-items: center; }
+.rd-selpop .rd-sep { margin: 0 2px; }
+.rd-selpop button.hl-dot { padding: 5px 5px; }
+button.hl-dot.on .hl-sw { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.hl-pop { position: absolute; z-index: 31; width: 280px; max-width: calc(100% - 12px); display: flex; flex-direction: column; gap: 6px; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 22px rgba(0,0,0,.25); }
+.hl-pop-row { display: flex; align-items: center; gap: 2px; min-height: 26px; }
+.hl-pop-row b { padding-left: 4px; font-size: 12.5px; }
+.hl-pop button.ib { border: 0; background: transparent; padding: 5px 6px; min-height: 0; }
+.hl-pop button.ib:hover { background: var(--soft); }
+.hl-pop-text { padding: 0 4px; font-size: 12px; line-height: 1.4; color: var(--muted); max-height: 5.6em; overflow: hidden; overflow-wrap: anywhere; }
+.hl-pop textarea { font-size: 12.5px; padding: 5px 7px; field-sizing: content; min-height: 44px; max-height: 160px; resize: none; }
+
+.hl-panel { position: absolute; right: 0; bottom: 0; z-index: 5; width: 300px; max-width: 100%; display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--line); box-shadow: -4px 0 18px rgba(0,0,0,.16); }
+.hl-panel .pn-head button.ib { padding: 3px 5px; min-height: 24px; border-color: transparent; background: transparent; }
+.hl-panel .pn-head button.ib.on { background: var(--soft); color: var(--accent); }
+.hl-list { flex: 1; min-height: 0; overflow: auto; padding: 4px; }
+.hl-list .pn-empty button { margin-top: 8px; }
+.hl-row .hl-sw { align-self: flex-start; margin-top: 3px; }
+.hl-kind { display: inline-block; margin-left: 2px; padding: 0 5px; border-radius: 8px; background: var(--soft); color: var(--muted); font-size: 10.5px; white-space: nowrap; }
+.hl-note { display: block; margin-top: 2px; color: var(--muted); font-style: italic; }
+
+/* the key point a highlight leads to lights up for a moment (reader.js, the Key points tab) */
+.kp.lit { animation: hl-kp-lit 2s ease-out; }
+@keyframes hl-kp-lit { 0%, 40% { background: var(--sel); } 100% { background: transparent; } }

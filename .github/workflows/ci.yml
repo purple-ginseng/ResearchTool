@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# a newer push to the same branch or pull request cancels the run still going
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [20, 24]
+        include:
+          # the README says Node 18+: keep that true on one platform
+          - os: ubuntu-latest
+            node: 18
+    steps:
+      # a default checkout: on Windows git's core.autocrlf=true applies, and .gitattributes keeps the LF line ends
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+      # public/vendor is -text (kept byte for byte, one upstream file has CRLF), so it is left out of this check
+      - name: Line ends of the checkout are LF
+        shell: bash
+        run: |
+          if git ls-files --eol | grep -v 'attr/-text' | grep -E '\sw/(crlf|mixed)\s'; then echo "files above were checked out with CRLF"; exit 1; fi
+      - name: Unit tests
+        run: node scripts/run-tests.js
+      - name: Every UI string translated
+        run: node scripts/i18n-extract.js --check
+      - name: Server smoke test
+        run: node scripts/smoke-server.js
+
+  pdf-import:
+    name: PDF import (${{ matrix.os }}, poppler)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Install poppler (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Install poppler (macOS)
+        if: runner.os == 'macOS'
+        run: brew install poppler
+      # Chocolatey puts .exe shims for pdftotext / pdfinfo / pdftoppm in C:\ProgramData\chocolatey\bin, a folder the
+      # server adds to PATH by itself (lib/platform.js extraPathDirs)
+      - name: Install poppler (Windows)
+        if: runner.os == 'Windows'
+        run: choco install poppler -y --no-progress
+      - name: Server smoke test with a PDF import
+        run: node scripts/smoke-server.js --pdf

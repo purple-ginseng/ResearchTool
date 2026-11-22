@@ -1,0 +1,106 @@
+Third-party components inside the Vditor 3.11.3 distribution (public/vendor/vditor/dist)
+=========================================================================================
+
+Vditor itself is MIT licensed (see LICENSE in this folder). Its dist folder bundles the libraries below.
+Components that ship their own licence file keep it next to the code:
+  dist/js/highlight.js/LICENSE      highlight.js 11.7.0 (BSD-3-Clause)
+  dist/js/wavedrom/LICENSE.WaveDrom WaveDrom 3.6.2 (MIT)
+  dist/js/echarts/LICENSE, NOTICE   Apache ECharts 5.5.1 (Apache-2.0)
+  dist/js/mermaid/LICENSE           Mermaid 11.x (MIT) and its bundled packages
+  dist/js/graphviz/LICENSE          Viz.js 2.1.2 (MIT), Graphviz 2.40.1 (EPL-1.0), Expat (MIT), zlib
+  dist/js/lute/LICENSE              Lute 1.7.6 (Mulan PSL v2; the LICENSE file of the Lute repository at v1.7.6)
+
+This distribution was trimmed for this repository: the unused MathJax copy (dist/js/mathjax; the app renders
+math with KaTeX), the custom emoji images (dist/images/emoji), the Vditor logo (dist/images/logo.png) and all
+highlight.js styles except github and github-dark were removed. The library files themselves are
+unchanged; this file, the LICENSE / NOTICE files in dist/js/graphviz, dist/js/mermaid and dist/js/echarts and
+dist/js/lute/LICENSE (copied unchanged from the Lute repository) were added for this repository (see THIRD_PARTY_LICENSES.md at the repository root).
+
+The libraries without a licence file of their own are listed here, followed by the licence texts.
+
+Mulan Permissive Software License v2 (full text in dist/js/lute/LICENSE)
+  Lute 1.7.6 (dist/js/lute)            Copyright (c) 2019-present, b3log.org - https://github.com/88250/lute
+                                        "Lute is licensed under Mulan PSL v2."
+                                        (compiled with GopherJS; contains parts of the Go standard library,
+                                        Copyright (c) 2009 The Go Authors, BSD-3-Clause, text B below)
+
+MIT licence (text A below)
+  KaTeX 0.16.9 + mhchem (dist/js/katex) Copyright (c) 2013-2020 Khan Academy and other contributors
+                                        - https://github.com/KaTeX/KaTeX (fonts: MIT, same holders)
+  markmap 0.14.x (dist/js/markmap)     Copyright (c) 2020 Gerald - https://github.com/markmap/markmap
+                                        bundles d3 6.7.0 (ISC, Copyright 2010-2020 Mike Bostock, text C below),
+                                        d3-flextree (WTFPL), @gera2ld/jsx-dom (ISC), js-yaml 4.1.0 (MIT,
+                                        Copyright (C) 2011-2015 by Vitaly Puzrin), KaTeX CSS (MIT), prism.css (MIT,
+                                        Copyright (c) 2012 Lea Verou)
+  abcjs 5.10.3 (dist/js/abcjs)          Copyright (c) 2009-2019 Paul Rosen and Gregory Dyke - https://github.com/paulrosen/abcjs
+  flowchart.js (dist/js/flowchart.js)   Copyright (c) 2013-present Adriano Raiano - https://github.com/adrai/flowchart.js
+                                        bundles Raphael 2.3.0 (MIT, Copyright (c) 2008-2016 Dmitry Baranovskiy,
+                                        Sencha Labs) - https://github.com/DmitryBaranovskiy/raphael
+  plantuml-encoder (dist/js/plantuml)   Copyright (C) 2015 by Markus Hedvall - https://github.com/markushedvall/plantuml-encoder
+                                        includes pako (MIT and zlib licence, Copyright (C) 2014-2017 by Vitaly
+                                        Puzrin and Andrei Tuputcyn)
+  smiles-drawer (dist/js/smiles-drawer) Copyright (c) 2017 GDB / Reymond Research Group - https://github.com/reymond-group/smilesDrawer
+                                        includes chroma.js (BSD-3-Clause, Copyright (c) 2011-2019, Gregor Aisch;
+                                        its licence text is kept in a comment inside smiles-drawer.min.js) with the
+                                        ColorBrewer colour schemes (Apache-2.0, Copyright (c) 2002 Cynthia Brewer,
+                                        Mark Harrower, and The Pennsylvania State University)
+  Ant Design icons (dist/js/icons/ant.js) Copyright (c) 2018-present Ant UED, https://xtech.antfin.com/ - https://github.com/ant-design/ant-design-icons
+
+Apache License 2.0 (full text in dist/js/echarts/LICENSE)
+  Material icons (dist/js/icons/material.js)  Copyright Google LLC - https://github.com/google/material-design-icons
+  diff-match-patch (inside dist/index.js / index.min.js)  Copyright 2018 The diff-match-patch Authors
+                                        - https://github.com/google/diff-match-patch
+
+WTFPL
+  d3-flextree (inside markmap)          https://github.com/klortho/d3-flextree - WTFPL Version 2:
+                                        everyone may copy, modify and distribute it.
+
+-----------------------------------------------------------------------------------------------------------------
+A. MIT licence
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE.
+
+-----------------------------------------------------------------------------------------------------------------
+B. BSD 3-Clause licence
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
+   following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+   following disclaimer in the documentation and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+   products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+-----------------------------------------------------------------------------------------------------------------
+C. ISC licence
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby
+granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING
+ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL,
+DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
+USE OR PERFORMANCE OF THIS SOFTWARE.
