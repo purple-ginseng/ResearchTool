@@ -236,7 +236,9 @@ const withPath = async (dirs, fn) => {
   await test('inside (posix) is exactly the old check', () => {
     const t = (root, p) => plat.inside(root, p, 'linux');
     assert.ok(t('/a/b', '/a/b')); assert.ok(t('/a/b', '/a/b/c')); assert.ok(!t('/a/b', '/a/bc')); assert.ok(!t('/a/b', '/a/B/c'));
-    assert.equal(createProjects.inside('/a/b', '/a/b/c'), true); assert.equal(createProjects.inside('/a/b', '/a/bc'), false);
+    if (process.platform !== 'win32') { // createProjects.inside follows the host platform
+      assert.equal(createProjects.inside('/a/b', '/a/b/c'), true); assert.equal(createProjects.inside('/a/b', '/a/bc'), false);
+    }
   });
   await test('insideAnyCase: case-blind on macOS / Windows (for refusals only), exact on Linux', () => {
     assert.ok(plat.insideAnyCase('C:\\Users\\Me\\ws', 'c:/users/me/WS/backups', 'win32'));
@@ -393,6 +395,7 @@ const withPath = async (dirs, fn) => {
   });
 
   // ================================================================ review fixes (Windows behaviour simulated)
+  const hostReal = (p) => (process.platform === 'win32' ? fs.realpathSync.native(p) : fs.realpathSync(p));
   await test('realpath (win32): the native realpath, the JavaScript one where a volume makes it fail; a missing path still throws', () => {
     const calls = [];
     const mk = (nativeErr) => {
@@ -405,7 +408,7 @@ const withPath = async (dirs, fn) => {
     assert.throws(() => plat.realpath('G:\\gone', { platform: 'win32', fsm: mk('ENOENT') }), (e) => e.code === 'ENOENT');
     calls.length = 0;
     assert.equal(plat.realpath('/x', { platform: 'linux', fsm: mk('EISDIR') }), 'JS:/x'); assert.deepEqual(calls, ['js'], 'posix: as before');
-    assert.equal(createProjects.realpath(WS), fs.realpathSync(WS));
+    assert.equal(createProjects.realpath(WS), hostReal(WS)); // Windows: the native (long, not 8.3) form
   });
   await test('realpathNear: a folder not made yet is compared in the long form of its nearest existing parent (8.3 names)', () => {
     const long = { 'c:\\users\\runner~1\\appdata\\local\\temp': 'C:\\Users\\runneradmin\\AppData\\Local\\Temp' };
@@ -414,7 +417,7 @@ const withPath = async (dirs, fn) => {
     assert.equal(plat.realpathNear('C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\exp\\pack', { platform: 'win32', fsm }), 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\exp\\pack');
     assert.equal(plat.realpathNear('Q:\\none\\x', { platform: 'win32', fsm }), 'Q:\\none\\x', 'nothing exists: the path as given');
     assert.ok(plat.insideAnyCase('C:\\Users\\runneradmin\\AppData\\Local\\Temp', plat.realpathNear('C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\exp', { platform: 'win32', fsm }), 'win32'));
-    assert.equal(plat.realpathNear(path.join(WS, 'no', 'such')), path.join(fs.realpathSync(WS), 'no', 'such'));
+    assert.equal(plat.realpathNear(path.join(WS, 'no', 'such')), path.join(hostReal(WS), 'no', 'such'));
   });
   await test('isGitDir: .git everywhere, its 8.3 name GIT~1 on Windows too', () => {
     assert.ok(createProjects.isGitDir('.GIT', 'linux')); assert.ok(createProjects.isGitDir('GIT~1', 'win32')); assert.ok(createProjects.isGitDir('git~12', 'win32'));
