@@ -1,0 +1,59 @@
+/* Reader, "Related" tab (related.js): references and citing papers of the open paper, and the "Check metadata" dialog. */
+.rd-related { display: flex; flex-direction: column; min-height: 0; }
+.rd-related[hidden] { display: none; }
+.rl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--line); min-height: 38px; }
+.rl-bar > * { flex: 0 0 auto; }
+.rl-bar .seg button { padding: 4px 9px; }
+.rl-bar #rl-q { flex: 1 1 80px; min-width: 0; width: auto; padding: 4px 8px; }
+.rl-bar select { width: auto; padding: 4px 6px; }
+.rl-bar .spin { width: 12px; height: 12px; margin: 2px; box-sizing: border-box; }
+.rl-n { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; margin-left: 2px; }
+.seg button.on .rl-n { color: inherit; opacity: .75; }
+.rl .notice { margin: 8px 10px 0; max-width: none; }
+.rl-up { display: flex; align-items: center; gap: 10px; border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+.rl-up span { flex: 1; min-width: 0; }
+.rl-up button { flex: none; }
+.rl-bad { border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); color: var(--bad); }
+.rl-list { flex: 1; min-height: 0; overflow: auto; padding: 4px 0 20px; }
+.rl-list:focus { outline: none; }
+.rl-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px 8px 14px; border-bottom: 1px solid var(--line); }
+.rl-row:hover { background: var(--soft); }
+.rl-row.have { background: color-mix(in srgb, var(--ok) 7%, transparent); }
+.rl-main { flex: 1; min-width: 0; }
+.rl-title { font-size: 13.5px; line-height: 1.4; overflow-wrap: anywhere; }
+.rl-title a { color: var(--ink); text-decoration: none; }
+.rl-title a:hover, .rl-title a:focus-visible { color: var(--accent); text-decoration: underline; }
+.rl-title .badge { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, var(--line)); margin: 0 0 0 4px; vertical-align: 1px; }
+.rl-meta { margin-top: 2px; overflow-wrap: anywhere; }
+.rl-act { flex: none; width: 32px; display: flex; justify-content: center; }
+.rl-act button.rl-have { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.rl-busy { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; }
+.rl-busy .spin { margin: 0; }
+.rl-none { line-height: 28px; }
+.rl-foot { flex: none; padding: 6px 12px; border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rl .rl-empty { height: auto; flex: 1; gap: 10px; align-content: center; line-height: 1.6; padding: 30px 20px; }
+.rl .rl-empty .ic { width: 34px; height: 34px; opacity: .55; justify-self: center; }
+.rl-empty .spin { vertical-align: -2px; margin-right: 6px; }
+.rl-intro { max-width: 560px; margin: 0 auto; padding: 34px 22px; line-height: 1.6; overflow: auto; }
+.rl-intro > .ic { width: 34px; height: 34px; opacity: .55; }
+.rl-intro p { margin: 8px 0; }
+.rl-intro p.muted { font-size: 12.5px; }
+.rl-go { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+.rl-go label { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.rl-intro .notice { margin: 14px 0 0; }
+
+/* "Check metadata" */
+dialog.rl-dlg { width: min(860px, 94vw); }
+.rl-dlg .rl-wait .spin { vertical-align: -2px; margin-right: 6px; }
+.mc-scroll { max-height: min(52vh, 460px); overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+.mc-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.mc-table th { position: sticky; top: 0; background: var(--soft); text-align: left; font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.mc-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.mc-table tr:last-child td { border-bottom: 0; }
+.mc-table td:nth-child(2) { white-space: nowrap; color: var(--muted); }
+.mc-table td:nth-child(3), .mc-table td:nth-child(4) { width: 42%; }
+.mc-from { color: var(--muted); }
+.mc-table input { margin: 2px 0 0; }
+.rl-dlg .notice { margin: 0; }
+.rl-proj { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.rl-proj input { margin: 0; }

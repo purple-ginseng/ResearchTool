@@ -1,0 +1,203 @@
+/* The guided tour's script (data only): 8 chapters from the Overview to the Editor, each a list of steps. tour.js plays
+   it in the page (window.RT_TOUR); scripts/test-tour.js checks it in Node (unique ids, every chapter has steps, every
+   title and text has its Chinese entry in public/js/i18n/zh-tour.js, the selectors parse).
+   Chapter: {id, title, palette (the palette's name of "start the tour here"), view ('overview' | 'library' | 'write'),
+     needs? ('paper': a paper must be open - the tour opens the one read last), empty? {title, text, el} (the one card
+     shown instead of the steps that need a paper / a project when the library / the Editor has none)}.
+   Step: {id, ch (chapter id), el (a selector, or a list of selectors: the first visible match wins; null = a centred
+     card on purpose), title, text, tab? (show this tab of the open paper first), claude? (true: the Claude panel is
+     open for this step), side? ('pdf': in a narrow window, where the reader shows the PDF or the notes, show the
+     PDF), mode? ('home' | 'project': the Editor shows the projects home / an open project - the tour opens the
+     latest one; 'project' needs a project), needs? ('paper' | 'project': the library must hold papers / the Editor
+     a project), wait? (ms to wait for the target, default 1500)}.
+   Text is plain (no HTML), English; {mod} is ⌘ on a Mac and Ctrl+ elsewhere. A step whose control is not on screen
+   is shown as a centred card with a note, never skipped silently. Keep the steps in line with the UI. */
+(function (root) {
+  const CHAPTERS = [
+    { id: 'overview', title: 'Overview', palette: 'Tour: Overview', view: 'overview' },
+    { id: 'header', title: 'Header', palette: 'Tour: Header', view: 'overview' },
+    { id: 'library', title: 'Library', palette: 'Tour: Library', view: 'library',
+      empty: { el: '#list', title: 'Your library is empty', text: 'Papers you import appear here, grouped by research line. Import PDFs or a .bib file, or add a paper by its DOI or arXiv id, then take this chapter again.' } },
+    { id: 'reader', title: 'Reader', palette: 'Tour: Reader', view: 'library', needs: 'paper',
+      empty: { el: '#detail', title: 'Open a paper to read it', text: 'When your library holds papers, clicking one opens its PDF here with your notes beside it. Import a paper first, then take this chapter again.' } },
+    { id: 'notes', title: 'Notes', palette: 'Tour: Notes', view: 'library', needs: 'paper',
+      empty: { el: '#detail', title: 'Notes belong to a paper', text: 'Every paper has its own reading note next to its PDF. Import a paper and open it to start one.' } },
+    { id: 'claude', title: 'Claude panel', palette: 'Tour: Claude panel', view: 'library' },
+    { id: 'explore', title: 'Explore', palette: 'Tour: Explore', view: 'library', needs: 'paper',
+      empty: { el: '#detail', title: 'Explore your papers', text: 'Diagrams, quizzes, comparison tables and the lineage of your papers need papers to work on. Import a few, then take this chapter again.' } },
+    { id: 'editor', title: 'Editor', palette: 'Tour: Editor', view: 'write',
+      empty: { el: '#pj-home', title: 'No projects yet', text: 'Once you start a project with New project, opening it shows its files, the LaTeX editor and the PDF preview. Take this chapter again then.' } },
+  ];
+
+  const STEPS = [
+    // ---------------- 1 Overview ----------------
+    { id: 'ov-welcome', ch: 'overview', el: '#view-overview .ov-hello', title: 'Welcome to ResearchTool',
+      text: 'This tour walks you from the Overview through the Library, the reader and your notes to the Editor, switching views by itself. Use → and ← or the buttons; Esc ends it at any time. The line under the greeting counts your papers, what you are reading and what you added this week.' },
+    { id: 'ov-import', ch: 'overview', el: '#view-overview .ov-actions .ov-act:nth-child(1)', title: 'Import papers',
+      text: 'Opens the file picker of the Library for PDFs or a .bib file. You can also drop PDFs, whole folders or .bib files anywhere on the Library.' },
+    { id: 'ov-add', ch: 'overview', el: '#view-overview .ov-actions .ov-act:nth-child(2)', title: 'Add by DOI or arXiv',
+      text: 'Paste a DOI, an arXiv id or a link. The details are looked up for you, and a free PDF is downloaded when one exists.' },
+    { id: 'ov-search', ch: 'overview', el: '#view-overview .ov-actions .ov-act:nth-child(3)', title: 'Search',
+      text: 'Finds any paper by a few letters of its title, author or cite key, and runs actions without the mouse. The same box opens anywhere with {mod}K.' },
+    { id: 'ov-new', ch: 'overview', el: '#view-overview .ov-actions .ov-act:nth-child(4)', title: 'New project',
+      text: 'Starts a LaTeX project in the Editor: blank, from an example, from a folder or .zip, or imported from Overleaf.' },
+    { id: 'ov-notices', ch: 'overview', wait: 800, el: '#view-overview .ov-notices', title: 'Reminders',
+      text: 'When quiz questions are due for review, or papers still lack a one-line brief, a reminder appears here. Review starts the session; Write briefs asks Claude to write them in the background.' },
+    { id: 'ov-continue', ch: 'overview', el: '#view-overview [aria-labelledby="ov-h-cont"]', title: 'Continue reading',
+      text: 'The papers you opened last, with how far you got. Click one to reopen it at the page where you stopped.' },
+    { id: 'ov-stats', ch: 'overview', el: '#view-overview [aria-labelledby="ov-h-stats"]', title: 'Reading stats',
+      text: 'How many papers are to read, being read and done. Click a number to see exactly those papers in the Library.' },
+    { id: 'ov-added', ch: 'overview', el: '#view-overview [aria-labelledby="ov-h-added"]', title: 'Recently added',
+      text: 'The papers that came in last. Click one to open it.' },
+    { id: 'ov-notes', ch: 'overview', el: '#view-overview [aria-labelledby="ov-h-notes"]', title: 'Recent notes',
+      text: 'The reading notes you worked on last. A click opens the paper with its note.' },
+    { id: 'ov-lines', ch: 'overview', el: '#view-overview [aria-labelledby="ov-h-lines"]', title: 'Research lines',
+      text: 'Your papers grouped by research line, with their sub-lines and your most used tags. Click a line to list its papers in the Library.' },
+    { id: 'ov-projects', ch: 'overview', el: '#view-overview [aria-labelledby="ov-h-proj"]', title: 'Projects in the Editor',
+      text: 'Your LaTeX projects, newest first, with how many of their papers you have read. Click one to open it in the Editor.' },
+    { id: 'ov-start', ch: 'overview', el: '#btn-settings', title: 'Start on the Overview',
+      text: 'Preferences › General › Start on chooses what the app opens with: the Library, this Overview, or wherever you were last.' },
+
+    // ---------------- 2 Header ----------------
+    { id: 'hd-tabs', ch: 'header', el: 'header nav', title: 'Three views',
+      text: 'Overview, Library and Editor. Click a tab, or press G and then O, L or W. The crest on the left always brings you home.' },
+    { id: 'hd-search', ch: 'header', el: '#btn-palette', title: 'Search anything ({mod}K)',
+      text: 'Finds a paper by title, author or cite key, switches views and runs any action of the screen you are on. Type “tour” there to restart this tour or jump to one chapter.' },
+    { id: 'hd-help', ch: 'header', el: '#btn-help', title: 'Help',
+      text: 'The Guide (a short manual, one page per area), this tour and the list of keyboard shortcuts. Press ? for the shortcuts at any time.' },
+    { id: 'hd-more', ch: 'header', el: '#btn-app-menu', title: 'More',
+      text: 'Export references writes references.bib, your notes and a CSV of the library to the export folder, after asking. Recently deleted brings papers back; Backups opens the backup settings.' },
+    { id: 'hd-prefs', ch: 'header', el: '#btn-settings', title: 'Preferences',
+      text: 'Display language (English or 中文), theme, hover hints, the start view, the export folder, how Claude may spend and explain, and the daily backup of your workspace. Shortcut: {mod},' },
+    { id: 'hd-claude', ch: 'header', el: '#btn-claude', title: 'Claude',
+      text: 'Opens a side panel to talk with Claude about the paper or project on screen. Chapter 6 shows it in detail.' },
+    { id: 'hd-banner', ch: 'header', wait: 300, el: '#banner-slot .banner', title: 'Notices under the header',
+      text: 'Important notices appear in a thin bar under the header: for example when the last backup of your workspace is a few days old, or a tool such as latexmk is missing. Each has its own button and can be dismissed.' },
+
+    // ---------------- 3 Library ----------------
+    { id: 'lb-search', ch: 'library', el: '#library-list .search-row', title: 'Search the library',
+      text: 'Type to filter by title, author, cite key, tag, category or brief; words match in any order. The page-with-magnifier button beside it searches inside every PDF, note and key point too. Press / to come here.' },
+    { id: 'lb-project', ch: 'library', el: '#proj-chip', title: 'Working project',
+      text: 'The LaTeX project you are collecting papers for. Click to switch projects or show only its papers; the bookmark on a row adds a paper to it.' },
+    { id: 'lb-import', ch: 'library', el: '#btn-import-pdf', title: 'Import',
+      text: 'Choose PDFs or .bib files, or a .md reading list to organize the library by it. Dropping files anywhere on the Library does the same.' },
+    { id: 'lb-add', ch: 'library', el: '#btn-paste-bib', title: 'Add by id or link',
+      text: 'Paste arXiv ids, DOIs, OpenReview links or BibTeX, one per line. Pressing {mod}V with a copied link anywhere in the Library does the same.' },
+    { id: 'lb-toolbar', ch: 'library', el: '#library-list .list-opts', title: 'The toolbar',
+      text: 'Left to right: adding papers, the view of the list, the tools that work across papers (compare, lineage, review, group with Claude), and ⋯ for the rest: fold all groups, check venues, missing briefs, recently deleted.' },
+    { id: 'lb-view', ch: 'library', el: '#btn-view', title: 'Group and sort',
+      text: 'Group the list by category, reading status, year, venue or project; sort it by date, title or publication date; show or hide the briefs.' },
+    { id: 'lb-chips', ch: 'library', el: '#tag-filter', title: 'Filter chips',
+      text: 'Show only the papers to read, being read, done, starred or without a PDF. Click the same chip again to show them all.' },
+    { id: 'lb-sections', ch: 'library', needs: 'paper', el: ['#list .grp-wrap.pinned > .grp', '#list .grp', '#list .section-head'], title: 'Section headers',
+      text: 'Continue reading and the papers of the working project are pinned at the top; your groups follow. Click a header to fold it; the number is how many papers it holds.' },
+    { id: 'lb-row', ch: 'library', needs: 'paper', el: ['#list .item.sel:not(.recent)', '#list .item:not(.recent)', '#list .item'], title: 'A paper',
+      text: 'Click to open it. The dot is the reading status (click to change it) and the line under the title is Claude’s one-line brief. ↑ ↓ move between rows, Enter opens one, J and K open the next and previous paper.' },
+    { id: 'lb-menu', ch: 'library', needs: 'paper', el: ['#list .item.sel:not(.recent) .th', '#list .item:not(.recent) .th', '#list .item'], title: 'The paper menu',
+      text: 'Right-click a paper, or several picked with ⌘-click or Shift-click, for its menu: reading status, move to a category, tags, add to a project, export a paper package, delete. Deleted papers can be put back.' },
+    { id: 'lb-lines', ch: 'library', needs: 'paper', el: ['#list .grp-wrap.cat-wrap > .grp', '#list .grp'], title: 'Research lines',
+      text: 'Grouped by category, each group is a research line, and a large line can hold sub-lines. Its ⋯ menu renames or merges it; drag papers onto a header to move them there.' },
+    { id: 'lb-organize', ch: 'library', el: '#btn-regroup', title: 'Organize with Claude',
+      text: 'Claude proposes research lines for your papers, and you review the proposal before anything changes. To use your own outline instead, import a .md or .bib reading list.' },
+
+    // ---------------- 4 Reader ----------------
+    { id: 'rd-open', ch: 'reader', el: ['#list .item.sel:not(.recent)', '#list .item.sel', '#detail'], tab: 'notes', title: 'Open a paper',
+      text: 'Clicking a paper opens its PDF with your work on it beside it, at the page where you left off. The tour has opened the paper you read last.' },
+    { id: 'rd-pages', ch: 'reader', side: 'pdf', el: '#rd-pdf .rd-pdfbar > .tgroup:nth-child(1)', title: 'Pages',
+      text: 'Previous and next page, or type a page number and press Enter. Page Up and Page Down scroll a screen at a time.' },
+    { id: 'rd-zoom', ch: 'reader', side: 'pdf', el: '#rd-pdf .rd-pdfbar > .tgroup:nth-child(2)', title: 'Zoom and fit',
+      text: 'Zoom out, fit the page to the width of the pane, zoom in. The keys -, 0 and + do the same.' },
+    { id: 'rd-find', ch: 'reader', side: 'pdf', el: ['#rd-pdf .rd-find', '#pdf-search'], title: 'Find in the PDF',
+      text: '{mod}F searches the whole PDF and lists every match with its page.' },
+    { id: 'rd-hl', ch: 'reader', side: 'pdf', el: ['#pdf-hl', '#rd-pdf-more'], title: 'Highlights',
+      text: 'Select text in the PDF to highlight it in a colour, quote it in your note or keep it as a key point. This button lists every highlight with its page.' },
+    { id: 'rd-snap', ch: 'reader', side: 'pdf', el: ['#pdf-snap', '#rd-pdf-more'], title: 'Snapshot',
+      text: 'Drag a rectangle over a figure or a table: it goes into your note as a picture, with a link back to its page.' },
+    { id: 'rd-more', ch: 'reader', side: 'pdf', el: '#rd-pdf-more', title: 'More PDF tools',
+      text: 'The tools that do not fit the bar: the contents, Back after a jump, and in a narrow pane the buttons that are folded away.' },
+    { id: 'rd-contents', ch: 'reader', side: 'pdf', el: ['#pdf-outline', '#rd-pdf-more'], title: 'Contents',
+      text: 'The table of contents of the PDF: click a heading to go there. Citations and figure numbers in the PDF are links too, and Back returns from a jump.' },
+    { id: 'rd-tabs', ch: 'reader', el: '#detail .rd-tablist', tab: 'notes', title: 'Six tabs for one paper',
+      text: 'Notes, Diagram, Practice, Key points, Details and Related. The keys 1 to 6 switch between them when you are not typing.' },
+    { id: 'rd-kp', ch: 'reader', el: '#rd-kp', tab: 'kp', title: 'Key points',
+      text: 'The sentences of the paper that matter, each with your remark. They are underlined in the PDF; Claude can pick them for you.' },
+    { id: 'rd-details', ch: 'reader', el: '#rd-details', tab: 'details', title: 'Details',
+      text: 'The bibliographic fields, tags, the PDF file and the BibTeX of the paper. Check metadata compares them with the published record.' },
+
+    // ---------------- 5 Notes ----------------
+    { id: 'nt-editor', ch: 'notes', el: ['#note-editor', '#note-empty'], tab: 'notes', title: 'Your reading note',
+      text: 'A Markdown editor with headings, tables, callouts and formulas that saves by itself. Paste pictures and drag their corner to resize them; right-click a phrase to ask Claude to explain it.' },
+    { id: 'nt-draft', ch: 'notes', el: '#btn-draft', tab: 'notes', title: 'Draft with Claude',
+      text: 'Claude reads the PDF and writes a first draft of the note in your template. It takes a minute or two, and the note you had stays in the history. The tour does not press it.' },
+    { id: 'nt-menu', ch: 'notes', el: '#btn-note-menu', tab: 'notes', title: 'The note menu',
+      text: 'Save now, History (compare and restore earlier versions), Export, Copy, Import, the note template, and the languages Claude drafts in.' },
+    { id: 'nt-figures', ch: 'notes', el: '#btn-figures', tab: 'notes', title: 'Figures',
+      text: 'The figures and tables of the paper, cut out of the PDF. Click one to put it into the note at the cursor.' },
+    { id: 'nt-highlights', ch: 'notes', side: 'pdf', el: ['#pdf-hl', '#rd-pdf-more'], title: 'The list of highlights',
+      text: 'Every passage you highlighted, with its page and your comment. Click one to go there; the arrow in the list puts back the one you removed last.' },
+    { id: 'nt-layout', ch: 'notes', el: '#detail .rd-layout', tab: 'notes', title: 'Layout',
+      text: 'Swap the PDF and the note, or give one of them the whole width. Drag the divider between them to resize; a double-click resets it.' },
+
+    // ---------------- 6 Claude panel ----------------
+    { id: 'cl-panel', ch: 'claude', el: '#claude', claude: true, title: 'The Claude panel',
+      text: 'Talk with Claude about what is on screen: it knows the open paper or project, the page you are on and what you selected. Each paper and project keeps its own conversation.' },
+    { id: 'cl-context', ch: 'claude', el: ['#claude-ctx', '#claude .claude-head'], claude: true, title: 'What Claude sees',
+      text: 'This chip names what Claude will look at. Select a passage in the PDF or the note first to send just that.' },
+    { id: 'cl-input', ch: 'claude', el: '#claude-form', claude: true, title: 'Ask',
+      text: 'Type a question and press Enter; the answer appears as it is written, and the send button becomes Stop. In a LaTeX project Claude can edit your files, and each change lands in the history. The tour sends nothing.' },
+    { id: 'cl-local', ch: 'claude', el: ['#claude-account', '#claude .claude-foot'], claude: true, title: 'Your own Claude, no API key',
+      text: 'The panel runs the claude command-line tool on this Mac, signed in to your own Claude account, so there is no API key to paste. The account button shows whether it is ready.' },
+    { id: 'cl-new', ch: 'claude', el: '#claude-new', claude: true, title: 'New chat',
+      text: 'Clears the conversation about this paper or project and starts a fresh one.' },
+
+    // ---------------- 7 Explore ----------------
+    { id: 'ex-diagram', ch: 'explore', el: '#rd-diagram', tab: 'diagram', title: 'Diagram',
+      text: 'Claude draws the paper as a pipeline, workflow or flow chart with an explanation for every box. Point at a box to read it, edit it by hand, insert it into the note.' },
+    { id: 'ex-quiz', ch: 'explore', el: '#rd-quiz', tab: 'quiz', title: 'Practice',
+      text: 'A multiple-choice quiz on the paper, written by Claude, with why each answer is right or wrong. Every question you answer comes back later for review.' },
+    { id: 'ex-review', ch: 'explore', el: '#btn-review', title: 'Review',
+      text: 'Questions return after 1, 3, 7, 16 and 35 days when you got them right, the same day when you missed them. The badge counts those due today; a click asks them as one session.' },
+    { id: 'ex-compare', ch: 'explore', el: '#btn-compare', title: 'Compare papers',
+      text: 'Pick a few papers with ⌘-click, then press this: Claude fills a comparison table with the columns you name, or asks every paper one question. Each cell shows the pages it comes from.' },
+    { id: 'ex-lineage', ch: 'explore', el: '#btn-lineage', title: 'Lineage',
+      text: 'Where your papers come from and what built on them: prior works, derivative works and the line between them, looked up in the open citation records.' },
+    { id: 'ex-related', ch: 'explore', el: '#rd-related', tab: 'related', title: 'Related papers',
+      text: 'What this paper cites and who cites it. Papers you already have are marked, and + adds another one. Nothing is looked up until you press the button.' },
+
+    // ---------------- 8 Editor ----------------
+    { id: 'ed-home', ch: 'editor', el: ['#pj-home .pj-head', '#pj-home'], mode: 'home', title: 'Your projects',
+      text: 'The Editor holds your LaTeX projects. They live on this Mac; a project can also be a folder on disk or be linked to Overleaf.' },
+    { id: 'ed-search', ch: 'editor', el: '#pj-q', mode: 'home', title: 'Find a project',
+      text: 'Type a few letters of a project’s title. The sort button above the list orders them by last change or by title.' },
+    { id: 'ed-filters', ch: 'editor', el: '#pj-filters', mode: 'home', title: 'Filters',
+      text: 'All projects, the ones kept in the workspace, folders on disk opened as projects, and projects linked to Overleaf.' },
+    { id: 'ed-new', ch: 'editor', el: '#pj-new', mode: 'home', title: 'New project',
+      text: 'Start blank or from an example, open a folder on disk, upload a .zip, or import a project from Overleaf, which keeps a link for syncing.' },
+    { id: 'ed-card', ch: 'editor', needs: 'project', el: '#pj-rows .pj-card', mode: 'home', title: 'A project',
+      text: 'Click to open it in the editor. Its ⋯ menu renames it, downloads it as a .zip or deletes it.' },
+    { id: 'ed-tree', ch: 'editor', el: ['#side', '#tree'], mode: 'project', title: 'Files',
+      text: 'The tour has opened your latest project. Here are its files: click to open, drag to move; the buttons above create and upload files.' },
+    { id: 'ed-editor', ch: 'editor', el: ['#edit-area', '#editor-pane'], mode: 'project', title: 'The editor',
+      text: 'A LaTeX editor with colours, spelling and writing checks. Files save by themselves; {mod}S also adds a version to the history.' },
+    { id: 'ed-toolbar', ch: 'editor', el: '#ed-toolbar', mode: 'project', title: 'Toolbar groups',
+      text: 'Undo and redo; text styles and lists; math and symbols; citations, cross-references, links, figures and tables; the papers of this project; Claude’s rewrite and related-work drafts; checks and search.' },
+    { id: 'ed-cite', ch: 'editor', el: ['#rail-library', '#ed-toolbar [data-cmd="cite"]'], mode: 'project', title: 'Cite from your library',
+      text: 'Opens your library beside the editor: find a paper and insert its \\cite. Typing \\cite in the text offers your papers too, and references.bib is written for you when the PDF is built.' },
+    { id: 'ed-compile', ch: 'editor', el: ['#preview-pane .split-btn', '#btn-compile'], mode: 'project', title: 'Compile',
+      text: 'Builds the PDF with latexmk. The arrow next to it chooses the compiler; the log button lists the errors, and a click goes to the line.' },
+    { id: 'ed-preview', ch: 'editor', el: '#preview-pane', mode: 'project', title: 'Preview',
+      text: 'The compiled PDF with pages, zoom and find. The arrows between the panes jump from the cursor to the PDF and back; a double-click on the PDF goes to its source.' },
+    { id: 'ed-overleaf', ch: 'editor', wait: 300, el: '#overleaf-slot > *', mode: 'project', title: 'Overleaf sync',
+      text: 'A project imported from Overleaf shows its sync state up here, with Pull to fetch the changes made on Overleaf and Push to send yours. Nothing is sent until you press one of them.' },
+    { id: 'ed-history', ch: 'editor', el: '#btn-history', mode: 'project', title: 'History',
+      text: 'Every save is a version. Compare, name and restore earlier versions here; Claude’s changes are versions too.' },
+    { id: 'end-restart', ch: 'editor', el: '#btn-help', title: 'Take the tour again',
+      text: 'Help › Take the tour starts this tour again, and Help › Tour of this screen starts at the chapter of the view you are on. In {mod}K, type “tour” to jump to any chapter.' },
+    { id: 'end-guide', ch: 'editor', el: null, title: 'You are ready',
+      text: 'Help › Guide is a short manual with one page per area and every keyboard shortcut. Happy reading and writing!' },
+  ];
+
+  const api = { CHAPTERS, STEPS };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.RT_TOUR = api;
+})(typeof window !== 'undefined' ? window : globalThis);

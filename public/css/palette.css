@@ -1,0 +1,29 @@
+/* "Go to anything" box (palette.js): a search field over a list of actions and papers. */
+dialog.pal { width: min(640px, 94vw); padding: 0; margin-top: 11vh; max-height: 72vh; overflow: hidden; box-shadow: var(--shadow-4); border-radius: var(--radius-xl); }
+dialog.pal[open] { display: flex; flex-direction: column; }
+dialog.pal::backdrop { background: rgb(20 16 28 / .35); }
+.pal-top { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--muted); }
+.pal-top input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 4px 0; font-size: 15px; color: var(--ink); }
+.pal-top input:focus, .pal-top input:focus-visible { outline: none; box-shadow: none; }
+.pal-top .ic { width: 18px; height: 18px; color: var(--accent); }
+#pal-list { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 6px 6px; }
+.pal-head.section-head { padding: 10px 8px 3px; min-height: 0; }
+.pal-hint { display: flex; align-items: center; gap: 8px; margin: 6px 4px 2px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--soft-2); color: var(--muted); font-size: 12.5px; }
+.pal-hint .ic { color: var(--subtle); }
+.pal-row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: var(--radius-sm); cursor: pointer; scroll-margin: 28px 0 4px; }
+.pal-row.on { background: var(--sel); box-shadow: inset 2px 0 0 var(--accent); }
+.pal-ic { flex: none; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--soft-2); color: var(--muted); }
+.pal-row.on .pal-ic { background: var(--panel); color: var(--accent); }
+.pal-keys { flex: none; display: inline-flex; gap: 2px; }
+.pal-ic .ic { vertical-align: 0; }
+.pal-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pal-sub { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; }
+.pal-none { padding: 22px 14px; text-align: center; color: var(--muted); }
+.pal-foot { display: flex; align-items: center; gap: 14px; padding: 7px 16px; background: var(--soft); border-top: 1px solid var(--line); font-size: 11.5px; }
+.pal-foot > span { display: inline-flex; align-items: center; gap: 4px; }
+.pal-foot kbd.kc + kbd.kc { margin-left: 1px; }
+#pal-list .empty-state { padding-block: 18px; }
+/* a row of the Library list that has the keyboard (library-list.js) */
+#list .item { scroll-margin-top: 30px; } /* below the group header that sticks to the top */
+#list .item:focus { outline: none; }
+#list .item:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: -2px; }

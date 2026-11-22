@@ -1,0 +1,49 @@
+/* Write tab: Claude in the LaTeX editor (write-ai.js) - the proposal under a selection, the related-work dialog. */
+
+/* the passage a proposal is about, and the proposal under it */
+.CodeMirror .ai-old { background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 2px; }
+.ai-prop { margin: 4px 10px 8px 2px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: var(--radius-md); background: var(--panel); color: var(--ink);
+  font: 13px/1.5 var(--font-body); box-shadow: var(--shadow-2); overflow: hidden; }
+.ai-head { display: flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; background: color-mix(in srgb, var(--accent) 9%, var(--panel)); border-bottom: 1px solid var(--line); }
+.ai-title { display: inline-flex; align-items: center; gap: 6px; min-width: 0; font-size: 12.5px; }
+.ai-title .ic { color: var(--accent); flex: none; }
+.ai-title .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-head button.ib { min-height: 24px; padding: 3px 7px; flex: none; }
+.ai-wait { display: flex; align-items: center; gap: 8px; padding: 9px 10px; color: var(--muted); }
+.ai-diff { padding: 8px 10px; font: 13px/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 42vh; overflow: auto; }
+.ai-diff:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: -2px; }
+.ai-diff del { color: var(--bad); background: color-mix(in srgb, var(--bad) 13%, transparent); text-decoration: line-through; text-decoration-thickness: 1px; border-radius: 2px; }
+.ai-diff ins { color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, transparent); text-decoration: none; border-radius: 2px; }
+.ai-msg { padding: 8px 10px; }
+.ai-msg.bad { color: var(--bad); }
+.ai-msg code { font: 12px var(--mono); }
+.ai-note { padding: 0 10px 7px; font-size: 11.5px; }
+
+/* "Draft related work from your library" */
+dialog.rw-dlg { width: min(720px, 94vw); }
+.rw-dlg .rw-lead { margin: 0 0 4px; font-size: 12.5px; }
+.rw-dlg #rw-angle { width: 100%; }
+.rw-filter { display: flex; gap: 6px; align-items: center; margin-top: 12px; }
+.rw-filter input[type=search] { flex: 1; min-width: 0; }
+.rw-filter select { flex: 0 1 220px; min-width: 0; }
+.rw-list { margin-top: 8px; border: 1px solid var(--line); border-radius: var(--radius-md); height: min(44vh, 380px); overflow: auto; background: var(--bg); }
+.wr-dlg .rw-list label.rw-row { display: flex; align-items: center; gap: 9px; margin: 0; padding: 6px 10px; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 13px; cursor: pointer; }
+.wr-dlg .rw-list label.rw-row:last-child { border-bottom: 0; }
+.wr-dlg .rw-list label.rw-row:hover { background: var(--soft); }
+.wr-dlg .rw-list label.rw-row.off { cursor: default; opacity: .6; }
+.wr-dlg .rw-list label.rw-row input { margin: 0; width: auto; flex: none; }
+.rw-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rw-title, .rw-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rw-sub { font-size: 11.5px; }
+.rw-mat { flex: none; font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; padding: 0 7px; background: var(--panel); white-space: nowrap; }
+.rw-mat.bad, #rw-count.bad, .rw-dlg .bad { color: var(--bad); }
+.rw-empty { padding: 18px 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.rw-foot { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 12.5px; }
+.wr-dlg .rw-foot label.check { margin: 0; }
+.rw-foot code { font: 12px var(--mono); }
+.rw-wait { display: flex; align-items: center; gap: 10px; padding: 34px 6px; color: var(--muted); }
+#rw-notes ul { margin: 0 0 8px; padding-left: 18px; font-size: 12.5px; }
+#rw-notes li { margin: 2px 0; }
+#rw-notes code { font: 11.5px var(--mono); }
+#rw-latex { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--bg); color: var(--ink); font: 12.5px/1.55 var(--mono);
+  white-space: pre-wrap; overflow-wrap: anywhere; max-height: min(46vh, 420px); overflow: auto; }

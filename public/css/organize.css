@@ -1,0 +1,45 @@
+/* "Organize from a file" (organize.js): the dialog #dlg-organize - source, then the groups found in the file. */
+dialog.org { width: min(860px, 96vw); max-height: 92vh; padding: 14px 18px 16px; }
+dialog.org[open] { display: flex; flex-direction: column; }
+.org-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.org-head h3 { margin: 0; }
+#org-body { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+#org-body.busy { opacity: .6; pointer-events: none; }
+.org-intro { margin: 0 0 12px; font-size: 12.5px; line-height: 1.5; }
+.org-src { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.org-src > button .ic { vertical-align: -2px; }
+.org-proj-files { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: 12px; }
+.org-proj-files .mini { font-size: 11.5px; padding: 2px 8px; border-radius: var(--radius-pill); }
+.org-paste-l { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.org-paste-l textarea { width: 100%; box-sizing: border-box; resize: vertical; color: var(--ink); }
+
+.org-sum { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; margin-bottom: 8px; }
+.org-sum .warn, .org-check.warn { color: var(--warn); }
+.org-level { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.org-groups { flex: 1; min-height: 80px; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius-md, 8px); background: var(--panel); }
+.org-grp { border-bottom: 1px solid var(--line); }
+.org-grp:last-child { border-bottom: 0; }
+.org-gh { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--soft-2); position: sticky; top: 0; z-index: 1; font-size: 12px; }
+.org-gh input[type=checkbox] { margin: 0; flex: none; width: auto; }
+.org-name { flex: 0 1 340px; min-width: 120px; font-weight: 600; font-size: 13px; padding: 3px 7px; }
+.org-row { display: flex; align-items: center; gap: 9px; padding: 5px 10px 5px 28px; border-top: 1px solid var(--line); font-size: 13px; cursor: pointer; }
+.org-row:hover { background: var(--soft-2); }
+.org-row input { margin: 0; flex: none; width: auto; }
+.org-row.miss { cursor: default; opacity: .6; }
+.org-row.miss:hover { background: transparent; }
+.org-x { width: 13px; text-align: center; color: var(--muted); flex: none; }
+.org-main { flex: 1; min-width: 40%; display: flex; flex-direction: column; } /* the title keeps room next to the badges */
+.org-t, .org-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.org-sub { font-size: 11.5px; color: var(--muted); }
+.org-flag, .org-now, .org-in { flex: none; font-size: 10.5px; padding: 0 7px; border-radius: var(--radius-pill); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.org-flag { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
+.org-now { max-width: 180px; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; min-width: 0; }
+.org-check select { width: auto; max-width: 260px; margin-left: 2px; }
+
+.org-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 13px; }
+.org-opts > label:first-child { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.org-opts > label:first-child select { min-width: 0; }
+.org-check { display: flex; align-items: center; gap: 7px; }
+.org-check input { margin: 0; width: auto; }
+.org-check.off { color: var(--muted); }
+.org-check .mini { font-size: 11.5px; padding: 2px 8px; border-radius: var(--radius-pill); margin-left: 4px; }

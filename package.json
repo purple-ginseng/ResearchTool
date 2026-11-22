@@ -1,0 +1,14 @@
+{
+  "name": "researchtool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local research workspace: reference library, PDF reader and notes, LaTeX editor with live preview, optional Claude Code panel",
+  "license": "MIT",
+  "repository": "github:purple-ginseng/ResearchTool",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

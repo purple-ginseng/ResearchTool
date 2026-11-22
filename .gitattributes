@@ -1,0 +1,28 @@
+# Every text file is checked out with LF line ends, also on Windows (Git for Windows defaults to core.autocrlf=true):
+# scripts/overleaf-login.sh is run with bash (Git Bash), which fails on CRLF, and the tests compare files byte for
+# byte. Git's own detection keeps binary files as they are; the rules below say so explicitly for the common types.
+* text=auto eol=lf
+*.sh text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pfb binary
+*.bcmap binary
+*.mp4 binary
+*.webm binary
+*.mov binary
+
+# Third-party files are stored byte for byte (no line-ending conversion). This rule comes last so it wins over the
+# ones above: public/vendor/vditor/dist/js/i18n/sv_SE.js, for one, has CRLF line ends upstream.
+public/vendor/** -text

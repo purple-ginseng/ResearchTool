@@ -1,0 +1,20 @@
+/* The Figures picker of the reader's notes toolbar (figures.js): thumbnails of the figures and tables found in the PDF. */
+.fg-pop { width: 468px; max-width: calc(100vw - 24px); padding: 8px; display: flex; flex-direction: column; gap: 8px; max-height: min(74vh, 640px); }
+.fg-pop[hidden] { display: none; }
+.fg-head { display: flex; align-items: center; gap: 8px; flex: none; }
+.fg-head .ib { padding: 3px 5px; min-height: 24px; border-color: transparent; background: transparent; }
+.fg-place { display: flex; align-items: center; gap: 8px; text-align: left; flex: none; }
+.fg-place .muted { margin-left: auto; }
+.fg-place[disabled] { opacity: .6; cursor: default; }
+.fg-list { flex: 1 1 auto; min-height: 90px; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 8px; align-content: start; padding: 2px; }
+.fg-list .fg-state { grid-column: 1 / -1; padding: 18px 10px; line-height: 1.5; }
+.fg-item { display: flex; flex-direction: column; gap: 4px; padding: 6px; text-align: left; white-space: normal; border-radius: 7px; min-width: 0; }
+.fg-item:hover, .fg-item:focus-visible { border-color: var(--accent); outline: none; background: var(--sel); }
+.fg-item.busy { opacity: .55; cursor: progress; }
+.fg-thumb { display: flex; align-items: center; justify-content: center; height: 86px; background: #fff; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.fg-thumb img { max-width: 100%; max-height: 100%; display: block; }
+.fg-item.unsure .fg-thumb { border-style: dashed; border-color: var(--warn); }
+.fg-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.fg-cap { font-size: 11.5px; line-height: 1.3; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fg-foot { flex: none; }
+@media (max-width: 760px) { .fg-pop { position: fixed; top: 96px; left: 12px; right: 12px; width: auto; } }

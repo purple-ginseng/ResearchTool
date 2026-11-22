@@ -1,0 +1,120 @@
+/* Guide dialog (guide.js) and the Claude Code account dialog (account.js). */
+dialog.gd { width: min(980px, 94vw); height: min(700px, 90vh); padding: 0; }
+dialog.gd[open] { display: flex; flex-direction: column; }
+.gd-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 10px; border-bottom: 1px solid var(--line); }
+.gd-head h3 { margin: 0; font: 700 18px/1.3 var(--font-title); letter-spacing: -.01em; }
+.gd-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.gd-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 18px 10px; border-bottom: 1px solid var(--line); }
+.gd-tabs button { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 10px; border-radius: var(--radius-pill); }
+.gd-tabs button .ic { width: 14px; height: 14px; color: var(--subtle); }
+.gd-tabs button.on { background: var(--sel); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); font-weight: 600; }
+.gd-tabs button.on .ic { color: var(--accent); }
+@media (min-width: 900px) {
+  .gd-main { display: grid; grid-template-columns: 200px minmax(0, 1fr); }
+  .gd-tabs { flex-direction: column; flex-wrap: nowrap; gap: 2px; padding: 10px 8px; border-bottom: 0; border-right: 1px solid var(--line); background: var(--soft); overflow: auto; }
+  .gd-tabs button { justify-content: flex-start; border: 0; background: transparent; border-radius: var(--radius-sm); padding: 7px 10px; font-size: 13px; text-align: left; color: var(--muted); }
+  .gd-tabs button:hover { background: var(--soft-2); color: var(--ink); }
+  .gd-tabs button.on { background: var(--sel); box-shadow: inset 2px 0 0 var(--accent); }
+}
+.gd-intro { display: flex; align-items: center; gap: 16px; margin: 4px 0 12px; padding: 14px 16px; border-radius: var(--radius-lg); background: var(--gradient-soft, var(--soft)); border: 1px solid var(--line); }
+.gd-intro-text { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; }
+.gd-intro-text .crest { flex: none; }
+.gd-intro-title { font: 700 19px/1.3 var(--font-title); color: var(--ink); letter-spacing: -.01em; }
+.gd-intro p { margin: 2px 0 0; }
+.gd-intro-ill { flex: none; width: 150px; }
+.gd-intro-ill svg { display: block; width: 100%; height: auto; }
+@media (max-width: 640px) { .gd-intro-ill { display: none; } }
+.gd-body { flex: 1; min-height: 0; overflow: auto; padding: 12px 22px 20px; font-size: 13.5px; line-height: 1.6; }
+.gd-body h4 { margin: 16px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.gd-body h4:first-child { margin-top: 4px; }
+.gd-body p { margin: 6px 0; }
+.gd-body ol, .gd-body ul { margin: 4px 0; padding-left: 22px; }
+.gd-body li { margin: 5px 0; }
+.gd-body code { font: 12px var(--mono); background: var(--soft); padding: 1px 4px; border-radius: 4px; }
+.gd-body button { font-size: 12.5px; padding: 2px 9px; }
+.gd-ic { display: inline-flex; vertical-align: -4px; padding: 2px; border: 1px solid var(--line); border-radius: var(--radius-xs); background: var(--soft-2); color: var(--ink); }
+.gd-ic .ic { width: 14px; height: 14px; }
+.gd-tip { padding: 9px 12px; border-radius: var(--radius-sm); background: var(--sel); border-left: 3px solid var(--accent); }
+.gd-keys { border-collapse: collapse; }
+.gd-keys td { padding: 3px 14px 3px 0; vertical-align: top; }
+.gd-body kbd { font: 12px var(--mono); padding: 1px 5px; border: 1px solid var(--line); border-bottom-color: var(--line-strong); border-radius: var(--radius-xs); background: var(--soft); }
+
+dialog.acct { width: min(520px, 92vw); }
+.acct-row { display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }
+.acct-row .spin { flex: none; width: 14px; height: 14px; margin: 3px 0 0; box-sizing: border-box; }
+.acct-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: var(--muted); }
+.acct-dot.ok { background: var(--ok); } .acct-dot.bad { background: var(--bad); } .acct-dot.warn { background: var(--warn); }
+.acct-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+.acct-steps { margin: 12px 0 4px; padding-left: 22px; line-height: 1.6; }
+.acct-steps li { margin: 6px 0; }
+.acct-cmd { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+.acct-cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font: 12px var(--mono); background: var(--soft); padding: 6px 8px; border-radius: 6px; }
+.acct-cmd input { flex: 1; min-width: 0; font: 12px var(--mono); }
+.acct-cmd button { flex: none; display: inline-flex; align-items: center; }
+.acct-cmd .spin { width: 12px; height: 12px; margin: 0; box-sizing: border-box; }
+.acct p { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; }
+.acct-log { font: 11.5px var(--mono); overflow-wrap: anywhere; }
+.acct .dlg-actions { align-items: center; }
+#claude-account { position: relative; }
+#claude-account.acct-warn::after { content: ''; position: absolute; top: 1px; right: 1px; width: 7px; height: 7px; border-radius: 50%; background: var(--bad); }
+
+/* Tour (tour.js): dim the page, light one control, explain it in a card. */
+#tour[hidden] { display: none; }
+.tour-block { position: fixed; inset: 0; z-index: 9000; }
+.tour-hole { position: fixed; z-index: 9001; border-radius: var(--radius-md); pointer-events: none; box-shadow: 0 0 0 200vmax rgb(20 16 28 / .55); outline: 2px solid var(--accent); outline-offset: 0; transition: left .18s, top .18s, width .18s, height .18s; }
+.tour-card { position: fixed; z-index: 9002; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-4); padding: 10px 14px 12px; font-size: 13.5px; line-height: 1.55; transition: left .18s, top .18s; }
+.tour-head { display: flex; align-items: center; min-height: 22px; }
+.tour-count { font-size: 11.5px; }
+.tour-card b#tour-title { display: block; font: 600 15px/1.35 var(--font-title); margin: 2px 0 4px; }
+.tour-card p { margin: 0; }
+.tour-card code { font: 12px var(--mono); background: var(--soft); padding: 1px 4px; border-radius: 4px; }
+.tour-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.tour-actions .spacer { flex: 1; }
+.tour-actions #tour-skip { padding: 4px 6px; color: var(--muted); }
+/* the chapter name (opens the list of chapters), the progress bar and the count */
+.tour-ch { display: inline-flex; align-items: center; gap: 4px; max-width: 75%; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--soft); color: var(--accent); font: 600 12px/1.5 var(--font-meta, inherit); letter-spacing: .02em; }
+.tour-ch .ic { width: 14px; height: 14px; }
+.tour-ch[aria-expanded="true"] .ic { transform: rotate(180deg); }
+.tour-ch span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tour-progress { height: 3px; margin: 8px 0 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.tour-progress span { display: block; height: 100%; width: 0; background: var(--accent-fill); transition: width .2s; }
+.tour-card .tour-count { display: block; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tour-missing { margin-top: 8px !important; padding: 6px 8px; border-radius: var(--radius-md); background: var(--soft); color: var(--muted); font-size: 12.5px; }
+.tour-chlist { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 4px 0 8px; }
+.tour-chi { display: flex; align-items: center; gap: 6px; padding: 5px 8px; text-align: left; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 12.5px; }
+.tour-chi:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.tour-chi.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+.tour-chn { flex: none; display: inline-flex; width: 18px; height: 18px; align-items: center; justify-content: center; border-radius: 50%; background: var(--soft); color: var(--accent); font: 600 11px/1 var(--font-meta, inherit); }
+.tour-chi.on .tour-chn { background: var(--accent-fill); color: var(--accent-fill-ink); }
+/* no control to light (it is not on screen, or the card stands alone): dim the whole page */
+#tour.tour-centred .tour-block { background: rgb(20 16 28 / .55); }
+/* while the tour gets the screen ready (a view switch, a paper opening) */
+#tour.tour-busy .tour-card { opacity: .85; }
+#tour.tour-busy #tour-next { cursor: progress; }
+.tour-actions button { padding: 4px 14px; }
+.tour-actions button:disabled { opacity: .4; }
+@media (prefers-reduced-motion: reduce) { .tour-hole, .tour-card, .tour-progress span { transition: none; } }
+
+/* Library backups (safety.js) */
+dialog.bk { width: min(520px, 92vw); }
+.bk-list { max-height: 46vh; overflow: auto; display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+.bk-row { display: flex; align-items: center; gap: 12px; padding: 5px 4px; border-bottom: 1px solid var(--line); font-size: 13px; font-variant-numeric: tabular-nums; }
+.bk-row .muted { flex: 1; }
+.bk-row button { padding: 2px 10px; font-size: 12.5px; }
+.bk .dlg-actions { align-items: center; }
+.bk .dlg-actions .spacer { flex: 1; }
+.bk-seg { margin: 2px 0 8px; }
+.bk-warn { color: var(--bad); }
+.bk-row .spin { margin: 0; }
+/* Recently deleted */
+dialog.trash-dlg { width: min(620px, 94vw); }
+.tr-row { gap: 6px; }
+.tr-what { flex: 1; min-width: 0; }
+.tr-title { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-what .muted { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-row button.ib { padding: 4px 7px; }
+.tr-row button[data-forever] { color: var(--bad); }
+.trash-dlg .dlg-actions { flex-wrap: wrap; }
+#tr-old, #tr-all { color: var(--bad); }
+#tr-sum { font-size: 12px; margin: 8px 0 0; }

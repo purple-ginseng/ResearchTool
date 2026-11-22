@@ -1,0 +1,92 @@
+/* Reader, "Diagram" tab (diagram.js): explained diagrams drawn by Claude. */
+.rd-diagram { position: relative; display: flex; flex-direction: column; min-height: 0; }
+.rd-diagram[hidden] { display: none; }
+.dg-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 6px 10px; border-bottom: 1px solid var(--line); min-height: 38px; }
+.dg-bar > * { flex: 0 0 auto; }
+.dg-bar .spacer { flex: 1 1 0; }
+.dg-bar select { width: auto; max-width: 46%; flex: 0 1 auto; min-width: 0; }
+.dg-status { flex: 0 1 auto; min-width: 0; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; gap: 6px; }
+.dg-status .spin { width: 12px; height: 12px; margin: 0; box-sizing: border-box; flex: none; }
+.dg-form { display: flex; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--soft); }
+.dg-form[hidden] { display: none; }
+.dg-form input { flex: 1 1 0; min-width: 0; }
+.dg-form select { flex: 0 0 auto; width: auto; max-width: 45%; }
+.dg-form button { flex: none; }
+.dg-empty { height: auto; flex: 1; gap: 10px; align-content: center; line-height: 1.6; }
+.dg-empty .ic { width: 34px; height: 34px; opacity: .55; }
+
+.dg-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+.dg-head { max-width: 640px; margin: 0 auto 12px; }
+.dg-head h3 { margin: 0 0 4px; font-size: 15px; line-height: 1.35; }
+.dg-head h3 .badge { font-weight: 400; vertical-align: 2px; margin-left: 4px; }
+.dg-head p { margin: 0 0 6px; font-size: 13px; line-height: 1.55; }
+.dg-head .dg-tip { font-size: 11.5px; }
+.dg-legend { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 6px; }
+.dg-chip { font-size: 11px; padding: 1px 8px; border-radius: 9px; border: 1px solid var(--g, var(--line)); background: color-mix(in srgb, var(--g, var(--soft)) 16%, var(--panel)); }
+
+/* group colours (boxes, legend chips) */
+.dg-g0 { --g: #3b82c4; } .dg-g1 { --g: #2f9e6e; } .dg-g2 { --g: #c2772b; } .dg-g3 { --g: #8b5fd0; } .dg-g4 { --g: #c0507c; }
+
+.dg-fit { margin: 0 auto; }
+.dg-canvas { position: relative; transform-origin: 0 0; }
+.dg-edges { position: absolute; left: 0; top: 0; overflow: visible; }
+.dg-line { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.dg-hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: help; }
+.dg-edge.dg-on .dg-line { stroke: var(--accent); stroke-width: 2.2; }
+.dg-elabel { position: absolute; transform: translate(-50%, -50%); font-size: 11px; line-height: 1.25; padding: 1px 6px; border-radius: 8px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); max-width: 124px; text-align: center; cursor: help; z-index: 1; }
+.dg-elabel.dg-on { color: var(--accent); border-color: var(--accent); }
+
+button.dg-node { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: stretch; gap: 2px; margin: 0; padding: 7px 10px 8px; text-align: center; white-space: normal; height: auto;
+  background: color-mix(in srgb, var(--g, var(--panel)) 9%, var(--panel)); color: var(--ink); border: 1.4px solid var(--g, var(--line)); border-radius: 8px; cursor: help; font: inherit; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+button.dg-node:hover, button.dg-node.dg-on, button.dg-node:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); outline: none; }
+.dg-kind { font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.dg-label { font-size: 12.5px; line-height: 1.35; font-weight: 600; overflow-wrap: anywhere; }
+button.dg-t-input, button.dg-t-output { border-radius: 22px; }
+button.dg-t-output { border-width: 2.2px; }
+button.dg-t-decision { border-style: dashed; }
+button.dg-t-data { border-left-width: 5px; }
+button.dg-t-model { border-width: 2.2px; border-radius: 4px; }
+button.dg-t-concept { border-radius: 14px; background: color-mix(in srgb, var(--g, var(--accent)) 10%, var(--panel)); }
+
+.dg-card { position: absolute; z-index: 30; max-height: min(70%, 460px); overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 32px rgba(0,0,0,.22); padding: 10px 12px; font-size: 13px; line-height: 1.55; }
+.dg-card.pinned { border-color: var(--accent); }
+.dg-card-h { display: flex; align-items: flex-start; gap: 6px; }
+.dg-card-h b { flex: 1; font-size: 13.5px; line-height: 1.35; }
+.dg-card-h .badge { flex: none; margin: 2px 0 0; }
+.dg-card-h button { flex: none; margin: -3px -4px 0 0; }
+.dg-card-g { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.dg-card p { margin: 7px 0 0; }
+.dg-desc { font-weight: 600; }
+.dg-ex { margin-top: 8px; padding: 7px 9px; border-radius: 7px; border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 9%, var(--panel)); }
+.dg-ex-simpler { border-left-color: var(--ok); background: color-mix(in srgb, var(--ok) 9%, var(--panel)); }
+.dg-ex > span:first-child { display: block; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.dg-card-actions { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.dg-card-actions button { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 3px 9px; }
+.dg-card-actions button.ib { padding: 3px 5px; }
+.dg-card-actions .spin { width: 12px; height: 12px; margin: 0; box-sizing: border-box; }
+.dg-math .katex { font-size: 1em; }
+
+/* editing by hand */
+.dg-edit { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+.dg-head .dg-edit { margin-top: 0; }
+.dg-edit label { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--muted); min-width: 0; }
+.dg-edit input, .dg-edit select, .dg-edit textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 12.5px; color: var(--ink); }
+.dg-edit textarea { resize: vertical; line-height: 1.5; }
+.dg-edit [data-h="title"] { font-size: 14px; font-weight: 600; }
+.dg-edit-row { display: flex; gap: 6px; }
+.dg-edit-row label { flex: 1 1 0; }
+.dg-edit-row .dg-edit-page { flex: 0 0 62px; }
+.dg-head .dg-legend { align-items: center; }
+.dg-edit .dg-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 2px 1px 6px; }
+.dg-edit .dg-chip input { width: auto; border: 0; background: transparent; padding: 1px 2px; font-size: 11.5px; }
+.dg-edit .dg-chip button.ib { padding: 0 2px; border: 0; background: transparent; }
+.dg-edit .dg-chip .ic { width: 11px; height: 11px; }
+.dg-linking button.dg-node { cursor: crosshair; }
+.dg-linking button.dg-node:hover { border-color: var(--ok); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 35%, transparent); }
+.dg-edit input[type=number] { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 4px 6px 8px; }
+.rd-diagram:focus { outline: none; }
+.dg-editing button.dg-node { cursor: grab; touch-action: none; }
+.dg-editing button.dg-node.dg-drag { cursor: grabbing; z-index: 2; border-color: var(--accent); box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+.dg-linking button.dg-node { cursor: crosshair; }
+.dg-bar button:disabled { opacity: .4; }
+button.dg-node, .dg-elabel { user-select: none; -webkit-user-select: none; }

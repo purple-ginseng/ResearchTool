@@ -1,0 +1,71 @@
+/* Type roles: which element is set in which face. Linked last so it wins over the font shorthands of the module sheets.
+   Tokens (base.css): --font-body Roboto | --font-title Montserrat | --font-author Lato | --font-meta Share Tech | --mono.
+   A new element takes its role by joining a list below; an author name inside a metadata line is a <span class="au">
+   (RT.byline(authors, rest) in core.js builds such a line). Share Tech runs small and narrow, so meta text is never below
+   11px and gets a little letter-spacing. The PDF pages (pdf.js canvas and text layer) and KaTeX keep their own fonts. */
+
+/* ---------- sizes for headings (the design system's --fs-* scale; body text stays 14px) ---------- */
+:root { --fs-11: 11px; --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-16: 16px; --fs-18: 18px; --fs-20: 20px; --fs-24: 24px; --fs-30: 30px; --fs-36: 36px; }
+
+/* ---------- titles: Montserrat ---------- */
+h1, h2, h3, .brand, .brand-name, .es-title, .card-head h3, .card-title,
+.item .t, .lg-otitle, .lg-rtitle, .lg-dtitle, .lg-lt, .lg-node text,
+.rl-title, .cmp-paper-title, .cmp-item-title, .cmp-table tbody th .cmp-key, .rw-title, .pal-paper .pal-name, .org-t, .tr-title, .rg-title, .pp-title, .rv-open span, .lg-link > span:nth-child(2),
+.pj-name .nm, .wr-title, #proj-name, .claude-head strong,
+.meta input[data-field="title"] { font-family: var(--font-title); }
+h1, h2, h3 { font-weight: 700; }
+.item .t, .lg-otitle, .lg-rtitle, .lg-dtitle, .rl-title, .cmp-paper-title, .cmp-item-title, .rw-title, .org-t, .tr-title,
+.rg-title, .pp-title, .pj-name .nm, .wr-title, .cmp-table tbody th .cmp-key, .meta input[data-field="title"] { font-weight: 600; letter-spacing: -.005em; }
+.item .t { font-size: 13.5px; line-height: 1.4; }
+.item.recent .t { font-weight: 500; font-size: 12.5px; }
+.lg-node text { font-weight: 500; }
+.lg-lname.sub .lg-lmain { font-weight: 500; }
+.lg-lt { font-weight: 500; }   /* a lane title is a label, not a paper title (the lane column, LABEL_W in lineage.js, is 230px for Montserrat) */
+.pal-paper .pal-name { font-weight: 500; }
+
+/* ---------- authors: Lato ---------- */
+.au, .meta input[data-field="author"] { font-family: var(--font-author); letter-spacing: 0; }
+.lg-dmeta.au { font-size: 13px; }
+
+/* ---------- other information: Share Tech ---------- */
+.item .m, .item .m code, .item .tags, .list-pane .tag, .item .hit-where, .badge, .toast, .toast-msg,
+.grp-count, #group-status, #search-info, #venue-bar, .proj-stats, .job-state, .jobs-head,
+.saved, .rd-vn-text, .rd-hv, .hl-kind, .pn-row .pn-pg, .dg-status, .qz-status, .rv-meta,
+#lg-status, .lg-ometa, .lg-rmeta, .lg-dmeta.muted, .lg-dhead, .lg-cnt, .lg-tlabel, .lg-lcount, .lg-table td.num, .lg-foot,
+.rl-meta, .rl-n, .rl-foot, .cmp-paper-sub, .cmp-item-sub, .cmp-state, .cmp-status, .rw-sub, .org-sub,
+.pp-sub, .pp-sub code, .tr-what .muted, .rg-title .muted, .pal-paper .pal-sub,
+.pj-when, .pj-src, .pj-table td.pj-papers, #save-state, .cnt, .ol-wc, button.tb.wc-total, button.tb.pdf-budget, .ol-sync .ol-text,
+.ai-features td { font-family: var(--font-meta); letter-spacing: .02em; }
+/* Share Tech has one face (400): no faked bold. Emphasis inside meta text comes from colour, not weight. */
+.item .m, .item .m .badge, .badge, .lg-tlabel, .lg-tlabel.major, .cnt, .rd-vn-text, .rd-venue .rd-vn-bad, .lg-lcount, .lg-cnt,
+.proj-stats, .list-pane .tag, .job-state, .jobs-head, .grp-count, .pj-table td.pj-papers, button.tb.wc-total, button.tb.pdf-budget { font-weight: 400; }
+.item .m, .item .tags, .list-pane .tag, .badge, .toast, .grp-count, #group-status, #search-info, #venue-bar, .proj-stats, .job-state, .jobs-head,
+.saved, .rd-vn-text, .rd-hv, .hl-kind, .dg-status, .qz-status, .rv-meta, #lg-status, .lg-ometa, .lg-rmeta, .lg-dhead, .lg-cnt, .lg-tlabel,
+.lg-lcount, .lg-foot, .rl-meta, .rl-foot, .cmp-paper-sub, .cmp-item-sub, .cmp-state, .cmp-status, .rw-sub, .org-sub, .pp-sub, .pj-when,
+.pj-src, #save-state, .cnt, .ol-wc, button.tb.wc-total, button.tb.pdf-budget, .ai-features td, .pal-paper .pal-sub { font-synthesis: none; }
+.lg-tlabel.major { fill: var(--ink); }
+/* the venue Check button sits in the venue row but is a control: the control face */
+.rd-venue button { font-family: var(--font-body); letter-spacing: 0; }
+/* sizes: about 1px above what the system font had, 11px at the least */
+.item .m { font-size: 12px; }
+.item .m .badge, .item .m code, .item .tags, .list-pane .tag, .item .hit-where, .badge, .hl-kind, .cnt, .lg-lcount { font-size: 11px; }
+.item .m code { background: transparent; padding: 0; }
+.toast { font-size: 13px; }
+.lg-ometa, .lg-rmeta, .lg-foot, .proj-stats, .ol-wc { font-size: 12px; }
+.lg-tlabel { font-size: 11.5px; } .lg-tlabel.major { font-size: 12.5px; }
+.lg-cnt, .rl-n, .cmp-paper-sub, .cmp-item-sub, .cmp-state, .rw-sub, .org-sub, .pp-sub, #search-info, .pn-row .pn-pg,
+button.tb.wc-total, button.tb.pdf-budget { font-size: 12.5px; }
+.saved, .dg-status, .qz-status, .rv-meta, .lg-dhead, #venue-bar, .jobs-head { font-size: 13px; }
+.rd-venue, .rd-hv, .cmp-status { font-size: 13.5px; }
+.lg-dmeta.muted { font-size: 13px; }
+/* an author name inside a meta line keeps the author face, at the line's size */
+.item .m .au, .lg-ometa .au, .lg-rmeta .au, .rl-meta .au, .cmp-paper-sub .au, .rw-sub .au, .pp-sub .au, .tr-what .au, .pal-paper .pal-sub .au { font-size: .96em; }
+
+/* ---------- code: the classic monospace ---------- */
+code, kbd, pre, .CodeMirror, pre.bib, .vditor-reset kbd { font-family: var(--mono); }
+.item .m code, .pp-sub code { font-family: var(--font-meta); }   /* a cite key in a meta line is metadata, not code */
+
+/* ---------- note content and Claude's answers: Roboto (Vditor), code inside them monospace, maths KaTeX ---------- */
+.vditor, .vditor-reset, .vditor-sv, .rd-preview { font-family: var(--font-body); }
+.vditor-reset :is(h1, h2, h3, h4, h5, h6), .rd-preview :is(h1, h2, h3, h4, h5, h6) { font-family: var(--font-body); font-weight: 700; }
+.vditor-reset code:not(.hljs):not(.highlight-chroma), .vditor-reset pre > code, .rd-preview code, .rd-preview pre > code { font-family: var(--mono); }

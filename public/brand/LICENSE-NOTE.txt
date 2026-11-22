@@ -1,0 +1,5 @@
+The crest files (crest-*.svg) and the app icons in public/ (favicon.svg, favicon-32.png, favicon.ico,
+apple-touch-icon.png, app-icon-512.png) are original artwork by purple-ginseng (the Purple Ginseng design system).
+
+They are covered by the MIT licence of this repository (see LICENSE). The name "ResearchTool" and the crest are
+not meant to be used as the logo of other projects; please give a fork its own name and mark.
