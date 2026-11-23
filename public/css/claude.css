@@ -70,3 +70,6 @@
 body.pane-dragging { cursor: col-resize; user-select: none; -webkit-user-select: none; }
 body.pane-dragging iframe, body.pane-dragging canvas { pointer-events: none; }
 @media (max-width: 900px) { .pane-resize { display: none; } }
+
+/* another AI provider than Claude: the panel is read-only (claude.js #claude-ro) */
+#claude-log .msg.hint.ro { border-left: 3px solid var(--warn); }

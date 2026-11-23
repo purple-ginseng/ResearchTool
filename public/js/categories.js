@@ -93,7 +93,7 @@
 <dialog id="dlg-regroup">
   <h3>Group with Claude</h3>
   <div id="rg-setup">
-    <p class="muted">Claude proposes research lines (“Line / Sub-line”) from what each paper builds on - the methods it starts from, its Preliminaries and Related Work, read from your PDFs on this Mac - besides titles and tags. The lines it prefers are set in Preferences › Claude. Nothing changes until you apply.</p>
+    <p class="muted">Claude proposes research lines (“Line / Sub-line”) from what each paper builds on - the methods it starts from, its Preliminaries and Related Work, read from your PDFs on this Mac - besides titles and tags. The lines it prefers are set in Preferences › AI. Nothing changes until you apply.</p>
     <div class="rg-scope" id="rg-scope"></div>
     <label class="rg-check"><input type="checkbox" id="rg-keep" checked> Keep papers I filed by hand where they are</label>
     <p class="muted rg-keepnote" id="rg-keepnote" hidden></p>

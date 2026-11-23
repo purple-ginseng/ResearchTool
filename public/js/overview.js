@@ -98,7 +98,7 @@
     },
     review() { if (RT.quiz && RT.quiz.review) guard(() => RT.quiz.review()); else RT.nav.review(); },
     async briefs(n) {
-      const ok = await RT.confirm(`Claude writes the missing briefs of ${plural(n, 'paper')} in the background. This uses your Claude plan. Start now?`,
+      const ok = await RT.confirm(`Claude writes the missing briefs of ${plural(n, 'paper')} in the background. This uses your Claude account. Start now?`,
         { title: 'Write the missing briefs', okText: 'Write briefs', icon: 'sparkle' });
       if (ok && RT.library && RT.library.writeBriefs) await RT.library.writeBriefs(null);
     },
@@ -377,7 +377,7 @@
     }
     const st = RT.state.status || {};
     if ('pdftotext' in st) {
-      const miss = [!st.pdftotext && 'pdftotext (PDF import)', !st.latexmk && 'latexmk (LaTeX preview)', !st.claude && 'claude CLI (Claude panel)'].filter(Boolean);
+      const miss = [!st.pdftotext && 'pdftotext (PDF import)', !st.latexmk && 'latexmk (LaTeX preview)', !(st.ai ? st.ai.installed : st.claude) && 'claude CLI (Claude panel)'].filter(Boolean);
       rows.push({ ic: 'config', tone: miss.length ? 'warn' : 'ok', badge: miss.length ? 'Missing tools' : 'Ready', text: miss.length ? 'Not found on this machine: ' + miss.join(', ') : 'PDF import, LaTeX preview and Claude are ready' });
     }
     fill('health', `<ul class="ov-health-list">${rows.map((r) => `<li class="ov-hrow">

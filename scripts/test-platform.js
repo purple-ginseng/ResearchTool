@@ -95,13 +95,13 @@ const withPath = async (dirs, fn) => {
     assert.ok(!plat.buildPath('/usr/bin', { platform: 'linux', home: '/home/me' }).includes('/Library/TeX'));
   });
   await test('buildPath: Windows uses ";", ~\\.local\\bin, and TeX Live / MiKTeX / npm folders only when they exist', () => {
-    const dirs = new Set(['c:\\texlive\\2025\\bin\\windows', 'c:\\users\\me\\appdata\\local\\programs\\miktex\\miktex\\bin\\x64', 'c:\\users\\me\\appdata\\roaming\\npm']);
+    const dirs = new Set(['c:\\texlive\\2025\\bin\\windows', 'c:\\users\\me\\appdata\\local\\programs\\miktex\\miktex\\bin\\x64', 'c:\\users\\me\\appdata\\roaming\\npm', 'c:\\users\\me\\appdata\\local\\agy\\bin']);
     const env = { SystemDrive: 'C:', LOCALAPPDATA: 'C:\\Users\\me\\AppData\\Local', APPDATA: 'C:\\Users\\me\\AppData\\Roaming', ProgramFiles: 'C:\\Program Files' };
     const p = plat.buildPath('C:\\Windows\\system32;C:\\Users\\me\\AppData\\Roaming\\npm\\', { platform: 'win32', env, home: 'C:\\Users\\me',
       isDir: (d) => dirs.has(d.toLowerCase()), list: (d) => (d.toLowerCase() === 'c:\\texlive' ? ['2024', '2025', 'tlpkg'] : []) });
     const parts = p.split(';');
     assert.deepEqual(parts, ['C:\\Windows\\system32', 'C:\\Users\\me\\AppData\\Roaming\\npm\\', 'C:\\Users\\me\\.local\\bin',
-      'C:\\texlive\\2025\\bin\\windows', 'C:\\Users\\me\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64']);
+      'C:\\texlive\\2025\\bin\\windows', 'C:\\Users\\me\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64', 'C:\\Users\\me\\AppData\\Local\\agy\\bin']);
     assert.ok(!p.includes('/Library/TeX') && !p.includes(':/'), p);
   });
   await test('the server PATH of this machine still holds the original folders, joined with path.delimiter', () => {
@@ -449,6 +449,13 @@ const withPath = async (dirs, fn) => {
     assert.deepEqual(calls, ['SIGTERM', 'SIGKILL']);
     plat.killTree({ pid: 9, exitCode: null, signalCode: null, kill() { calls.push('kill'); } }, { platform: 'win32', signal: 'SIGTERM', spawnFn, env: {} });
     assert.equal(calls[2][0], 'C:\\Windows\\System32\\taskkill.exe', 'Windows: always the whole tree');
+    // a wrapper that stops its own tree (lib/ai/child.js AiChild): its kill(), never a taskkill of its pid - so a stop
+    // is known as a stop (taskkill leaves exit code 1, no signal)
+    const own = [];
+    for (const platform of ['win32', 'darwin', 'linux']) plat.killTree({ pid: 11, exitCode: null, signalCode: null, killsOwnTree: true, kill(sig) { own.push([platform, sig]); } }, { platform, signal: 'SIGTERM', spawnFn: (...a) => { own.push(a); return { on() {} }; }, env: {} });
+    assert.deepEqual(own, [['win32', 'SIGTERM'], ['darwin', 'SIGTERM'], ['linux', 'SIGTERM']]);
+    const { AiChild } = require('../lib/ai/child');
+    assert.equal(new AiChild({}, {}, {}).killsOwnTree, true, 'AiChild says so');
   });
   await test('parseCmdShim / resolveCmd win32: a shim target with ".." or outside the shim folder, and relative paths, are never run', () => {
     assert.equal(plat.parseCmdShim('"%dp0%\\..\\..\\other\\x.exe" %*'), null);

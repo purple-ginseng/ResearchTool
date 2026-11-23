@@ -16,6 +16,9 @@ const MODES = [
   { id: 'translate', label: 'Translate into academic English' },
   { id: 'custom', label: 'Tell Claude what to change…', icon: 'pencil' },
 ];
+// The proposal card is a line widget inside CodeMirror, which the display layer skips (user text): its words are
+// translated, and "Claude" given the chosen provider's name, here
+const L = (s, ...a) => (RT.i18n && RT.i18n.t ? RT.i18n.t(s, ...a) : s);
 const modeLabel = (p) => (p.mode === 'custom' ? `“${p.instruction}”` : MODES.find((m) => m.id === p.mode).label);
 const pUrl = (rest) => `/api/projects/${enc(RT.write.currentProject().id)}${rest}`;
 
@@ -69,16 +72,16 @@ function drop(p = cur) {
 }
 function render(p) {
   if (p.dead) return;
-  const btn = (act, title, icon, cls = '') => `<button type="button" class="ib ${cls}" data-ai="${act}" title="${esc(title)}" aria-label="${esc(title.split(':')[0])}">${ui().icon(icon)}</button>`;
+  const btn = (act, title, icon, cls = '') => { title = L(title); return `<button type="button" class="ib ${cls}" data-ai="${act}" title="${esc(title)}" aria-label="${esc(title.split(/[:：]/)[0])}">${ui().icon(icon)}</button>`; };
   let body = '', actions = '';
   if (p.state === 'wait') {
-    body = `<div class="ai-wait"><span class="spin"></span><span>Claude is writing a proposal for the marked text…</span></div>`;
+    body = `<div class="ai-wait"><span class="spin"></span><span>${esc(L('Claude is writing a proposal for the marked text…'))}</span></div>`;
     actions = btn('reject', 'Stop', 'stop');
   } else if (p.state === 'error') {
     body = `<div class="ai-msg bad">${esc(p.error)}</div>`;
     actions = btn('retry', 'Ask again', 'refresh') + btn('reject', 'Close', 'close');
   } else if (p.same) {
-    body = `<div class="ai-msg">Claude would leave this passage as it is.</div>`;
+    body = `<div class="ai-msg">${esc(L('Claude would leave this passage as it is.'))}</div>`;
     actions = btn('retry', 'Ask again', 'refresh') + btn('reject', 'Close', 'close');
   } else {
     const ops = wordDiff(p.original, p.text);
@@ -87,16 +90,17 @@ function render(p) {
     const html = plain ? `<ins>${esc(p.text.trim())}</ins>` : ops.map((o) => (o.t === 'eq' ? esc(o.text) : o.t === 'del' ? `<del>${esc(o.text)}</del>` : `<ins>${esc(o.text)}</ins>`)).join('');
     const count = (t) => (t.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*|[㐀-鿿]/g) || []).length, wa = count(p.original), wb = count(p.text);
     body = `<div class="ai-diff" tabindex="0">${html}</div>`
-      + (p.newKeys && p.newKeys.length ? `<div class="ai-msg bad">Claude added ${p.newKeys.length === 1 ? 'a cite key that is' : 'cite keys that are'} not in your library: ${p.newKeys.map((k) => `<code>${esc(k)}</code>`).join(', ')}. Check before you accept.</div>` : '')
+      + (p.newKeys && p.newKeys.length ? `<div class="ai-msg bad">${esc(L('Claude'))} added ${p.newKeys.length === 1 ? 'a cite key that is' : 'cite keys that are'} not in your library: ${p.newKeys.map((k) => `<code>${esc(k)}</code>`).join(', ')}. Check before you accept.</div>` : '')
       + `<div class="ai-note muted">${plain ? 'The marked text above would be replaced by this.' : `Red is removed, green is added. ${wa} → ${wb} words${wa ? ` (${wb >= wa ? '+' : '−'}${Math.round(Math.abs(wb - wa) / wa * 100)}%)` : ''}.`} Nothing has changed yet.</div>`;
     actions = btn('retry', 'Ask again: another proposal for the same text', 'refresh') + btn('reject', 'Reject: keep my text', 'close')
-      + btn('accept', 'Accept: put this in place of the marked text (kept as a Claude version in the history)', 'check', 'primary');
+      + btn('accept', 'Accept: put this in place of the marked text (kept in the history as a version by Claude)', 'check', 'primary');
   }
-  p.node.innerHTML = `<div class="ai-head"><span class="ai-title">${RT.icon('sparkle')}<b>Claude</b><span class="muted">${esc(modeLabel(p))}</span></span><span class="spacer"></span>${actions}</div>${body}`;
+  p.node.innerHTML = `<div class="ai-head"><span class="ai-title">${RT.icon('sparkle')}<b>${esc(L('Claude'))}</b><span class="muted">${esc(p.mode === 'custom' ? modeLabel(p) : L(modeLabel(p)))}</span></span><span class="spacer"></span>${actions}</div>${body}`;
   p.widget.changed();
 }
 async function request(p) {
   p.state = 'wait'; p.error = ''; p.ac = new AbortController();
+  p.by = RT.ai ? RT.ai.id() : 'claude'; // the provider that writes this proposal: its version in the history names it
   render(p);
   try {
     const r = await api(pUrl('/rewrite'), { method: 'POST', json: { mode: p.mode, instruction: p.instruction, text: p.original, ...p.ctx }, signal: p.ac.signal });
@@ -119,12 +123,13 @@ async function accept(p) {
     if (!r || p.doc.getRange(r.from, r.to) !== p.original) { stale = true; return false; }
     p.doc.replaceRange(p.text.split('\n'), r.from, r.to, 'claude'); // an array of lines: right for CRLF files too
     p.doc.setCursor(CodeMirror.changeEnd({ from: r.from, to: r.to, text: p.text.split('\n') }));
-  });
+  }, { by: p.by });
   p.busy = false;
   if (stale) { drop(p); return toast('The marked text was edited after you asked, so the proposal no longer fits. Select it and ask again.', 'bad'); }
   if (!ok && !p.dead && p.mark.find()) return; // the file could not be saved (a message says why): the proposal stays
   drop(p);
-  if (ok) { toast('Accepted — the change is a Claude version in the history.', 'ok'); E().cm.focus(); }
+  // the provider that wrote the proposal (its history version names it), not the one chosen now
+  if (ok) { toast(`Accepted — the change is kept in the history as a version by ${RT.ai ? RT.ai.nameOf(p.by) : 'Claude'}.`, 'ok', null, { brandKeep: true }); E().cm.focus(); }
 }
 // the heading the passage stands under, read from the lines above it
 function sectionAbove(doc, line) {
@@ -248,7 +253,7 @@ async function rwDialog(buf) {
       <button type="button" class="ib" data-rw="back" title="Back: choose other papers or another angle" aria-label="Back" hidden>${icon('arrowLeft')}</button>
       <button type="button" class="ib" data-rw="copy" title="Copy the LaTeX" aria-label="Copy the LaTeX" hidden>${icon('copy')}</button>
       <button type="button" class="primary ib" data-rw="draft" title="Write the draft with Claude" aria-label="Write the draft with Claude">${icon('sparkle')}</button>
-      <button type="button" class="primary ib" data-rw="insert" title="Insert the draft at the cursor (kept as a Claude version in the history)" aria-label="Insert the draft at the cursor" hidden>${icon('check')}</button>
+      <button type="button" class="primary ib" data-rw="insert" title="Insert the draft at the cursor (kept in the history as a version by Claude)" aria-label="Insert the draft at the cursor" hidden>${icon('check')}</button>
     </div></form>`;
   document.body.append(d);
   const q = (s) => $(s, d);
@@ -301,9 +306,11 @@ async function rwDialog(buf) {
       q('#rw-wait-text').textContent = `Claude is writing from what you have on ${ids.length} paper${ids.length === 1 ? '' : 's'}. This takes up to a minute or two…`;
       show('wait'); q('[data-rw=stop]').focus();
       ac = new AbortController();
+      const by = RT.ai ? RT.ai.id() : 'claude', byName = RT.ai ? RT.ai.name() : 'Claude'; // the provider asked
       try {
         result = await api(pUrl('/related-work'), { method: 'POST', json: { ids, angle: q('#rw-angle').value, heading: q('#rw-head').checked }, signal: ac.signal });
         ac = null;
+        result.by = by; result.byName = result.provider || byName; // (the server names the provider that wrote it)
         const names = (a) => a.map((x) => `<code title="${esc(x.title || '')}">${esc(x.citekey || x)}</code>`).join(', ');
         const r = result, notes = [`<li>About ${r.words} words, citing ${r.cited.length} of the ${r.papers} paper${r.papers === 1 ? '' : 's'} it was given. Read it against the papers before you keep it.</li>`];
         if (r.uncited.length) notes.push(`<li>Not cited (too little to go on, or it did not fit): ${names(r.uncited)}</li>`);
@@ -333,11 +340,12 @@ async function rwDialog(buf) {
         const ok = await E().applyClaude(buf, () => {
           if (E().activeBuf() !== buf) return false;
           cm.setCursor(cm.getCursor('to')); // never over a selection
-          E().insertBlock([`% --- Draft by Claude from ${r.papers} paper${r.papers === 1 ? '' : 's'} of the library: check every claim against the papers before you keep it ---`,
+          // saved in the .tex file: the name of the provider that wrote the draft, never rewritten by the display layer
+          E().insertBlock([`% --- Draft by ${r.byName || 'Claude'} from ${r.papers} paper${r.papers === 1 ? '' : 's'} of the library: check every claim against the papers before you keep it ---`,
             ...r.latex.split('\n'), '% --- End of the draft ---']);
-        });
+        }, { by: r.by });
         b.disabled = false;
-        if (ok) { close(); cm.focus(); toast(`Draft inserted, citing ${n} paper${n === 1 ? '' : 's'} — it is a Claude version in the history.`, 'ok'); }
+        if (ok) { close(); cm.focus(); toast(`Draft inserted, citing ${n} paper${n === 1 ? '' : 's'} — it is kept in the history as a version by ${r.byName || 'Claude'}.`, 'ok', null, { brandKeep: true }); }
         else toast('The file could not be saved, so the draft was not inserted. It is still here to copy.', 'bad');
       }
     });

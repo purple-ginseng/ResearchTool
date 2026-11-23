@@ -12,7 +12,11 @@
    SKIP below). The engine part (createTranslator) is pure and also loads in Node (scripts/test-i18n.js,
    scripts/i18n-extract.js).
    API (window.RTI18n, also RT.i18n): t(en, ...args), lang(), setLang('en'|'zh'), languages, apply(root),
-   translate(text) -> translation | null, skip (the selector), onChange(fn).
+   translate(text) -> translation | null, skip (the selector), onChange(fn), setBrand(brand | null).
+   The AI provider's name (setBrand, called by ai.js): the code says "Claude" in its UI text; when another provider is
+   chosen in Preferences › AI, the same layer shows its name instead, in English and in the translation - "Claude
+   Code" -> brand.cliName ("Codex CLI"), "Claude" -> brand.name ("Codex"), "claude CLI" -> "codex CLI" - except inside
+   [data-brand-keep] (text that is really about Claude, such as "switch to Claude Code") and the skipped parts above.
    Storage: localStorage rt.ui.lang ('en' default), per browser, read before the first paint of the modules. */
 (function (root, factory) {
   const api = factory(root);
@@ -253,11 +257,17 @@
     const listeners = new Set();
 
     const skipped = (el) => !!(el && el.closest && el.closest(SKIP));
+    // the AI provider's name instead of Claude's (see the head of this file); null = Claude, nothing changes
+    let brand = null;
+    const BRAND_KEEP = '[data-brand-keep]';
+    const rebrand = (s) => (!brand || !s || !/claude/i.test(s) ? s
+      : s.replace(/\bClaude Code\b/g, brand.cliName).replace(/\bClaude\b/g, brand.name).replace(/\bclaude(?= CLI\b)/g, brand.bin));
+    const branded = (s, el) => (!brand || !/claude/i.test(s || '') || (el && el.closest && el.closest(BRAND_KEEP)) ? s : rebrand(s));
     function doText(node) {
       const cur = node.data, rec = textRec.get(node);
       const src = rec && cur === rec.out ? rec.src : cur;
       const t = current === 'en' ? null : tr(current).translateText(src);
-      const out = t === null ? src : t;
+      const out = branded(t === null ? src : t, node.parentElement);
       if (out !== cur) node.data = out;
       if (out !== src) textRec.set(node, { src, out }); else if (rec) textRec.delete(node);
     }
@@ -269,7 +279,7 @@
       if (cur === null) return;
       const src = rec && cur === rec.out ? rec.src : cur;
       const t = current === 'en' || !cur ? null : tr(current).translateText(src);
-      const out = t === null ? src : t;
+      const out = branded(t === null ? src : t, el);
       if (out !== cur) el.setAttribute(a, out);
       if (out !== src) { if (!recs) attrRec.set(el, (recs = new Map())); recs.set(a, { src, out }); }
       else if (rec) recs.delete(a);
@@ -356,7 +366,7 @@
       lang: () => current,
       // t('Saved') / t('Delete {0} papers?', n): for code that puts text where the observer does not look
       // (window.confirm, canvas, document.title, a value compared later)
-      t: (s, ...args) => tr(current).format(current, s, args),
+      t: (s, ...args) => rebrand(tr(current).format(current, s, args)),
       translate: (s) => (current === 'en' ? s : tr(current).translate(String(s ?? '').trim())),
       setLang(l) {
         if (!LANGS.some((x) => x.id === l) || l === current) return current;
@@ -366,6 +376,14 @@
         return current;
       },
       onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+      // {name, cliName, bin} of the chosen AI provider, or null for Claude: the page is shown again with it
+      setBrand(b) {
+        const next = b && b.name && b.name !== 'Claude' ? { name: String(b.name), cliName: String(b.cliName || b.name), bin: String(b.bin || b.name.toLowerCase()) } : null;
+        if (JSON.stringify(next) === JSON.stringify(brand)) return;
+        brand = next; apply(doc.body);
+      },
+      brand: () => brand,
+      rebrand: (s) => rebrand(s),
       apply,
       addDictionary(l, data) { dicts[l] = data; delete translators[l]; if (l === current) apply(doc.body); },
       createTranslator,

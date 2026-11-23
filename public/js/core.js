@@ -42,9 +42,11 @@ window.RT = (() => {
   // so a later language switch can re-translate it; t() is only for what is not DOM (the native confirm / prompt)
   const tr = (s) => (s && RT.i18n && typeof RT.i18n.t === 'function' ? RT.i18n.t(s) : s);
   let toastSeq = 0;
-  function toast(msg, kind = '', action = null) {
+  // opts.brandKeep: the message names the AI provider that made something (not the one chosen now): the display layer
+  // translates it but never renames that provider
+  function toast(msg, kind = '', action = null, opts = {}) {
     const seq = ++toastSeq;
-    const t = $('#toast'); t.textContent = msg; t.className = 'toast ' + kind; t.title = msg;
+    const t = $('#toast'); t.toggleAttribute('data-brand-keep', !!(opts && opts.brandKeep)); t.textContent = msg; t.className = 'toast ' + kind; t.title = msg;
     if (action && msg) {
       t.innerHTML = `<span class="toast-msg">${esc(msg)}</span><button class="ib toast-act" title="${esc(action.label)}" aria-label="${esc(action.label)}">${icon(action.icon || 'undo')}</button>`;
       t.classList.add('has-act');
@@ -53,6 +55,30 @@ window.RT = (() => {
     }
     clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.textContent = ''), action ? 20000 : 9000);
   }
+  // ---------------- errors: the last ones, for Help › Copy diagnostics (diagnostics.js) ----------------
+  // A small ring buffer in memory (never stored, never sent): what window.onerror and unhandledrejection catch, and
+  // what a handler reports with RT.reportError (an exception inside a click handler used to vanish: the click looked
+  // dead). RT.errors.log(err, where) only records; RT.reportError(err, where) also logs it to the console and shows it.
+  const ERR_MAX = 20, errLog = [];
+  function logError(err, where = '') {
+    try {
+      const e = err && typeof err === 'object' ? err : { message: String(err) };
+      const stack = typeof e.stack === 'string' ? e.stack.split('\n').slice(1, 4).map((l) => l.trim()).join(' | ') : '';
+      errLog.push({ t: new Date().toISOString(), where: String(where).slice(0, 80), message: String(e.message || e.reason || err).slice(0, 400), stack: stack.slice(0, 400), status: e.status || undefined });
+      while (errLog.length > ERR_MAX) errLog.shift();
+    } catch { /* never in the way */ }
+  }
+  function reportError(err, where = '') {
+    if (!(err && err.status)) console.error(where ? where + ':' : 'error:', err); // (an answer of the server is no bug of the page)
+    logError(err, where);
+    // an answer of the server says what went wrong in words meant for the user; an exception of the page does not
+    // ("Cannot read properties of null ...") - it gets the plain message, its details are in the console and RT.errors
+    const m = err && err.status && err.message ? err.message : typeof err === 'string' ? err : '';
+    toast(m || 'Something went wrong - Help › Copy diagnostics has the details', 'bad');
+  }
+  window.addEventListener('error', (e) => logError(e.error || e.message, 'window.onerror' + (e.filename ? ' ' + String(e.filename).replace(/^.*\/\/[^/]+/, '') + ':' + e.lineno : '')));
+  window.addEventListener('unhandledrejection', (e) => logError(e.reason, 'unhandledrejection'));
+  const errors = { log: logError, list: () => errLog.slice() };
   // In-page replacements for confirm() and prompt(): the styled dialogs of write.js (RT.write.ui), which loads later -
   // so these are for event time only. confirm(message, {title, okText, danger, icon}) -> Promise<boolean>;
   // ask({title, message, value, placeholder, okText, icon}) -> Promise<string | null>
@@ -521,6 +547,8 @@ window.RT = (() => {
     { label: 'Take the tour', icon: 'compass', onClick: () => (RT.tour && RT.tour.start ? RT.tour.start() : clickEl('#btn-tour')) },
     { label: 'Tour of this screen', icon: 'compass', onClick: () => RT.tour && RT.tour.start && RT.tour.start({ chapter: RT.tour.forChapterOfView() }) },
     { label: 'Keyboard shortcuts', icon: 'keyboard', kbd: '?', onClick: () => RT.guide && RT.guide.open && RT.guide.open('files', 'keys') },
+    { sep: true },
+    { label: 'Copy diagnostics', icon: 'copy', title: 'Copy diagnostics: versions, AI status and the last errors, as text for a bug report (no papers, notes or account names)', onClick: () => RT.diagnostics && RT.diagnostics.copy() },
   ], { align: 'end' });
   menuButton($('#btn-app-menu'), () => [
     { label: 'Export references…', icon: 'export', onClick: () => exportReferences() },
@@ -563,7 +591,7 @@ window.RT = (() => {
     try {
       state.status = await api('/api/status');
       emit('status', state.status);
-      const missing = [!state.status.pdftotext && 'pdftotext (PDF import)', !state.status.latexmk && 'latexmk (LaTeX preview)', !state.status.claude && 'claude CLI (Claude panel)'].filter(Boolean);
+      const missing = [!state.status.pdftotext && 'pdftotext (PDF import)', !state.status.latexmk && 'latexmk (LaTeX preview)', !(state.status.ai ? state.status.ai.installed : state.status.claude) && 'claude CLI (Claude panel)'].filter(Boolean);
       if (missing.length) banner.show({ id: 'tools-missing', tone: 'info', text: 'Not found on this machine: ' + missing.join(', ') });
     } catch {}
   });
@@ -622,7 +650,7 @@ window.RT = (() => {
   document.addEventListener('click', citeGo, true);
   document.addEventListener('keydown', citeGo, true);
 
-  return { $, $$, esc, debounce, enc, api, downloadFile, toast, confirm: confirmDlg, ask: askDlg, ls, icon, crest, authorsShort, byline, loadScript, loadCss, vendor, cite,
+  return { $, $$, esc, debounce, enc, api, downloadFile, toast, errors, reportError, confirm: confirmDlg, ask: askDlg, ls, icon, crest, authorsShort, byline, loadScript, loadCss, vendor, cite,
     on, off, emit, state, views, registerView, setView, claudeContext, addFlusher, flush,
     menu, banner, emptyState, nav, modKey, isMac: MAC, kbd, exportReferences };
 })();

@@ -31,7 +31,7 @@
     "Export failed: {0}": "导出失败：{0}",
     // {2} is "3 backups" (already "3 个备份"): no second measure word
     "Last backup: {0} ({1}) · {2} kept, {3} on disk": "上次备份：{0}（{1}）· 保留 {2}，磁盘上 {3}",
-  }, keep: ['Claude', 'ResearchTool'], notUi: ["RT.icon: no icon named '{0}'"], rules: [
+  }, keep: ['Claude', 'ResearchTool', 'Codex', 'Grok', 'Gemini', 'OpenAI', 'ChatGPT', 'xAI', 'Google', 'Antigravity'], notUi: ["RT.icon: no icon named '{0}'"], rules: [
     // the boot notice of missing tools: each tool's own words translated, joined with the Chinese comma
     [/^Not found on this machine: (.+)$/, (m, tr) => '本机未找到：' + m[1].split(', ').map((x) => tr(x.trim(), 1) || x).join('、')],
   ], captureWords: ['today', 'yesterday'] };

@@ -44,6 +44,12 @@ jobs:
         run: node scripts/i18n-extract.js --check
       - name: Server smoke test
         run: node scripts/smoke-server.js
+      # the other AI providers through their fake CLIs (never a real one); Grok Build is not supported on Windows
+      - name: Server smoke test with the other AI providers (fake CLIs)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          for p in codex grok antigravity; do node scripts/smoke-server.js --provider "$p" || exit 1; done
 
   pdf-import:
     name: PDF import (${{ matrix.os }}, poppler)

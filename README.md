@@ -19,8 +19,9 @@
 ResearchTool is a local research workspace for one person, run as a small Node server and used in the browser. It
 keeps a reference library with a PDF reader, highlights and Markdown reading notes, helps you see how papers relate
 to each other, and has an Overleaf-style LaTeX editor with live PDF preview, version history and optional Overleaf
-sync. All data stays in a plain folder on your computer. The AI features are optional and run through your own local
-`claude` CLI (Claude Code).
+sync. All data stays in a plain folder on your computer. The AI features are optional and run through an AI command-line tool
+installed on your computer and signed in with your own account: Claude Code (`claude`) by default, or OpenAI Codex,
+xAI Grok Build or Google Antigravity (see [AI providers](#ai-providers)).
 
 ## Why
 
@@ -38,8 +39,9 @@ files - PDFs, Markdown, LaTeX and JSON - that you can back up, read or edit with
 
 ResearchTool 是一个在自己电脑上运行的科研工作区：文献库、PDF 阅读器（高亮、目录、站内链接）、Markdown 阅读笔记、
 带页码的论文要点、从 PDF 中自动裁出的图表、论文之间的引用脉络，以及带实时 PDF 预览、版本历史和可选 Overleaf 同步的
-LaTeX 编辑器。所有数据都保存在一个普通文件夹里，没有账号、没有遥测。AI 功能是可选的，通过你本机的 `claude` 命令行
-（Claude Code）运行，用的是你自己的账号。界面支持英文和简体中文（偏好设置 › 通用 › 显示语言）。
+LaTeX 编辑器。所有数据都保存在一个普通文件夹里，没有账号、没有遥测。AI 功能是可选的，通过你本机的 AI 命令行工具运行，用的是你自己的账号：
+默认是 Claude Code（`claude`），也可以在偏好设置 › AI 中换成 OpenAI Codex、xAI Grok Build 或 Google Antigravity
+（`agy`，个人 Google 账号可用）。只有 Claude Code 可以修改文件，其他工具在面板里是只读的；Grok Build 不支持 Windows。界面支持英文和简体中文（偏好设置 › 通用 › 显示语言）。
 
 快速开始：安装 Node 18 或更新版本，然后 `git clone https://github.com/purple-ginseng/ResearchTool.git`、
 `cd ResearchTool`、`node server.js`，再打开 http://localhost:4790 。项目主页（含中文演示视频）：
@@ -211,7 +213,7 @@ system is in "macOS, Linux and Windows".
 | `latexmk` + a TeX distribution (MacTeX / TeX Live / MiKTeX) | compiling; `synctex` for jumping between source and PDF, `texcount` for the word counts |
 | `unzip` (or the `tar` built into Windows 10+ and macOS) | importing a project from a .zip |
 | `git` | Overleaf sync |
-| `claude` CLI | the Claude panel, automatic grouping and briefs, "Extract with Claude", "Generate first draft", diagrams, quizzes, explanations and translations, comparison tables, rewriting a selection and drafting related work in LaTeX |
+| one AI CLI: `claude` (default), or `codex`, `grok` or `agy` (Antigravity) - see [AI providers](#ai-providers) | the Claude panel, automatic grouping and briefs, "Extract with Claude", "Generate first draft", diagrams, quizzes, explanations and translations, comparison tables, rewriting a selection and drafting related work in LaTeX |
 | A system word list (`/usr/share/dict/words` or similar) | spell check in the Editor (macOS ships one; on Debian / Ubuntu install `wamerican`; Windows has none, so there this check is off) |
 | Internet access (optional) | adding a paper by arXiv id / DOI / link, the Related tab, Lineage, "Check metadata", "Check venues" and "Find links" (see Privacy) |
 
@@ -241,30 +243,40 @@ starts every tool directly, never through a shell.
   - The `claude` CLI: the native installer (`claude.exe`) or `npm install -g @anthropic-ai/claude-code` both work.
     Of the `.cmd` files only a standard npm shim is used (its script is run with node); other `.cmd` / `.bat` files
     are never run, because only `cmd.exe` could run them.
+  - Of the other AI CLIs, Codex and Antigravity can be used on Windows; Grok Build cannot, because its read-only
+    sandbox exists only on macOS and Linux (see [AI providers](#ai-providers)).
   - A .zip is unpacked with the `tar.exe` built into Windows 10+ when there is no `unzip`.
   - The spelling check is off (Windows has no system word list); the other writing checks work.
   - The folder browser starts in your home folder; go up past `C:\` to "This PC" to reach other drives. The native
     macOS folder chooser is replaced by that browser.
 
-## Claude integration (optional)
+## AI integration (optional)
 
 ResearchTool does not call any AI API itself, holds no API key and never asks for a password. Every AI feature runs
-your own locally installed `claude` CLI (Claude Code) as a child process, signed in with your own account
-(`claude auth login`, started from the person button in the Claude panel). What that CLI sends to Anthropic, and
-under which terms, is between you and your Claude Code account; ResearchTool sends nothing to any other AI service.
+one AI command-line tool installed on your own computer as a child process, signed in with your own account:
+Claude Code (`claude`, the default; `claude auth login`, started from the person button in the Claude panel), or -
+chosen in Preferences › AI - OpenAI Codex (`codex`), xAI Grok Build (`grok`) or Google Antigravity (`agy`). What that
+CLI sends to its provider (Anthropic, OpenAI, xAI or Google), and under which terms, is between you and that account;
+ResearchTool sends nothing to any other AI service. Gemini CLI is not offered (see [AI providers](#ai-providers)).
 
 - Feature calls (grouping, briefs, key points, note drafts, diagrams, quizzes, explanations, comparison tables,
-  rewrites, related-work drafts) run `claude -p` with no tools, or with the Read tool only where a feature must read
-  a PDF or a picture. Each prompt carries the material of that feature (for example the brief, note, key points and
-  the matching PDF passages of each paper in a comparison table, not the whole PDF); a token estimate is shown before
-  the larger jobs.
-- The Claude panel runs a Claude Code session inside your workspace folder with file tools only.
+  rewrites, related-work drafts) run the CLI non-interactively with no tools, or with reading only where a feature
+  must read a PDF or a picture. Each prompt carries the material of that feature (for example the brief, note, key
+  points and the matching PDF passages of each paper in a comparison table, not the whole PDF); a token estimate is
+  shown before the larger jobs.
+- The Claude panel runs a Claude Code session inside your workspace folder with file tools only. With Codex, Grok
+  Build or Antigravity the panel is a read-only chat: only Claude Code edits files.
+- Only Claude reads the pages of a PDF itself; the other CLIs get the text extracted from it, so formulas and figures
+  in a draft can be weaker. Grok Build does not work with ResearchTool on Windows. How Codex, Grok Build and
+  Antigravity are kept read-only and how their output is read follow their published docs and are not yet confirmed
+  by real runs with every account type (details under AI providers).
 - Apart from filing newly imported papers into categories with a short brief (on by default; switch it off in
-  "Group with Claude"), Claude is called only when you use an AI feature.
-- Settings shows the calls, tokens and time used per feature over the last 7 days.
-- What Claude writes is a draft: check it against the paper, as you would a colleague's notes.
+  "Group with Claude"), the AI is called only when you use an AI feature.
+- Settings shows the calls, tokens and time used per feature over the last 7 days, for every provider.
+- What the AI writes is a draft: check it against the paper, as you would a colleague's notes.
 
-Without the `claude` CLI the app works fully as a library, reader, note-taking tool and LaTeX editor.
+Without an AI CLI the app works fully as a library, reader, note-taking tool and LaTeX editor. If something goes
+wrong, Help › **Copy diagnostics** gives a redacted text block for a bug report (see [Troubleshooting](#troubleshooting)).
 
 ## Privacy
 
@@ -282,7 +294,7 @@ Without the `claude` CLI the app works fully as a library, reader, note-taking t
 - "Find links" checks that the project and code links a paper names still answer, and reads that project page
   once, so those sites see a request from your computer.
 - Overleaf sync talks to git.overleaf.com through your own `git`; the token stays in git's credential helper.
-- AI features: see "Claude integration" above.
+- AI features: see "AI integration" above.
 
 ## Language
 
@@ -714,6 +726,120 @@ first time the reference is opened or the library is exported.
   PDF cannot be read is the draft asked for once more from the text. A crop the app is not sure of (cut at an edge, text inside, two
   figures in one) is never put into a note by itself: its placeholder stays and the Figures list shows it with a
   dashed frame.
+
+## AI providers
+
+Every AI feature runs a command-line AI tool installed on your computer and signed in with **your own account**.
+Claude Code is the default. Preferences › AI can switch all features to one of the others; the choice is saved in
+the workspace (`settings.json` `aiProvider`). ResearchTool never asks for an API key and never stores one, and it never
+signs you in or out of these tools - you do that once in a terminal.
+
+| Provider | Command | Install (you run it) | Sign in (you run it) | What works |
+| --- | --- | --- | --- | --- |
+| Claude Code (default) | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` | the person button in the panel (`claude auth login`) | everything: the panel can edit your files; drafts read the PDF pages; questions about a picture |
+| OpenAI Codex | `codex` | `npm install -g @openai/codex` (or `brew install --cask codex`) | `codex login` (ChatGPT account) | every feature; the panel is read-only; drafts use the extracted text; questions about a picture (`-i`) |
+| xAI Grok Build | `grok` | `curl -fsSL https://x.ai/cli/install.sh \| bash` (Windows: `irm https://x.ai/cli/install.ps1 \| iex`; or `npm install -g @xai-official/grok`) | `grok login` (an xAI / X account; a free tier with usage limits, more with a paid plan) | every feature on macOS and Linux (kernel 5.13+); the panel is read-only; drafts use the extracted text; no questions about a picture; **not on Windows** (see below) |
+| Antigravity (Google) | `agy` 1.5.13 or later | `curl -fsSL https://antigravity.google/cli/install.sh \| bash` (Windows: `irm https://antigravity.google/cli/install.ps1 \| iex`) | run `agy` once in a terminal and sign in with Google (a **personal Google account** works) | every feature; the panel is read-only; drafts use the extracted text; no questions about a picture. ResearchTool does not check whether you are signed in (that would mean starting agy): it shows at the first call. An older agy is not started - Preferences asks you to run `agy update`. Checked with a real agy 1.5.14 for its flags, its settings and one short turn; the read-only rules are tested only against a fake `agy` so far - see below |
+
+Gemini CLI is not offered: Google ended its personal-account use on 2026-06-18 - with a Google account, use Antigravity.
+A workspace that had chosen Gemini CLI opens on Claude Code.
+
+- **Only Claude Code edits files.** With another provider the panel is a read-only chat and is told it cannot change
+  anything; ask for a change and it shows it as text. "Find weak claims" works, it only reads. How each CLI is kept
+  read-only:
+  - **Codex:** `-s read-only` (its sandbox: no writes, no network for commands), `--ignore-user-config`,
+    `--ignore-rules`, no web search, commands get only the core environment variables. Codex reads files only through
+    shell commands, so in the panel it can *read* files outside the workspace (no writes, nothing sent anywhere by a
+    command). Feature calls have the shell tool switched off.
+  - **Grok Build:** a list of allowed tools (`read_file,grep,list_dir` in the panel, none that can act in feature
+    calls), the shell, edit, web and subagent tools removed, `--permission-mode dontAsk`, `--sandbox read-only`, no web
+    search, an empty folder of its own with the workspace added (`--add-dir`). Grok's sandbox exists only on macOS
+    (Seatbelt) and Linux 5.13+ (Landlock): when Grok reports that the sandbox could not be applied (Windows, an older
+    Linux kernel), or that it did not accept the tool list, ResearchTool stops the call and shows why - so **Grok does
+    not work with ResearchTool on Windows**.
+  - **Antigravity:** session-only settings (`--settings`, never saved) that deny every action of its permission
+    system - `command(*)`, `write_file(*)`, `read_url(*)`, `execute_url(*)`, `mcp(*)`, and in feature calls also
+    `read_file(*)` - with `toolPermission: "request-review"`; a deny wins over your own allow rules. Plus `--mode plan`,
+    `--sandbox` (the OS terminal sandbox), `--disable-slash-commands` and a `--print-timeout`; in print mode agy refuses
+    ("soft-denies") whatever would need an approval. Plan mode is **not** a read-only guarantee: agy's changelog says
+    headless runs go through plan review automatically, so the deny rules are what is relied on. agy 1.5.14 refuses an
+    unknown settings key, and a real agy 1.5.14 accepted these settings and then reported the permission mode
+    `request-review`; that each deny rule really refuses its action is taken from the docs and **not yet confirmed by
+    a real run**. It runs in an empty folder of its own; the panel adds the workspace with
+    `--add-dir` and resumes with `--conversation <id>`. An agy older than 1.5.13 is never started (`agy --version` is
+    checked first; before 1.1.18 a valueless `-p` swallowed the next flag and turned the sandbox off, and `-p` goes
+    last anyway). ResearchTool also stops a call when agy does not first report a permission mode that asks for
+    approval, when a tool step names a file outside the call's folders (your own "Non-Workspace Access" or allow
+    rules, hooks or plugins cannot make the panel read `~/.ssh` unnoticed), or when agy says the sandbox, the mode or
+    the settings were not applied; these checks follow the docs and changelog and are **not yet tested with a real
+    agy** (see ARCHITECTURE.md). Your own agy hooks, plugins and rules (`~/.gemini/config`) still load. Never
+    `--dangerously-skip-permissions`, `--mode auto` (which reads outside the workspace without asking) or
+    `accept-edits`.
+- **PDFs:** only Claude reads the pages of a PDF itself. The others get the text ResearchTool extracts from the PDF
+  (with its `[p. N]` page markers, the same size limits as the Economy mode of Claude), so formulas and figures in a
+  draft can be weaker. Figures are still placed from the PDF on this computer.
+- **Feature calls** (grouping, key points, drafts, diagrams, quizzes, explanations, tables, rewrites) run in a new
+  empty folder outside the workspace that is removed afterwards, with the prompt on standard input (Grok: a private
+  temporary file; Antigravity: one `{"event":"user",...}` line of `--input-format stream-json`) - never as a
+  command-line argument. Codex, Grok and Antigravity also get a low or medium reasoning effort from
+  Preferences › AI › usage mode; "Best quality" leaves it to the CLI.
+- **Model:** empty means the CLI's own default. You can name a model (and a model for grouping) per provider. (Codex
+  ignores `~/.codex/config.toml` here - its model, profiles and MCP servers do not apply; only where it keeps your
+  sign-in is read from it.)
+- **Environment:** the other CLIs get only what they need from the environment ResearchTool was started with (PATH,
+  home and temporary folders, locale, proxy and certificate settings, their own `CODEX_HOME` /
+  `GROK_HOME`, `GOOGLE_CLOUD_LOCATION` for Antigravity; and `FAKE_AI_*`, which only the test suite's fake CLIs read).
+  Other variables - other tools' tokens, cloud credentials, other providers' keys - never reach them.
+- **API keys (optional):** by default no API key from the environment reaches these CLIs, so a call uses the account
+  you signed in with. The checkbox "Use an API key from the environment" (off by default, per provider) passes that
+  provider's own variables on: `OPENAI_API_KEY` / `CODEX_API_KEY` (Codex), `XAI_API_KEY` / `GROK_CODE_XAI_API_KEY`
+  (Grok), `GEMINI_API_KEY` (then with `modelProvider: "gemini"` for that session) / `AGY_ADC_AUTH` / `GOOGLE_APPLICATION_CREDENTIALS` /
+  `GOOGLE_CLOUD_QUOTA_PROJECT` (Antigravity). Only that boolean is saved, never a key.
+- **Status** (Preferences › AI, the person button in the panel) never calls a model:
+  `codex login status` and Grok's stored sign-in (`~/.grok/auth.json`). Antigravity:
+  only `agy --version` (whether that uses the network is not known) - ResearchTool does not check the sign-in (that
+  would mean starting agy), so it shows as "could not be checked" until the first call (ResearchTool never reads
+  `~/.gemini/antigravity*`; it only looks whether `~/.gemini/antigravity-cli` exists, to say whether agy was ever set
+  up). A sign-in that has expired shows when a call is made.
+- **Usage:** Preferences lists calls and tokens per feature for every provider; a cost is only recorded when the CLI
+  reports one (Claude, Grok).
+- **Not supported:** signing in from the app for Codex / Grok / Antigravity, file edits and MCP servers for them, community
+  "grok" CLIs (API key only), Grok on Windows, and a provider per feature.
+- The output formats of Codex and Grok Build were taken from their help texts, changelogs and published docs, not
+  from real runs. Antigravity's also come from its docs, checked against one short real turn of agy 1.5.14 (no tool
+  step). See ARCHITECTURE.md ("To verify with real accounts") for what real runs must still confirm.
+
+## Troubleshooting
+
+- **Reporting a bug:** Help (the question-mark button) › **Copy diagnostics**, or ⌘K / Ctrl+K and "Copy diagnostics",
+  copies a plain-text block to paste into the report: the app version and commit, the OS, Node and browser, the
+  display language, the AI provider with its CLI's version and whether it is installed and signed in, which helper
+  programs were found (pdftotext, latexmk, git, unzip), and the last errors of the page and of the AI calls. It runs
+  no AI call and reads no paper, note or library file. Before it is copied, the workspace path is written
+  `<workspace>`, an external LaTeX project `<project>`, the backup folder `<backup>`, home folders `~` / `<home>`,
+  drives and shares `<volume>` / `<share>`, e-mail addresses `<email>`, the user name in a proxy address `<user>`,
+  API keys and tokens `<secret>`, and a quoted piece of a page error `"<text>"`. An error message can still name a
+  paper or quote a few words, so please read the text before you post it. If the browser does not allow the
+  clipboard, a window shows the text, selected, to copy by hand. Help › Copy diagnostics also belongs in the bug
+  report form on GitHub.
+- **The Claude panel works, but drafts, quizzes, diagrams and other AI features fail:** an older Claude Code that does
+  not know an option of the feature calls (`--effort`, `--setting-sources` ...). ResearchTool then repeats the call
+  once with the options the panel uses and keeps doing so (the server log says so once) until the Claude Code
+  version changes - after `claude update` the normal options come back by themselves within a minute, no restart
+  needed. The allowed tools (`--tools`, `--allowedTools`) and `--strict-mcp-config` stay the same, but - as in the
+  Claude panel - these calls then load your Claude Code settings: your and the workspace's hooks run on them (and see
+  the prompt, which holds paper and note text), your permission rules apply, `~/.claude/CLAUDE.md` and the
+  workspace's `CLAUDE.md` are read together with Claude Code's full system prompt (some thousand more input tokens
+  per call), and each call is kept as a session (`claude --resume` lists them, in `~/.claude/projects`). A question
+  about a picture is never asked that way (it relies on Claude's default permissions to read that one file only): it
+  says to update instead. When even the compatible options are refused, the feature says 'Claude Code needs an
+  update: run "claude update", then try again. Your version (X) does not support an option ResearchTool uses.' -
+  run `claude update` in a terminal. A Claude Code that only refuses an `--effort` level (for example the one of
+  your own Claude Code settings in "Best quality" mode) just gets the call without `--effort`.
+- **A click in the reader does nothing:** if the open paper is no longer in the list the Library holds (after a
+  reload of the library elsewhere), the reader reloads the library once; if the paper is still missing it says
+  "This paper is no longer in the library view - reopen it from the list". An unexpected error inside a click is
+  shown as a message and kept for Copy diagnostics.
 
 ## Environment variables
 

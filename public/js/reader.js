@@ -40,6 +40,33 @@
 
   const items = () => (RT.library && RT.library.items ? RT.library.items() : []);
   const current = () => items().find((i) => i.id === cur);
+  // The paper the reader shows, when current() no longer finds it (the list the library holds was reloaded or
+  // replaced without it): look again - the list as it is now, then the library refreshed once - by the id that is
+  // open. Still not there: say so, instead of a click that does nothing. Resolves the item, or null.
+  const LOST = 'This paper is no longer in the library view - reopen it from the list';
+  const openId = () => cur || ($('.rd-body', d) && d.dataset.item) || null; // (a paper's page is on screen)
+  let recovering = null;
+  async function recoverCurrent(where) {
+    const id = openId();
+    if (!id) return null;
+    let it = items().find((i) => i.id === id);
+    if (!it && RT.library && RT.library.refresh) {
+      if (!recovering) recovering = Promise.resolve().then(() => RT.library.refresh()).catch((e) => RT.errors && RT.errors.log(e, 'reader: library refresh')).finally(() => { recovering = null; });
+      await recovering;
+      it = items().find((i) => i.id === id);
+    }
+    if (it) { cur = it.id; RT.state.sel = it.id; return it; }
+    if (RT.errors) RT.errors.log(new Error(`the open paper ${id} is not in RT.library.items() (${items().length} items)`), where || 'reader');
+    toast(LOST, 'bad');
+    return null;
+  }
+  const report = (err, where) => (RT.reportError ? RT.reportError(err, where) : fail(err));
+  // the AI that writes a comment into the note (Preferences › AI): its name goes into the note text, which the display
+  // layer never rewrites, so it must be the real one (an Antigravity answer is not labelled Claude)
+  const aiName = () => (RT.ai && RT.ai.name ? RT.ai.name() : 'Claude');
+  const aiNameOf = (id) => (RT.ai && RT.ai.nameOf ? RT.ai.nameOf(id) : 'Claude'); // the provider that made saved content
+  // whether the provider looks at pictures (Grok and Antigravity do not here): picture questions are offered only then
+  const seesPictures = () => !(RT.ai && RT.ai.caps && RT.ai.caps().readsImage === false);
   const rid = () => Math.random().toString(16).slice(2, 12);
   // the theme of Preferences (<html data-theme>), else the system's
   const isDark = () => (RT.prefs && RT.prefs.isDark ? RT.prefs.isDark() : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches));
@@ -341,6 +368,10 @@
       const block = topBlock(t); if (!block) return null;
       if (media && !media.classList.contains('emoji')) {
         const m = /\/note\/assets\/([0-9a-f]{40}\.(?:png|jpe?g|gif|webp))/.exec(media.getAttribute('src') || ''); // pictures Claude can look at
+        if (m && !seesPictures()) { // a provider that does not look at pictures (Preferences › AI says so): its caption, if any
+          const alt = (media.getAttribute('alt') || '').trim();
+          return alt ? { kind: 'text', text: alt.slice(0, 6000), quote: oneLine(alt, 60), block } : { kind: 'noimage', quote: 'picture', block };
+        }
         if (m) return { kind: 'image', asset: m[1], text: media.getAttribute('alt') || '', quote: oneLine(media.getAttribute('alt') || 'picture', 40) || 'picture', block };
       }
       const table = t.closest('table');
@@ -357,7 +388,8 @@
       const tg = askTargetAt(e); if (!tg) return;
       e.preventDefault();
       askTarget = tg;
-      askMenu.innerHTML = `<div class="rd-ask-h muted">Ask Claude about “${esc(tg.quote)}”</div>${ASKS.map(([m, l]) => `<button type="button" data-ask="${m}">${l}</button>`).join('')}<hr><div class="rd-ask-h muted">The answer is added below as a comment · Shift + right-click: the browser's menu</div>`;
+      if (tg.kind === 'noimage') askMenu.innerHTML = `<div class="rd-ask-h muted">Questions about a picture are not possible with Claude - select its caption or the text around it.</div><hr><div class="rd-ask-h muted">Shift + right-click: the browser's menu</div>`;
+      else askMenu.innerHTML = `<div class="rd-ask-h muted">Ask Claude about “${esc(tg.quote)}”</div>${ASKS.map(([m, l]) => `<button type="button" data-ask="${m}">${l}</button>`).join('')}<hr><div class="rd-ask-h muted">The answer is added below as a comment · Shift + right-click: the browser's menu</div>`;
       askMenu.hidden = false;
       const mw = askMenu.offsetWidth, mh = askMenu.offsetHeight;
       askMenu.style.left = Math.max(4, Math.min(e.clientX, window.innerWidth - mw - 4)) + 'px';
@@ -410,17 +442,19 @@
         if (s && !/\n/.test(s)) vd.updateValue(esc('==' + s + '=='));
       } else { r.selectNodeContents(tg.block); r.collapse(false); sel.removeAllRanges(); sel.addRange(r); }
       // 2. the comment, with a placeholder line that the answer replaces
-      const head = `> [!ai] 💬 **Claude · ${ASK_LABEL[mode]}** — “${clean(mode === 'ask' ? oneLine(question, 80) : tg.quote)}”`;
+      const headOf = (who) => `> [!ai] 💬 **${who} · ${ASK_LABEL[mode]}** — “${clean(mode === 'ask' ? oneLine(question, 80) : tg.quote)}”`;
       asking.add(id);
-      api_.insertBlock(`${head}\n> ⏳ Claude is writing… ⟦${id}⟧`);
+      api_.insertBlock(`${headOf(aiName())}\n> ⏳ ${aiName()} is writing… ⟦${id}⟧`);
       { const top = contentEl().scrollTop; vd.setValue(vd.getValue()); lastRange = null; decorate(); contentEl().scrollTop = top; } // tidy: the comment sits right under its block
       // 3. ask, then swap the placeholder for the answer (or take the comment away again)
       const line = new RegExp('^>[^\\n]*⟦' + id + '⟧[^\\n]*$', 'm'), whole = new RegExp('^> \\[!ai\\][^\\n]*\\n>[^\\n]*⟦' + id + '⟧[^\\n]*\\n?', 'm');
       let fn, ok = false;
       try {
-        const answer = await opts.ask({ mode, question, kind: tg.kind, text: tg.text, asset: tg.asset });
+        const res = await opts.ask({ mode, question, kind: tg.kind, text: tg.text, asset: tg.asset });
+        const answer = res && typeof res === 'object' ? res.text : res, by = (res && res.provider) || aiName(); // the provider that answered
         const body = RT.cite.md(String(answer).trim()).split('\n').map((l) => (l.trim() ? '> ' + l.trim() : '>')).join('\n');
-        fn = (md) => md.replace(line, () => body); ok = true;
+        // the comment's head names the provider that answered (the server says which), then the answer replaces the placeholder
+        fn = (md) => (whole.test(md) ? md.replace(whole, (m) => `${headOf(by)}\n${body}${m.endsWith('\n') ? '\n' : ''}`) : md.replace(line, () => body)); ok = true;
       } catch (err) { fn = (md) => md.replace(whole, ''); toast('Claude could not answer: ' + (err.message || err), 'bad'); }
       // the note may have been closed meanwhile: then the saved note (or the editor that reopened it) is patched
       while (opts.busy && opts.busy()) await new Promise((r) => setTimeout(r, 1000)); // a draft is being written: the answer waits for it
@@ -1008,7 +1042,11 @@
       closeAi();
       const ctrl = new AbortController(), mine = ai = { tg, mode, question, language, text: null, error: null, ctrl, at: aiAt };
       drawAi();
-      try { mine.text = String(await hooks.ask({ mode, question, kind: tg.kind, text: tg.text, asset: tg.asset, page: tg.page, ...(language ? { language } : {}) }, ctrl.signal) || '').trim() || null; if (!mine.text) mine.error = 'the answer was empty.'; }
+      try {
+        const res = await hooks.ask({ mode, question, kind: tg.kind, text: tg.text, asset: tg.asset, page: tg.page, ...(language ? { language } : {}) }, ctrl.signal);
+        mine.by = (res && typeof res === 'object' && res.provider) || aiName(); // the provider that answered: named when it goes into the note
+        mine.text = String((res && typeof res === 'object' ? res.text : res) || '').trim() || null; if (!mine.text) mine.error = 'the answer was empty.';
+      }
       catch (err) { if (ctrl.signal.aborted) return; mine.error = err.message || String(err); }
       if (ai === mine && !destroyed) drawAi();
     }
@@ -1019,7 +1057,7 @@
       else if (b.dataset.aiCopy != null) navigator.clipboard.writeText(ai.text).then(() => toast('Copied', 'ok'), () => toast('Could not copy to the clipboard', 'bad'));
       else if (b.dataset.aiAdd != null && ai.text) {
         const { tg, mode } = ai, clean = (s) => String(s).replace(/[\\`*_$\[\]<>|=~]/g, '').replace(/\s+/g, ' ').trim();
-        const head = `> [!ai] 💬 **Claude · ${AI_LABEL[mode]}** — “${clean(mode === 'ask' ? short(ai.question, 80) : tg.quote)}”`;
+        const head = `> [!ai] 💬 **${ai.by || aiName()} · ${AI_LABEL[mode]}** — “${clean(mode === 'ask' ? short(ai.question, 80) : tg.quote)}”`;
         const body = RT.cite.md(ai.text).split('\n').map((l) => (l.trim() ? '> ' + l.trim() : '>')).join('\n');
         // the passage first, as "Quote in notes" writes it (and marked on the page the same way), then the comment
         if (tg.kind === 'pdf' && !hooks.quote(short(tg.text, 1500), tg.page)) return;
@@ -1074,7 +1112,7 @@
         const pw = g.pageEl.clientWidth || 1, ph = g.pageEl.clientHeight || 1; // the region as fractions of the page
         const done = await hooks.snapshot(blob, page, { x: g.x / pw, y: g.y / ph, w: g.w / pw, h: g.h / ph });
         // the region is in the note now: for a few seconds a sparkle beside it offers to ask Claude about it
-        if (done && done.asset && hooks.ask && !destroyed && g.pageEl.isConnected) {
+        if (done && done.asset && hooks.ask && seesPictures() && !destroyed && g.pageEl.isConnected) {
           const pr = g.pageEl.getBoundingClientRect(), hr = host.getBoundingClientRect();
           snapAsset = { asset: done.asset, page, top: pr.top - hr.top + g.y, bottom: pr.top - hr.top + g.y + g.h };
           snapPop.hidden = false;
@@ -1172,7 +1210,8 @@
   const note = { id: null, ed: null, hash: null, saved: '', dirty: false, timer: null, chain: Promise.resolve(), token: 0, conflict: null };
   const drafts = new Map(); // itemId -> {ctrl, status}   draft generations in flight
 
-  const setNoteState = (text, cls = '') => { const el = $('#note-state'); if (el) { el.textContent = text; el.className = 'saved ' + cls; } };
+  // keep: the text names the AI provider that made something (the display layer translates it, never renames that provider)
+  const setNoteState = (text, cls = '', keep = false) => { const el = $('#note-state'); if (el) { el.toggleAttribute('data-brand-keep', !!keep); el.textContent = text; el.className = 'saved ' + cls; } };
   // An empty note shows a short invitation above the editor (the editor stays below it, so a click or a key there
   // starts writing); it goes as soon as the note has text or while Claude writes the draft.
   function updateNoteEmpty() {
@@ -1275,7 +1314,8 @@
   // "Ask Claude" about a part of the note or of the PDF -> the answer as text (in the language chosen for the note)
   // the first-draft language of Preferences (settings.json draftLanguage, RT.prefs); the note menu's "Draft language" changes it
   const noteLang = () => (RT.prefs ? RT.prefs.draftLanguage() : ls.get('rt.note.lang', 'zh') === 'en' ? 'en' : 'zh');
-  const askClaude = (id, p, signal) => api(`/api/items/${id}/note/ask`, { method: 'POST', json: { language: noteLang(), ...p }, signal }).then((r) => r.text);
+  // -> {text, provider}: the answer, and the name of the provider that gave it (what the note's comment names)
+  const askClaude = (id, p, signal) => api(`/api/items/${id}/note/ask`, { method: 'POST', json: { language: noteLang(), ...p }, signal }).then((r) => ({ text: r.text, provider: r.provider || null }));
   async function loadNote(it) {
     const token = ++note.token, host = $('#note-editor');
     if (!host) return;
@@ -1634,7 +1674,7 @@
       ${it.pdf ? `<button id="btn-claude-extract" class="accent ib" title="Extract with Claude: let Claude pick the key sentences and add a short gloss to each" aria-label="Extract with Claude">${RT.icon('sparkle')}</button>` : ''}
     </div>
     ${it.pdf && it.textFound === false ? `<div class="notice">No text could be read from this PDF (it may be a scan), so no key points were extracted.</div>` : ''}
-    <h4>Key points <span class="badge">${it.keypointSource === 'claude' ? 'picked by Claude' : it.keypointSource === 'abstract' ? 'from abstract' : 'auto-extracted'}</span><span class="spacer"></span>
+    <h4>Key points <span class="badge"${it.keypointSource === 'claude' ? ' data-brand-keep' : ''}>${it.keypointSource === 'claude' ? `picked by ${esc(aiNameOf(it.keypointBy))}` : it.keypointSource === 'abstract' ? 'from abstract' : 'auto-extracted'}</span><span class="spacer"></span>
       <button id="btn-add-kp" class="ib" title="Add a key point" aria-label="Add a key point">${RT.icon('plus')}</button></h4>
     <div id="kps"></div>
     ${it.pdf ? `<h4>All sentences <span class="spacer"></span><button id="btn-toggle-sent" class="ib" title="Browse all sentences of the paper" aria-label="Browse all sentences of the paper">${RT.icon('eye')}</button></h4><div id="sents"></div>` : ''}`;
@@ -1704,7 +1744,8 @@
       br.placeholder = writing ? 'Claude is writing the brief…' : 'No brief yet - type one, or let Claude write it with the button on the right';
       bb.disabled = writing; bb.innerHTML = writing ? '<span class="spin"></span>' : RT.icon('sparkle');
       bs.hidden = it.briefStatus !== 'failed';
-      bs.textContent = it.briefStatus === 'failed' ? 'Claude could not write the brief: ' + (it.briefError || 'unknown error') : '';
+      // the saved error names the provider that failed then (data-brand-keep), and is translated on its own
+      bs.innerHTML = it.briefStatus === 'failed' ? `<span>The brief could not be written:</span> <span data-brand-keep>${esc(it.briefError || 'unknown error')}</span>` : '';
     }
     let names = [];
     try { if (RT.categories && RT.categories.names) names = RT.categories.names() || []; } catch { names = []; }
@@ -1931,7 +1972,7 @@
     drafts.delete(id);
     if (cur === id) {
       renderDraftState();
-      if (done && note.ed && note.id === id) { adoptNote(done.content, done.hash); setNoteState('Draft by Claude ' + new Date().toLocaleTimeString(), 'ok'); }
+      if (done && note.ed && note.id === id) { adoptNote(done.content, done.hash); setNoteState(`Draft by ${done.provider || aiName()} ` + new Date().toLocaleTimeString(), 'ok', true); }
       // the note changed while Claude wrote: the draft was not applied (it is in History); show what is on disk
       if (conflict && note.ed && note.id === id && !noteUnsaved()) { adoptNote(conflict.current, conflict.hash); setNoteState('Draft not applied'); }
     }
@@ -2001,6 +2042,10 @@
 </dialog>`);
 
   let histSel = null;
+  // the kind of a note version, in words: an AI draft names the provider that wrote it (v.by; older ones were all
+  // Claude's), kept out of the display layer's renaming, which would name the provider chosen now
+  const NOTE_SRC = { manual: 'Saved', auto: 'Autosave', baseline: 'Before first edit', external: 'Edited outside', import: 'Imported', restore: 'Restored' };
+  const histSrc = (v) => (v.source === 'claude' ? `<span class="badge" data-brand-keep>${esc(aiNameOf(v.by))}</span>` : `<span class="badge">${esc(NOTE_SRC[v.source] || v.source)}</span>`);
   async function openHistory() {
     const it = current(); if (!it) return;
     if (!(await saveAll('auto'))) return toast('The note could not be saved first - resolve the conflict in the bar above the note (save icon keeps your text, arrow icon loads the version on disk) or try again, then repeat this.', 'bad'); // Restore would replace text that is not in History
@@ -2009,7 +2054,7 @@
     const { versions } = await api(`/api/items/${it.id}/note/history`);
     $('#nh-list').innerHTML = versions.map((v) => `
       <button class="rd-hv" data-vid="${esc(v.id)}"><b>${esc(new Date(v.ts).toLocaleString())}</b>
-        <span><span class="badge">${esc(v.source)}</span>${v.label ? esc(v.label) + ' ' : ''}<span class="muted">+${Number(v.added) || 0} −${Number(v.removed) || 0}</span></span></button>`).join('')
+        <span>${histSrc(v)}${v.label ? `<span data-brand-keep>${esc(v.label)}</span> ` : ''}<span class="muted">+${Number(v.added) || 0} −${Number(v.removed) || 0}</span></span></button>`).join('')
       || '<div class="muted">No versions yet. Versions are recorded when the note is saved.</div>';
     $('#dlg-note-hist').showModal();
   }
@@ -2137,9 +2182,13 @@
   }
 
   // ====================================================================== events inside #detail
+  // (the paper lost from the list: found again first, then this input is applied - it is not dropped)
   d.addEventListener('input', (e) => {
-    const it = current(); if (!it) return;
-    const t = e.target;
+    const t = e.target, it = current();
+    if (it) onInput(it, t);
+    else if (openId()) recoverCurrent('reader input').then((found) => { if (found && t.isConnected) onInput(found, t); });
+  });
+  function onInput(it, t) {
     if (t.id === 'sent-filter') return void renderSentences();
     if (!t.closest('#rd-kp, #rd-details')) return; // the editor and the PDF toolbar handle their own input
     if (t.dataset.field) { const v = (t.hasAttribute('data-oneline') ? t.value.replace(/\s*\n\s*/g, ' ') : t.value).trim(); if (v) it.fields[t.dataset.field] = v; else delete it.fields[t.dataset.field]; }
@@ -2148,17 +2197,21 @@
     else if (t.dataset.k && t.closest('.kp')) { const k = it.keypoints.find((x) => x.id === t.closest('.kp').dataset.kid); if (k) k[t.dataset.k] = t.value; }
     else return;
     touch();
-  });
+  }
   d.addEventListener('change', (e) => {
     const t = e.target;
+    if (!current() && openId()) return void recoverCurrent('reader change').then((found) => { if (found) onChange(t); });
+    onChange(t);
+  });
+  function onChange(t) {
     if (t.id === 'citekey') saveItem.flush();
     else if (t.id === 'rd-category' || t.id === 'rd-tags' || t.id === 'rd-brief') saveGrouping(t).catch(fail);
     else if (t.id === 'rd-status') { const it = current(); if (it && RT.library.setStatus) RT.library.setStatus([it.id], { status: t.value }).then(() => { t.blur(); fillGrouping(); }).catch(fail); } // (a change that failed shows the stored status again)
     else if (t.id === 'file-attach-pdf') { const f = t.files[0]; t.value = ''; attachPdf(f); }
     else if (t.id === 'file-note-import') { const f = t.files[0]; t.value = ''; importNoteFile(f); }
-  });
+  }
 
-  // the language Claude writes first drafts and answers in (the same setting as Preferences > Claude)
+  // the language Claude writes first drafts and answers in (the same setting as Preferences > AI)
   function setDraftLang(v) {
     if (RT.prefs) return RT.prefs.setDraftLanguage(v).then(() => toast(`First drafts are now written in ${v === 'en' ? 'English' : '中文'} (also in Preferences)`, 'ok')).catch(fail);
     ls.set('rt.note.lang', v);
@@ -2214,14 +2267,15 @@
       { label: 'Edit template…', icon: 'edit', title: 'The format guide Claude follows when it writes a first draft', onClick: act('template') },
       { label: 'Import template from JSON draft…', icon: 'import', onClick: act('template-import') },
       { heading: 'Languages' },
-      { label: 'Draft language', icon: 'sparkle', title: "The language of first drafts and of Claude's answers in the note - the same setting as Preferences > Claude > First-draft language", sub: langs(draft, setDraftLang) },
+      { label: 'Draft language', icon: 'sparkle', title: "The language of first drafts and of Claude's answers in the note - the same setting as Preferences > AI > First-draft language", sub: langs(draft, setDraftLang) },
       { label: 'Editor language', icon: 'globe', title: "The language of the editor's own menus and hints", sub: langs(ed, setEditorLang) },
     ], { align: 'end' });
   }
 
   d.addEventListener('click', async (e) => {
-    const it = current(); if (!it) return;
     const t = e.target;
+    let it = current();
+    if (!it) { if (!openId() || !t.closest('button, a, [data-tab], [data-goto], [data-act], [data-del], [data-add-sent], [data-unproj], select, input')) return; it = await recoverCurrent('reader click'); if (!it) return; }
     try {
       if (t.closest('#btn-note-menu')) openNoteMenu(t.closest('#btn-note-menu'));
       else if (t.id === 'btn-figures') toggleFigures();
@@ -2267,6 +2321,7 @@
         const gone = await api('/api/items/' + it.id, { method: 'DELETE' });
         pendingSave = false; destroyEditor(); if (pdfView) { pdfView.destroy(); pdfView = null; }
         cur = null; RT.state.sel = null; sentences = null; showSent = false;
+        d.dataset.item = ''; // (while the list reloads, a click on the page still shown must not bring the deleted paper back)
         ls.set('rt.reader.last', '');
         if (RT.library && RT.library.refresh) await RT.library.refresh();
         renderDetail(); RT.emit('item:closed'); RT.claudeContext.refresh();
@@ -2296,7 +2351,7 @@
         it.keypoints.sort((a, b) => (a.s ?? 1e9) - (b.s ?? 1e9));
         renderKps(); renderSentences(); touch();
       }
-    } catch (err) { toast(err.message, 'bad'); }
+    } catch (err) { report(err, 'reader click' + (t.id ? ' #' + t.id : '')); } // (also an unexpected exception: shown and kept for Help › Copy diagnostics)
   });
   document.addEventListener('mousedown', (e) => {
     const f = $('#fig-pop'); if (f && !f.hidden && !e.target.closest('#fig-pop, #btn-figures')) RT.figures.close(f);
@@ -2306,7 +2361,9 @@
   // (Enter in the title or authors box ends the edit, as it did in the one-line fields: no line break in a field)
   d.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing && e.target.matches && e.target.matches('textarea[data-oneline]')) { e.preventDefault(); saveItem.flush(); } });
   d.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 's' && current()) { e.preventDefault(); saveAll('manual').catch(fail); }
+    if (!((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 's')) return;
+    if (current()) { e.preventDefault(); saveAll('manual').catch(fail); }
+    else if (openId()) { e.preventDefault(); recoverCurrent('reader save').then((found) => { if (found) saveAll('manual').catch(fail); }); }
   });
 
   // ---- divider: drag to resize, double-click to reset

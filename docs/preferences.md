@@ -136,7 +136,7 @@ Engine rules added with this pass: a count-noun key (`{0} papers`) takes only a 
 ```
 public/js/ui-boot.js   in <head>: <html data-theme>, data-hints and (for 中文) lang / data-lang before the first paint
 public/js/prefs.js     the Preferences dialog (#dlg-settings, it replaces the Settings dialog of core.js): General,
-                       Claude, Library & files, Write; RT.prefs = {open(pane), draftLanguage(), setDraftLanguage(l),
+                       AI, Library & files, Write; RT.prefs = {open(pane), draftLanguage(), setDraftLanguage(l),
                        theme(), isDark()}; events 'theme:changed', 'prefs:draftLanguage', 'prefs:saved'
 public/js/tips.js      fast hover / focus hints (RT.tips = {configure, hide}; data-no-tip turns one off)
 public/css/prefs.css   the dialog and the data-theme light / dark overrides

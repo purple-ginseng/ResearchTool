@@ -200,7 +200,7 @@
       if (changed) paintPapers();
       const round = (n) => (n >= 10000 ? Math.round(n / 1000) + ',000' : String(Math.round(n / 100) * 100));
       el.textContent = r.calls ? `About ${round(r.tokensIn + r.tokensOut)} tokens in ${plural(r.calls, 'call')} · Claude usage: ${MODE[r.mode] || r.mode}` : 'None of these papers has anything to read.';
-      el.title = 'An estimate of what is sent and written. Each paper is one small call: its brief, your note and key points, and the passages of the PDF that match the columns - never the whole PDF. The amount of text per paper follows “Claude usage” in Preferences › Claude.';
+      el.title = 'An estimate of what is sent and written. Each paper is one small call: its brief, your note and key points, and the passages of the PDF that match the columns - never the whole PDF. The amount of text per paper follows “Claude usage” in Preferences › AI.';
     } catch (e) { if (run === S.estRun && el.isConnected) el.textContent = 'No estimate: ' + e.message; }
   }, 500);
 
@@ -418,6 +418,7 @@
       const r = await exported('tex');
       dlg.close();
       let pkg = false; // the rules of the table come from booktabs: load it when this file has the preamble and lacks it
+      // (a table the app exports from cells that may have been edited by hand: a labelled save, not an AI version)
       const ok = await RT.write.ed.applyClaude(b, () => {
         const cm = RT.write.ed.cm;
         RT.write.ed.insertBlock(r.text.replace(/\n+$/, '').split('\n').filter((l) => !/^% .*booktabs/.test(l)));
@@ -431,7 +432,7 @@
         cm.replaceRange('\\usepackage{booktabs}\n', { line: at + 1, ch: 0 });
         cm.setCursor(cur.line + 1, cur.ch);
         pkg = true;
-      });
+      }, { source: 'manual', label: 'Comparison table inserted' });
       if (ok) toast(pkg ? `The table was inserted into ${b.path}.` : `The table was inserted into ${b.path}. It needs \\usepackage{booktabs} in the preamble of the main file.`, 'ok');
     } catch (e) { toast(e.message, 'bad'); }
   }
