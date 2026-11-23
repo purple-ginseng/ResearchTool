@@ -449,6 +449,13 @@ const withPath = async (dirs, fn) => {
     assert.deepEqual(calls, ['SIGTERM', 'SIGKILL']);
     plat.killTree({ pid: 9, exitCode: null, signalCode: null, kill() { calls.push('kill'); } }, { platform: 'win32', signal: 'SIGTERM', spawnFn, env: {} });
     assert.equal(calls[2][0], 'C:\\Windows\\System32\\taskkill.exe', 'Windows: always the whole tree');
+    // a wrapper that stops its own tree (lib/ai/child.js AiChild): its kill(), never a taskkill of its pid - so a stop
+    // is known as a stop (taskkill leaves exit code 1, no signal)
+    const own = [];
+    for (const platform of ['win32', 'darwin', 'linux']) plat.killTree({ pid: 11, exitCode: null, signalCode: null, killsOwnTree: true, kill(sig) { own.push([platform, sig]); } }, { platform, signal: 'SIGTERM', spawnFn: (...a) => { own.push(a); return { on() {} }; }, env: {} });
+    assert.deepEqual(own, [['win32', 'SIGTERM'], ['darwin', 'SIGTERM'], ['linux', 'SIGTERM']]);
+    const { AiChild } = require('../lib/ai/child');
+    assert.equal(new AiChild({}, {}, {}).killsOwnTree, true, 'AiChild says so');
   });
   await test('parseCmdShim / resolveCmd win32: a shim target with ".." or outside the shim folder, and relative paths, are never run', () => {
     assert.equal(plat.parseCmdShim('"%dp0%\\..\\..\\other\\x.exe" %*'), null);

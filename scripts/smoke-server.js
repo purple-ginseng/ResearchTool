@@ -30,6 +30,7 @@ const http = require('node:http');
 const { spawn } = require('node:child_process');
 const Z = require('./zipread');
 const { installFakes, linkHelpers, nodeOnlyDir } = require('./fixtures/fake-ai/install');
+const { inDir, guardCli } = require('./fixtures/fake-ai/paths');
 
 const ROOT = path.join(__dirname, '..');
 const argv = process.argv.slice(2);
@@ -278,8 +279,10 @@ function check(name, ok, detail) {
     check('the server PATH holds only the fakes and node (no real claude / codex / gemini / grok / agy can be found)', found.length === 0 && fs.readdirSync(nodeDir).length === 1, found.join(', ') || fs.readdirSync(nodeDir).join(', '));
     // the guard log of the server process: every AI CLI it started resolved to a fake, none was refused
     const g = fs.existsSync(guardLog) ? fs.readFileSync(guardLog, 'utf8').trim().split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l)) : [];
-    const realBin = fs.realpathSync(bin), inBin = (f) => !!f && [path.resolve(f), (() => { try { return fs.realpathSync(f); } catch { return path.resolve(f); } })()].every((x) => x.startsWith(bin + path.sep) || x.startsWith(realBin + path.sep));
-    check('every claude / codex / gemini / grok / agy the server started resolved to its fake (guard log)', g.length >= 2 && g.some((x) => x.cmd === 'claude') && g.every((x) => x.ok && (x.file == null || inBin(x.file))), JSON.stringify(g).slice(0, 600));
+    // (Windows: the guard logs node.exe running a fake's cli.js as "node-script" - named by its package, fake-claude ->
+    // claude - and the folder may be spelt with its 8.3 short or its long name: scripts/fixtures/fake-ai/paths.js)
+    const inBin = (f) => !!f && inDir(bin, f);
+    check('every claude / codex / gemini / grok / agy the server started resolved to its fake (guard log)', g.length >= 2 && g.some((x) => guardCli(x) === 'claude') && g.every((x) => x.ok && (x.file == null || inBin(x.file))), JSON.stringify(g).slice(0, 600));
     check('the fake codex / grok / agy saw no forbidden flag, no login, and no user text in argv', aiCalls.length >= 1 && aiCalls.every((c) => !c.forbidden && !c.argv.some((a) => /smoke test|Smoke Test/.test(a))), JSON.stringify(aiCalls.map((c) => [c.p, ...c.argv])).slice(0, 800));
     check(PROVIDER ? `only ${PROVIDER} ran a prompt` : 'no codex / grok / agy prompt was run (status only)', aiCalls.filter((c) => c.stdin != null || c.promptFile != null).every((c) => c.p === PROVIDER), JSON.stringify(aiCalls.map((c) => c.p)));
 

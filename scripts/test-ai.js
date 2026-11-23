@@ -22,6 +22,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { EventEmitter } = require('node:events');
 const { installFakes, linkHelpers, nodeOnlyDir } = require('./fixtures/fake-ai/install');
+const { hostReal, makeNorm, inDir, guardCli } = require('./fixtures/fake-ai/paths');
 
 const RECORD = process.argv.includes('--record-golden');
 const GOLDEN = path.join(__dirname, 'fixtures', 'fake-ai', 'claude-golden.json');
@@ -99,6 +100,13 @@ require('./fixtures/fake-ai/guard');
 // (read by the guard at load: not left in the environment, so the Claude calls keep the env names of the golden)
 delete process.env.FAKE_AI_BIN; delete process.env.FAKE_AI_GUARD_LOG;
 const core = require('../lib/core');
+// The text of a fixture PDF, put into the app's own text cache (lib/textcache.js) the way an extraction leaves it, so
+// the prompts do not depend on poppler being installed (CI runners have none): exactly what `pdftotext -enc UTF-8`
+// prints for tinyPdf() - one line per text line, each page followed by a blank line (checked against the real
+// pdftotext below wherever it is installed).
+const textcache = require('../lib/textcache');
+const PDF_TEXT = (n) => Array.from({ length: n }, (_, k) => PAGE(k + 1).join('\n') + '\n\n');
+textcache.put(A, PDF_TEXT(3));
 // every program the app starts is resolved here first: an AI CLI must resolve to its fake in BIN, every time
 const plat = require('../lib/platform');
 const AI_BINS = new Set(['claude', 'codex', 'gemini', 'grok', 'agy']);
@@ -113,7 +121,11 @@ plat.spawnTool = (cmd, args, opts, deps) => {
       const pv = env[Object.keys(env).find((k) => k.toUpperCase() === 'PATH')] || '';
       file = pv.split(path.delimiter).map((d) => path.join(d, file)).find((f) => { try { fs.accessSync(f, fs.constants.X_OK); return fs.statSync(f).isFile(); } catch { return false; } }) || null;
     }
+    // (recorded only once spawnTool returns: a call it refuses by throwing - shell: true - starts nothing, so the
+    // guard has nothing to see; counting it made "the guard saw the calls" one short on Windows)
+    const child = spawnToolOrig(cmd, args, opts, deps);
     resolved.push({ cmd, file, via: r.via || null });
+    return child;
   }
   return spawnToolOrig(cmd, args, opts, deps);
 };
@@ -235,14 +247,16 @@ const PATHS = {
 };
 
 // what a call looked like, with the temporary paths written as <TOP> so runs compare
-const TOP_REAL = (() => { try { return fs.realpathSync.native(TOP); } catch { return TOP; } })(); // macOS: /tmp is /private/tmp
-const norm = (s) => [TOP_REAL, TOP_REAL.replace(/\\/g, '/'), TOP, TOP.replace(/\\/g, '/')]
-  .reduce((acc, t) => acc.split(t).join('<TOP>'), String(s));
+// (macOS: /tmp is /private/tmp; Windows: C:\Users\RUNNER~1 is C:\Users\runneradmin, \ is /, C: is c:, and Claude's
+// rules say //c/... - scripts/fixtures/fake-ai/paths.js, whose Windows behaviour is checked below on every OS)
+const TOP_REAL = hostReal(TOP);
+const norm = makeNorm([TOP_REAL, TOP]);
 const sha = (s) => crypto.createHash('sha256').update(String(s)).digest('hex').slice(0, 16);
 // (the env names that matter here, not the whole environment of the machine the test runs on; the app folder as <ROOT>)
 const ENV_NAMES = /^(CLAUDE|ANTHROPIC|OPENAI|CODEX|GEMINI|GOOGLE|XAI|GROK|FAKE_|RT_WORKSPACE$)/;
 const ROOTDIR = path.join(__dirname, '..');
-const shape = (c) => ({ p: c.p, argv: c.argv.map(norm), cwd: c.cwd === ROOTDIR ? '<ROOT>' : norm(c.cwd), stdin: c.stdin == null ? null : sha(norm(c.stdin)), envKeys: c.envKeys.filter((k) => ENV_NAMES.test(k)) });
+const isRoot = (d) => d === ROOTDIR || (process.platform === 'win32' && !!d && inDir(ROOTDIR, d) && inDir(d, ROOTDIR));
+const shape = (c) => ({ p: c.p, argv: c.argv.map(norm), cwd: isRoot(c.cwd) ? '<ROOT>' : norm(c.cwd), stdin: c.stdin == null ? null : sha(norm(c.stdin)), envKeys: c.envKeys.filter((k) => ENV_NAMES.test(k)) });
 
 async function runPath(name) {
   clearLog();
@@ -253,6 +267,15 @@ async function runPath(name) {
 }
 
 (async () => {
+  // the seeded text cache must be what the app would have extracted itself (only where poppler is installed)
+  if ((await core.run('pdftotext', ['-v'], { timeout: 8000 })).code !== -1) {
+    await test('the seeded text of the fixture PDFs is exactly what pdftotext reads from them', async () => {
+      assert.deepEqual(await textcache.pdfToPages(path.join(WS, 'pdfs', A + '.pdf')), PDF_TEXT(3));
+      const f = path.join(TOP, 'long.pdf');
+      fs.writeFileSync(f, tinyPdf(Array.from({ length: 14 }, (_, k) => PAGE(k + 1))));
+      try { assert.deepEqual(await textcache.pdfToPages(f), PDF_TEXT(14)); } finally { fs.rmSync(f, { force: true }); }
+    });
+  } else console.log('skip the seeded text of the fixture PDFs is exactly what pdftotext reads from them (no pdftotext)');
   // ================= 1. Claude: the same calls as before lib/ai =================
   const claudeRuns = {};
   for (const name of Object.keys(PATHS)) claudeRuns[name] = await runPath(name);
@@ -265,6 +288,29 @@ async function runPath(name) {
     process.exit(0);
   }
   const golden = JSON.parse(fs.readFileSync(GOLDEN, 'utf8')).paths;
+  await test('the golden normaliser (simulated Windows): backslashes, drive-letter case, 8.3 short and long names, the rule form', () => {
+    const short = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\rt-test-ai', long = 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\rt-test-ai';
+    const n = makeNorm([long, short], { platform: 'win32' });
+    assert.equal(n(short + '\\ws'), '<TOP>/ws');
+    assert.equal(n(long + '\\ws\\notes\\assets\\a1b2c3d4e5'), '<TOP>/ws/notes/assets/a1b2c3d4e5');
+    assert.equal(n('c:\\users\\runner~1\\appdata\\local\\temp\\rt-test-ai\\ws'), '<TOP>/ws', 'case-blind');
+    assert.equal(n('C:/Users/runneradmin/AppData/Local/Temp/rt-test-ai/ws'), '<TOP>/ws');
+    assert.equal(n('Read(//c/Users/runneradmin/AppData/Local/Temp/rt-test-ai/ws/notes/assets/x.png)'), 'Read(/<TOP>/ws/notes/assets/x.png)', 'Claude\'s rule form');
+    assert.equal(n('Read(//c/Users/RUNNER~1/AppData/Local/Temp/rt-test-ai/ws/x.png)'), 'Read(/<TOP>/ws/x.png)');
+    assert.equal(n('a \\ that is no path, and D:\\other\\rt-test-ai\\ws'), 'a \\ that is no path, and D:\\other\\rt-test-ai\\ws', 'only the folder\'s own paths');
+    // (macOS / Linux: exactly the plain replacement the golden was recorded with)
+    const m = makeNorm(['/private/var/f/rt-test-ai', '/var/f/rt-test-ai'], { platform: 'darwin' });
+    assert.equal(m('//private/var/f/rt-test-ai/ws /var/f/rt-test-ai/ws a\\b'), '/<TOP>/ws <TOP>/ws a\\b');
+    // the fakes'-folder test of the guard checks: 8.3 / long name, case, separators - and a folder next to it is outside
+    const real = (p) => p.replace(/RUNNER~1/i, 'runneradmin');
+    assert.ok(inDir(short + '\\bin', long + '\\bin\\node_modules\\fake-claude\\cli.js', { platform: 'win32', real }));
+    assert.ok(inDir(short + '\\bin', 'c:/users/runner~1/AppData/Local/Temp/rt-test-ai/bin/claude.cmd', { platform: 'win32', real }));
+    assert.ok(!inDir(short + '\\bin', short + '\\bin2\\claude.cmd', { platform: 'win32', real }));
+    assert.ok(!inDir(short + '\\bin', 'C:\\Users\\runneradmin\\.local\\bin\\claude.exe', { platform: 'win32', real }));
+    assert.ok(!inDir('/t/bin', '/t/BIN/claude', { platform: 'linux', real: (p) => p }), 'exact elsewhere');
+    assert.equal(guardCli({ cmd: 'node-script', file: short + '\\bin\\node_modules\\fake-agy\\cli.js' }), 'agy');
+    assert.equal(guardCli({ cmd: 'codex', file: '/t/bin/codex' }), 'codex');
+  });
   for (const [name, r] of Object.entries(claudeRuns)) {
     await test(`claude (no provider set) ${name}: byte-identical argv, cwd, stdin and env names`, () => {
       assert.ok(golden[name], 'no golden entry');
@@ -409,6 +455,7 @@ async function runPath(name) {
     {
       const C = 'c0c1c2c3c4';
       fs.writeFileSync(path.join(WS, 'pdfs', C + '.pdf'), tinyPdf(Array.from({ length: 14 }, (_, k) => PAGE(k + 1))));
+      textcache.put(C, PDF_TEXT(14));
       const l0 = lib(); l0.items.push(item(C, 'A long paper', { pdf: true, pages: 14 })); core.saveLib(l0);
       try {
         compat._reset(); // (first use: the normal argv, then the compatible set)
@@ -468,13 +515,16 @@ async function runPath(name) {
     for (const bad of [WS, TOP, REAL_HOME, os.homedir(), 'fake@example.invalid', 'bob.smith', '@example.com']) assert.ok(!s.includes(bad), 'leaks ' + bad + ': ' + s.slice(0, 600));
     assert.ok(!('account' in d.ai) && !/"email"|"account"/i.test(s), 'no account name');
     const e = d.aiErrors.slice(-2);
-    assert.equal(e[0].text, 'ENOENT reading <workspace>/notes/x.md for <email>', 'first line only, redacted');
-    assert.equal(e[1].text, 'failed at ~/.codex/auth.json');
+    // (with the separators of the message: \ on Windows)
+    assert.equal(e[0].text, `ENOENT reading ${path.join('<workspace>', 'notes', 'x.md')} for <email>`, 'first line only, redacted');
+    assert.equal(e[1].text, `failed at ${path.join('~', '.codex', 'auth.json')}`);
     // a workspace and a home under another user's folder (a fake user path): <home>
     assert.equal(diag.redact('/Users/alice/Research/ws/notes/a.md and /home/bob/x and C:\\Users\\Carol\\ws'), '<home>/Research/ws/notes/a.md and <home>/x and <home>\\ws');
     // a name with a space, drives and shares, the macOS /private alias of the workspace either way round
     assert.equal(diag.redact('/Users/Jane Doe/Documents/x and C:\\Users\\Jane Doe\\x'), '<home>/Documents/x and <home>\\x');
     assert.equal(diag.redact('/Volumes/JaneDoeDrive/p/a.tex \\\\server\\home\\jdoe\\x'), '<volume>/p/a.tex <share>\\x');
+    // a Windows home in any spelling: a runner's 8.3 short name, a lower-case drive, / for \
+    assert.equal(diag.redact('C:\\Users\\RUNNER~1\\AppData\\x c:\\users\\runneradmin\\y C:/Users/Jane Doe/z'), '<home>\\AppData\\x <home>\\y C:<home>/z');
     const realWs = fs.realpathSync.native(WS), alias = realWs.startsWith('/private/') ? realWs.slice(8) : null;
     assert.equal(diag.redact(realWs + '/a'), '<workspace>/a');
     if (alias) assert.equal(diag.redact(alias + '/a'), '<workspace>/a', 'the /private alias');
@@ -565,18 +615,23 @@ async function runPath(name) {
 
   await test('no real AI CLI was ever run: every claude / codex / gemini / grok / agy call resolved to its fake in the test folder', () => {
     const realAgy = path.join(REAL_HOME, '.local', 'bin', 'agy');
-    const inBin = (f) => !!f && (path.dirname(f) === BIN || f.startsWith(BIN + path.sep));
+    // (Windows: the one folder in any spelling - 8.3 short or long name, case, separators: scripts/fixtures/fake-ai/paths.js)
+    const inBin = (f) => !!f && inDir(BIN, f);
     assert.ok(resolved.length > 50 && resolved.some((r) => r.cmd === 'agy'), 'calls were recorded: ' + resolved.length);
     // (file null: not found at all - the "not installed" test, whose PATH is an empty folder - so nothing was started)
-    const bad = resolved.filter((r) => !(r.file && r.file.startsWith(DECOY + path.sep))).filter((r) => (r.file != null && !(process.platform === 'win32' ? inBin(r.via) || inBin(r.file) : inBin(r.file))) || r.file === realAgy);
+    const bad = resolved.filter((r) => !(r.file && inDir(DECOY, r.file))).filter((r) => (r.file != null && !(process.platform === 'win32' ? inBin(r.via) || inBin(r.file) : inBin(r.file))) || r.file === realAgy);
     assert.ok(resolved.filter((r) => r.cmd === 'agy' && r.file).length > 20, 'agy ran (as its fake) for the feature tests');
     assert.deepEqual(bad, [], 'resolved outside the fakes\' folder');
     assert.deepEqual(process.env[pathKey].split(path.delimiter), TEST_PATH, 'PATH holds only the fakes and node');
     assert.deepEqual(fs.readdirSync(NODE_DIR), [process.platform === 'win32' ? 'node.exe' : 'node'], 'the node folder holds node only');
     // the guard (scripts/fixtures/fake-ai/guard.js) saw every start of an AI CLI before it happened, refused none
     const g = fs.readFileSync(GUARD_LOG, 'utf8').trim().split(/\r?\n/).map((l) => JSON.parse(l));
-    assert.ok(g.length >= resolved.filter((r) => r.file).length && g.some((x) => x.cmd === 'agy'), 'the guard saw the calls: ' + g.length + ' of ' + resolved.length + ' (' + resolved.filter((r) => r.file).length + ' found)');
-    const decoy = (x) => !!x.file && x.file.startsWith(DECOY + path.sep);
+    const decoy = (x) => !!x.file && inDir(DECOY, x.file);
+    // (the decoy counts on neither side: on Windows its codex.cmd is no npm shim, so spawnTool refuses it before
+    // node:child_process is reached - the guard never sees it - and the decoy test above checks that it did not run)
+    const found = resolved.filter((r) => r.file && !decoy(r)), seen = g.filter((x) => !decoy(x));
+    // (Windows: the guard sees node.exe running a fake's cli.js, named here by its package: fake-agy -> agy)
+    assert.ok(seen.length >= found.length && seen.some((x) => guardCli(x) === 'agy'), 'the guard saw the calls: ' + seen.length + ' of ' + found.length + ' found (' + resolved.length + ' resolved)');
     assert.ok(g.some((x) => decoy(x) && !x.ok) || process.platform === 'win32', 'the decoy was refused by the guard');
     assert.deepEqual(g.filter((x) => !decoy(x)).filter((x) => !x.ok || (x.file != null && (!inBin(x.file) || x.file === realAgy))), [], 'the guard refused or let through a CLI outside the fakes');
   });

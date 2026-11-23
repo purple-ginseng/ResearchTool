@@ -36,7 +36,7 @@ async function run(h) {
     antigravity: (a) => {
       const set = JSON.parse(a[a.indexOf('--settings') + 1]), deny = set.permissions.deny;
       return a[a.indexOf('--mode') + 1] === 'plan' && a.includes('--sandbox') && a.includes('--disable-slash-commands') && /^\d+s$/.test(a[a.indexOf('--print-timeout') + 1])
-        && a.indexOf('-p') === a.length - 2 && a[a.length - 1] === '' && !a.some((x) => /dangerously/.test(x)) && set.agentMode === 'plan' && set.toolPermission === 'request-review'
+        && a.length >= 2 && a[a.length - 2] === '-p' && a[a.length - 1] === '' && a.indexOf('-p') === a.lastIndexOf('-p') && !a.some((x) => /dangerously/.test(x)) && set.agentMode === 'plan' && set.toolPermission === 'request-review'
         && ['command(*)', 'write_file(*)', 'read_url(*)', 'execute_url(*)', 'mcp(*)'].every((r) => deny.includes(r)) && !set.permissions.allow.length;
     },
   };
@@ -444,19 +444,34 @@ async function run(h) {
   settings({ aiProvider: undefined });
 
   // ================= the env-key opt-in =================
+  // (env names are case-blind on Windows, where PATH is usually spelt "Path": a name counts in any case there - for
+  // "dropped" too, so a key in another case is still caught)
+  const has = (keys, name, platform = process.platform) => keys.some((x) => (platform === 'win32' ? x.toUpperCase() === name.toUpperCase() : x === name));
+  await test('the env allowlist keeps PATH in any case (Windows: "Path"), and drops a key in any case', () => {
+    const pk = Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH'), pv = process.env[pk];
+    const saved = { XAI_API_KEY: process.env.XAI_API_KEY };
+    delete process.env[pk]; process.env.Path = pv; delete process.env.XAI_API_KEY; process.env.xai_api_key = 'xai-fake-lower';
+    try {
+      settings({ aiProvider: 'grok' });
+      const e = ai.envFor(ai.provider('grok'));
+      assert.equal(e.Path, pv, 'Path is passed on under its own name: ' + Object.keys(e).join(','));
+      assert.ok(!Object.keys(e).some((k) => k.toUpperCase() === 'XAI_API_KEY'), 'a key in lower case is dropped too');
+    } finally { delete process.env.Path; delete process.env.xai_api_key; process.env[pk] = pv; Object.assign(process.env, saved); settings({ aiProvider: undefined }); }
+    assert.ok(has(['Path'], 'PATH', 'win32') && !has(['Path'], 'PATH', 'linux'));
+  });
   await test('API keys: dropped by default for every provider, kept for that provider only when opted in; other secrets never', async () => {
     const keys = async (id) => { settings({ aiProvider: id }); clearLog(); await ai.run([], { input: 'k', timeout: 20000 }, {}); return featureCalls(readLog())[0].envKeys; };
-    let k = await keys('codex'); assert.ok(!k.includes('OPENAI_API_KEY') && !k.includes('XAI_API_KEY') && !k.includes('GEMINI_API_KEY'));
-    k = await keys('grok'); assert.ok(!k.includes('XAI_API_KEY') && !k.includes('GROK_CODE_XAI_API_KEY') && k.includes('GROK_HOME') && k.includes('PATH'));
-    k = await keys('antigravity'); assert.ok(!k.includes('GEMINI_API_KEY') && !k.includes('AGY_ADC_AUTH') && !k.includes('GOOGLE_APPLICATION_CREDENTIALS') && k.includes('HOME') && k.includes('PATH'));
+    let k = await keys('codex'); assert.ok(!has(k, 'OPENAI_API_KEY') && !has(k, 'XAI_API_KEY') && !has(k, 'GEMINI_API_KEY'));
+    k = await keys('grok'); assert.ok(!has(k, 'XAI_API_KEY') && !has(k, 'GROK_CODE_XAI_API_KEY') && has(k, 'GROK_HOME') && has(k, 'PATH'));
+    k = await keys('antigravity'); assert.ok(!has(k, 'GEMINI_API_KEY') && !has(k, 'AGY_ADC_AUTH') && !has(k, 'GOOGLE_APPLICATION_CREDENTIALS') && has(k, 'HOME') && has(k, 'PATH'));
     assert.ok(!('modelProvider' in JSON.parse(featureCalls(readLog())[0].argv[featureCalls(readLog())[0].argv.indexOf('--settings') + 1])), 'no API-key provider unless opted in');
     settings({ aiUseEnvKey: { codex: true, grok: true } });
-    k = await keys('codex'); assert.ok(k.includes('OPENAI_API_KEY') && k.includes('CODEX_API_KEY') && !k.includes('XAI_API_KEY') && !k.includes('GEMINI_API_KEY') && !k.includes('GOOGLE_APPLICATION_CREDENTIALS'));
-    k = await keys('grok'); assert.ok(k.includes('XAI_API_KEY') && k.includes('GROK_CODE_XAI_API_KEY') && !k.includes('CURSOR_API_KEY') && !k.includes('GROK_AUTH_PROVIDER_COMMAND') && !k.includes('OPENAI_API_KEY') && !k.includes('GEMINI_API_KEY'));
+    k = await keys('codex'); assert.ok(has(k, 'OPENAI_API_KEY') && has(k, 'CODEX_API_KEY') && !has(k, 'XAI_API_KEY') && !has(k, 'GEMINI_API_KEY') && !has(k, 'GOOGLE_APPLICATION_CREDENTIALS'));
+    k = await keys('grok'); assert.ok(has(k, 'XAI_API_KEY') && has(k, 'GROK_CODE_XAI_API_KEY') && !has(k, 'CURSOR_API_KEY') && !has(k, 'GROK_AUTH_PROVIDER_COMMAND') && !has(k, 'OPENAI_API_KEY') && !has(k, 'GEMINI_API_KEY'));
     settings({ aiUseEnvKey: { antigravity: true } });
-    k = await keys('antigravity'); assert.ok(k.includes('GEMINI_API_KEY') && k.includes('AGY_ADC_AUTH') && !k.includes('XAI_API_KEY') && !k.includes('OPENAI_API_KEY'));
+    k = await keys('antigravity'); assert.ok(has(k, 'GEMINI_API_KEY') && has(k, 'AGY_ADC_AUTH') && !has(k, 'XAI_API_KEY') && !has(k, 'OPENAI_API_KEY'));
     { const a = featureCalls(readLog())[0].argv; assert.equal(JSON.parse(a[a.indexOf('--settings') + 1]).modelProvider, 'gemini', 'agy reads GEMINI_API_KEY only with modelProvider "gemini"'); }
-    for (const id of OTHERS) { k = await keys(id); for (const x of ['AWS_SECRET_ACCESS_KEY', 'GITHUB_TOKEN', 'MY_SERVICE_SECRET', 'OPENAI_BASE_URL', 'GATEWAY_API_KEY']) assert.ok(!k.includes(x), x + ' reached ' + id); }
+    for (const id of OTHERS) { k = await keys(id); for (const x of ['AWS_SECRET_ACCESS_KEY', 'GITHUB_TOKEN', 'MY_SERVICE_SECRET', 'OPENAI_BASE_URL', 'GATEWAY_API_KEY']) assert.ok(!has(k, x), x + ' reached ' + id); }
     const s = fs.readFileSync(core.SETTINGS_FILE, 'utf8'); assert.ok(!/sk-fake|fake-test/.test(s), 'no key is ever written to settings.json');
     settings({ aiUseEnvKey: undefined });
   });
@@ -492,6 +507,26 @@ async function run(h) {
     await p; await res.done; state('ok');
     const ev = res.events();
     assert.ok(ev.some((e) => e.type === 'error' && /Stopped/.test(e.text)), JSON.stringify(ev));
+  });
+  // Windows (simulated): killTree is taskkill /T /F of the pid, and the CLI then exits with code 1, not a signal - a
+  // stop must still read as a stop (the AiChild is told it was killed), never "grok exited with code 1"
+  await test('grok, Windows killing simulated (taskkill, exit code 1): Stop is a stop, a timeout a timeout - never a CLI error', async () => {
+    const orig = plat.killTree, tk = [];
+    const taskkill = (file, args) => { tk.push(args[1]); try { process.kill(Number(args[1]), 'SIGKILL'); } catch { /* gone */ } return { on() {} }; };
+    plat.killTree = (child, o = {}) => orig(child, { ...o, platform: 'win32', env: {}, spawnFn: taskkill });
+    try {
+      state('slow');
+      const res = new h.FakeRes();
+      const p = quiz.generate(h.it(A), { count: 5, level: 'core', focus: '', language: 'en', res });
+      await new Promise((r) => setTimeout(r, 600));
+      assert.equal(quiz.stop(A).stopped, true);
+      await p; await res.done;
+      const ev = res.events();
+      assert.ok(ev.some((e) => e.type === 'error' && /Stopped/.test(e.text)) && !ev.some((e) => /exited with code|could not answer/.test(e.text || '')), JSON.stringify(ev));
+      assert.ok(tk.length >= 1, 'the CLI was stopped by taskkill');
+      const r = await ai.run([], { input: 'slow', timeout: 700 }, {});
+      assert.notEqual(r.code, 0); assert.match(r.err, /\[timed out\]/); assert.ok(!/exited with code/.test(r.err), r.err);
+    } finally { plat.killTree = orig; state('ok'); }
   });
 
   // ================= prompts: quotes, newlines, unicode, long; never argv, never a shell =================

@@ -18,8 +18,12 @@ const WIN = process.platform === 'win32';
 if (!BIN) throw new Error('guard.js: FAKE_AI_BIN is not set');
 
 const real = (f) => { try { return fs.realpathSync(f); } catch { return path.resolve(f); } };
-const BIN_REAL = real(BIN);
-const inBin = (f) => [path.resolve(f), real(f)].every((x) => [BIN, BIN_REAL].some((b) => x === b || x.startsWith(b + path.sep)));
+// Windows: also the native real path (the long name of an 8.3 one: C:\Users\RUNNER~1 is C:\Users\runneradmin), and
+// paths compared case-blind with \ (one folder, however it is spelt - a file elsewhere stays outside)
+const native = (f) => { try { return fs.realpathSync.native(f); } catch { return path.resolve(f); } };
+const canon = (f) => (WIN ? f.replace(/\//g, '\\').toLowerCase() : f);
+const BINS = [...new Set([BIN, real(BIN), ...(WIN ? [native(BIN)] : [])].map(canon))];
+const inBin = (f) => [path.resolve(f), real(f), ...(WIN ? [native(f)] : [])].map(canon).every((x) => BINS.some((b) => x === b || x.startsWith(b + path.sep)));
 const baseName = (f) => path.basename(String(f)).toLowerCase().replace(/\.(exe|cmd|bat|ps1|com|js)$/, '');
 function envPath(env) {
   const e = env || process.env, k = Object.keys(e).find((x) => x.toUpperCase() === 'PATH');

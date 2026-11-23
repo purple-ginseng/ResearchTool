@@ -231,10 +231,12 @@ async function agy() {
   if (mode !== 'plan') { log({ forbidden: '--mode ' + mode }); process.stderr.write(`fake agy: --mode plan is required (got ${mode})\n`); return 97; }
   if (!has('-p') || val('--input-format') !== 'stream-json' || val('--output-format') !== 'stream-json') { log(); process.stderr.write('fake agy: -p with stream-json input and output only\n'); return 3; }
   // like the real agy 1.5.14: -p takes a value ("flag needs an argument: -p", exit 2); the app sends -p "" last
+  // (has('-p') above guarantees pi >= 0; the last-pair check compares the elements, not indexOf against a.length)
   const pi = a.indexOf('-p');
-  if (pi === a.length - 1) { log(); process.stderr.write('flag needs an argument: -p\n'); return 2; }
+  if (pi < 0 || pi + 1 >= a.length) { log(); process.stderr.write('flag needs an argument: -p\n'); return 2; }
   if (a[pi + 1] !== '') { log({ forbidden: 'prompt in argv' }); process.stderr.write('fake agy: the prompt must come on stdin (-p "")\n'); return 97; }
-  if (pi !== a.length - 2) { log({ forbidden: '-p "" is not last' }); process.stderr.write('fake agy: -p "" must be the last pair\n'); return 97; }
+  const pLastPair = a.length >= 2 && a[a.length - 2] === '-p' && a[a.length - 1] === '' && a.lastIndexOf('-p') === pi;
+  if (!pLastPair) { log({ forbidden: '-p "" is not last' }); process.stderr.write('fake agy: -p "" must be the last pair\n'); return 97; }
   if (!has('--sandbox') || !has('--disable-slash-commands') || !/^\d+s$/.test(val('--print-timeout') || '')) { log(); process.stderr.write('fake agy: --sandbox, --disable-slash-commands and --print-timeout are required\n'); return 97; }
   let set = null; try { set = JSON.parse(val('--settings') || ''); } catch { /* none */ }
   // like the real agy 1.5.14: an unknown settings key is refused (exit 1)
