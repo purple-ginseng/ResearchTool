@@ -840,6 +840,9 @@ A workspace that had chosen Gemini CLI opens on Claude Code.
   reload of the library elsewhere), the reader reloads the library once; if the paper is still missing it says
   "This paper is no longer in the library view - reopen it from the list". An unexpected error inside a click is
   shown as a message and kept for Copy diagnostics.
+- **Windows: "pdftotext failed: it crashed (Windows status 0x...)":** the poppler program itself crashed or could not
+  start, usually a broken install or a second, older poppler found first on PATH (`where pdftotext` lists them).
+  Reinstall it (`scoop install poppler`, `choco install poppler` or conda) and remove the other copy from PATH.
 
 ## Environment variables
 

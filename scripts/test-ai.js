@@ -270,12 +270,25 @@ async function runPath(name) {
   // the seeded text cache must be what the app would have extracted itself (only where poppler is installed)
   if ((await core.run('pdftotext', ['-v'], { timeout: 8000 })).code === 0) {
     await test('the seeded text of the fixture PDFs is exactly what pdftotext reads from them', async () => {
-      assert.deepEqual(await textcache.pdfToPages(path.join(WS, 'pdfs', A + '.pdf')), PDF_TEXT(3));
+      // (a pdftotext of the host that crashes - seen on GitHub's Windows runners, 0xC0000374 - is the host's, not ours)
+      let pages;
+      try { pages = await textcache.pdfToPages(path.join(WS, 'pdfs', A + '.pdf')); }
+      catch (e) { if (/crashed \(Windows status/.test(e.message)) { console.log('      (skipped: ' + e.message + ')'); return; } throw e; }
+      assert.deepEqual(pages, PDF_TEXT(3));
       const f = path.join(TOP, 'long.pdf');
       fs.writeFileSync(f, tinyPdf(Array.from({ length: 14 }, (_, k) => PAGE(k + 1))));
       try { assert.deepEqual(await textcache.pdfToPages(f), PDF_TEXT(14)); } finally { fs.rmSync(f, { force: true }); }
     });
   } else console.log('skip the seeded text of the fixture PDFs is exactly what pdftotext reads from them (no working pdftotext)');
+  await test('a helper program that crashed on Windows (NTSTATUS exit code) is named as a crash, not as its number', () => {
+    assert.equal(core.toolFailure('pdftotext', { code: 3221226356, err: '' }, { hint: 'Reinstall.' }), 'pdftotext failed: it crashed (Windows status 0xC0000374, heap corruption). Reinstall.');
+    assert.equal(core.toolFailure('pdftoppm', { code: 0xC0000135, err: '' }), 'pdftoppm failed: it crashed (Windows status 0xC0000135, a DLL it needs was not found).');
+    assert.equal(core.toolFailure('pdftotext', { code: 0xC0001234, err: 'x' }), 'pdftotext failed: it crashed (Windows status 0xC0001234).');
+    assert.equal(core.toolFailure('pdftotext', { code: 1, err: 'Syntax Error: bad file' }), 'pdftotext failed: Syntax Error: bad file');
+    assert.equal(core.toolFailure('pdftotext', { code: 99, err: '' }), 'pdftotext failed: 99');
+    assert.equal(core.toolFailure('pdftotext', { code: 1, err: 'a'.repeat(400) + 'END' }, { tail: true }).slice(-3), 'END');
+    for (const c of [-1, 0, 1, 2147483647, null, undefined, 'x']) assert.equal(core.crashText(c), null, String(c));
+  });
   // ================= 1. Claude: the same calls as before lib/ai =================
   const claudeRuns = {};
   for (const name of Object.keys(PATHS)) claudeRuns[name] = await runPath(name);
