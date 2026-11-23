@@ -39,7 +39,8 @@ lib/ai/providers/*.js     claude.js (facts only), codex.js, grok.js, antigravity
 lib/routes/*.js           one route module per feature; ALL are auto-loaded in file-name order:
   backup.js               /api/backup[/restore]  dated copies of the whole workspace (lib/backup.js; it also starts the daily
                           backup); the folder and the switch are saved with PUT /api/settings {backupDir, backupAuto}
-  diagnostics.js          GET /api/diagnostics  versions, OS, Node, AI provider status (no account), helper programs, last AI
+  diagnostics.js          GET /api/diagnostics  versions (what the server loaded; onDisk when the files are newer), OS, Node,
+                          AI provider status (no account), helper programs, the state of the updates (codes), last AI
                           errors - redacted, no AI call, no user content (public/js/diagnostics.js builds the copied text)
   categories.js           /api/categories[/rename|delete|regroup|apply|lines] (rename / delete {line: true} = a whole research
                           line with its sub-lines; GET|PUT lines = Settings "Research lines Claude should prefer", settings.json
@@ -93,6 +94,10 @@ lib/routes/*.js           one route module per feature; ALL are auto-loaded in f
                           .bib file found in the library and grouped by its headings; writes nothing (lib/organize.js;
                           UI: public/js/organize.js)                                                           LIBRARY
   overleaf.js             /api/overleaf/status|import, /api/projects/:id/overleaf[/pull|push|resolve|unlink]    OVERLEAF
+  update.js               GET /api/update/status[?local=1], POST /api/update/check {apply?}  the app's own updates
+                          (lib/update.js; it also starts the daily check, which does nothing unless settings.json
+                          autoUpdate is true). The switch is saved with PUT /api/settings {autoUpdate}. See "Updates of
+                          the app itself" below
   projects.js             /api/fs/pick|list|tools /api/projects[?lite=1|/open|import-zip] /api/projects/:id[/file|raw|files|
                           upload|rename|rename-project|compile|synctex|search|labels|refs|wordcount|spelling|download|pdf|
                           settings|papers|reading-pack|annotated|history[/:vid[/diff|restore]]], GET /api/spell/words,
@@ -332,6 +337,10 @@ lib/figures.js            the figures and tables of a PDF, found LOCALLY (no AI 
                           Needs poppler (pdftotext -bbox-layout, pdftoppm); without it list() rejects 501 {unavailable}.
                           See "Figures" below. Routes: lib/routes/figures.js. Tests: node scripts/test-figures.js
 lib/overleaf.js           git plumbing for Overleaf sync, link storage (settings.json "overleafLinks")
+lib/update.js             the app's own updates: createUpdater({root, ...}) -> {status, check, tick, schedule, kick, boot};
+                          real() = the one updater of the app folder; configure(s, b) validates the autoUpdate setting.
+                          An opt-in, fast-forward-only `git merge --ff-only` of the official repository's main branch.
+                          See "Updates of the app itself" below. Tests: node scripts/test-update.js
 scripts/i18n-extract.js   finds the UI strings in public/js/*.js and public/index.html and reports those without a
                           Chinese translation (must stay at 100 %; see docs/preferences.md)
 scripts/test-*.js         the tests: plain Node scripts, each with a temporary workspace (scripts/fixtures: their input files)
@@ -363,10 +372,32 @@ public/js/overview.js     Overview tab (order 5, icon dashboard; `rt.ui.startVie
                           Workspace health). Renders lazily, re-renders (debounced) on library / project / backup events while
                           shown; its own GETs are cached 60 s -> RT.overview: render(), show(). CSS: css/overview.css, all under
                           #view-overview, container query `ov` (12 / 6 / 1 columns)
-public/js/icons.js        the Ginseng icon set (Purple Ginseng design system) (plain data: RT_ICON_DEFS, RT_ICON_ALIASES, plus the
-                          icons drawn for this app in RT_ICON_ADDED). core.js renders it: RT.icon(name, cls | {size, duo, cls})
-                          -> inline SVG `svg.ic` (stroke = currentColor; old names go through core's alias table); an unknown
-                          name draws nothing, so check pages for an empty `svg.ic`
+public/js/icons-sketch.js the HAND-DRAWN icon set, the default ("Margin Sketch": original work for this app, in the hand of the
+                          project page). Plain data, generated offline from hand-placed centrelines by the pen tool of the
+                          design sources (app_icons_gen.py, kept with the design work, not in this repository) - never edit
+                          it by hand. RT_ICON_SKETCH = {name: {k ink, w wash, au gold mark, s: 1 = the gold mark is inked in
+                          the ink-only drawing, on = the solid body of the "on" state (star, bookmark), L = {w, w2, h, x, k,
+                          g, au} the 48 master}}: path data of FILLED outlines (no strokes), 24 grid (48 for L)
+public/js/icons-classic.js the CLASSIC set: the Ginseng line icons of the Purple Ginseng design system (plain data: RT_ICON_DEFS,
+                          RT_ICON_ALIASES, plus the icons drawn for this app in RT_ICON_ADDED; public/js/icons.js before).
+                          It also draws every name the hand-drawn set lacks (the provider marks, arxiv, unused names)
+                          core.js renders both: RT.icon(name, cls | {size, duo, cls, title, style}) -> inline SVG `svg.ic`
+                          (old names go through core's alias table; an unknown name draws nothing, so check pages for an
+                          empty `svg.ic`). Which set: settings.json `iconStyle` ('sketch' default | 'classic', checked by
+                          PUT /api/settings; Preferences › General › Icon style), copied to localStorage `rt.ui.icons` so
+                          ui-boot.js can put it on <html data-icons> before the first paint; prefs.js corrects the copy
+                          on load. Classic: `svg.ic`, stroke = currentColor, stroke width by size, `duo: true` adds the
+                          `.ic-duo` layer. Hand-drawn: `svg.ic.sk`, fill = currentColor, ink only at UI sizes; `duo`
+                          (true, or 'sketch' = in this set only) or a size of 20 px and more adds the wash (`.ic-w`)
+                          and the gold mark (`.ic-au`); from 32 px the 48 master (`.ic-w2 .ic-h .ic-x .ic-g` too).
+                          Colours: the --sk-* tokens of base.css (light and both dark blocks); on a filled ground
+                          (primary / accent / danger buttons) the wash is off. "On" states: a rule sets `--ic-on: 1`
+                          next to `fill: currentColor`, which shows the `.ic-on` body of a hand-drawn star / bookmark
+                          (it works through the <use> sprite of the Library rows too). A rule that sets a stroke on
+                          `.ic` must exclude `.sk`. `RT.icon.setStyle(style)` redraws every `svg.ic[data-i]` on the
+                          page in place (same element), watches for icons that arrive later from strings made earlier,
+                          and emits `icons:style`; `RT.icon.style()`, `.styles`, `.sketched(name)`, `{style}` = one
+                          icon fixed in a set. Tests: node scripts/test-icons.js
 public/js/illustrations.js empty-state art -> RT.ill.emptyLibrary / emptySearch / emptyNotes / emptyInbox / onboardingImport /
                           onboardingWelcome / successCelebration ({size}); colours from --ill-* (css/illustrations.css).
                           RT.emptyState({ill, title, text, actions, compact}) in core.js wraps them
@@ -392,6 +423,12 @@ public/js/quiz.js         reader's Practice tab (quiz, flash cards) and the Revi
                           #dlg-review) -> RT.quiz: show(host, item), forget(id), review(pid | {project, name}?) (the
                           dialog's #rv-scope switch "All papers | “P”", remembered in localStorage rt.rv.scope)
 public/js/guide.js        Guide dialog ("?" in the header): a short manual, one page per area; update it when the UI changes
+public/js/update.js       the Updates part of Preferences › General (status line, "Check for updates now", "Update now")
+                          and the "restart to finish" banner (RT.banner id update-restart, not dismissible; looked at
+                          when the page loads, hourly, when the tab is shown again and every 20 s while it shows;
+                          removed when the server runs the new version, then update-reload "Reload this page" for a
+                          page loaded from the older files) -> RT.update: status(local),
+                          check(apply), show(), sentence(r). Holds the sentence for every reason code of lib/update.js
 public/js/safety.js       Backups window (Settings; workspace snapshots and the copies of library.json - it opens by itself when
                           library.json is damaged; server: lib/backup.js, and loadLib / saveLib / keepCopy / restoreLibBackup in
                           lib/core.js with copies in <workspace>/backups) and "Recently deleted" (bin button of the Library)
@@ -560,7 +597,7 @@ must only call a later module at event time, guarded: `if (RT.overleaf && RT.ove
 
 `server.js` applies the security gate, serves non-`/api` paths from `public/`, then calls
 `await mod.handle(ctx)` for every `lib/routes/*.js` (sorted by file name: account, backup, categories, claude,
-compare, diagrams, drafting, figures, highlights, library, lineage, notes, overleaf, projects, quiz, related, search, trash, venues) until one
+compare, diagrams, drafting, figures, highlights, library, lineage, notes, overleaf, projects, quiz, related, search, trash, update, venues) until one
 returns `true`. Nothing handled -> `404 {"error":"Unknown endpoint"}`.
 A thrown error becomes `{error: e.message, ...e.extra}` with status `e.status || 500`.
 
@@ -622,7 +659,7 @@ warms it, replacing the PDF or deleting the item drops it); never call pdftotext
 | `claudeArgs('light' \| 'heavy', {tools, allowed, stream, partial})` | the flags of every `claude -p` call: no tools unless named, no MCP, no session, effort and model from the "Claude usage" mode. `aiMode()` -> `'economy' \| 'balanced' \| 'quality'` (`AI_MODES`) |
 | `teachStyle()`, `TEACH_DEFAULT`, `citeRule(language)` | the user's "How Claude explains" text (settings `teachStyle`, else the built-in one) - put it into every prompt that explains something; the fixed page-citation rule |
 | `recordUsage(feature, resultJson)`, `usageSummary()` | one line per AI call in `cache/ai-usage.jsonl` (`p`: the provider when not Claude; `usd` only when the CLI reported a cost); sums for the Settings window (`byFeature`, `byProvider`). Features today: `chat`, `grouping`, `brief`, `key-points`, `draft`, `ask`, `translate`, `diagram`, `diagram-explain`, `quiz`, `compare`, `rewrite`, `related-work` |
-| `loadSettings()`, `saveSettings(obj)` | whole settings.json object (`exportDir` defaulted). Other keys live in the same file (`externalProjects`, `projectSettings`, `projectsV2`, `overleafLinks`, `aiMode`, `teachStyle`, `backupDir`, `backupAuto`): always read-modify-write the whole object |
+| `loadSettings()`, `saveSettings(obj)` | whole settings.json object (`exportDir` defaulted). Other keys live in the same file (`externalProjects`, `projectSettings`, `projectsV2`, `overleafLinks`, `aiMode`, `teachStyle`, `backupDir`, `backupAuto`, `autoUpdate`): always read-modify-write the whole object |
 | `newId()` | 10 hex chars |
 | `safeName(s)` | `[A-Za-z0-9_-]`, max 60 |
 | `stamp()` | file-name-safe ISO timestamp |
@@ -990,6 +1027,162 @@ the part in question names a figure. The snapshot tool labels a region that matc
 it with `baseHash` = the note it read (409 `{conflict, content, hash}` like `PUT .../note`); the page saves first and
 adopts the answer.
 
+### Updates of the app itself (lib/update.js)
+
+Opt-in (settings.json `autoUpdate: true`, off when absent), and only ever a fast-forward of an untouched clone of the
+official repository. `createUpdater({root, ...})` builds an updater for one folder; `real()` is the one for
+`core.ROOT`, used by `lib/routes/update.js` (which calls `schedule()`), by PUT /api/settings (`kick()` when the box
+was just ticked) and by the diagnostics. Requests to github.com are made by the automatic check (box ticked), by
+"Check for updates now" and by "Update now" - the last one only when more than a minute has passed since the
+check whose result it installs.
+
+**One check**, in this order - everything local first, so a copy that cannot update never causes a request:
+
+1. kill switch (`RT_NO_UPDATE=1` -> `disabled`); `lstat(ROOT/.git)` is a real folder (else `not-git` / `unusual`,
+   and git is not even started - a ZIP install must not make macOS offer its developer tools);
+2. `git rev-parse --is-inside-work-tree --show-cdup --show-prefix --git-dir --git-common-dir` = `true`, empty,
+   empty, `.git`, `.git`: the top level of its own work tree, with `GIT_CEILING_DIRECTORIES` = the parent folder
+   (`no-git`, `unsafe` for "dubious ownership", `unusual` - also for `core.worktree` and `.git/commondir`). This
+   command reads settings and prints paths; it looks at no file of the work tree.
+   **Step 2a**, right after it: the settings inside `.git` are those of a plain clone (`config`, with
+   `detail.what` = the kind, never the key):
+   `gitDirProblem()` - `.git/info/attributes` has no line but comments, `.git/objects/info/alternates` does not
+   exist (fs only) - and `configProblem()` over `git config --local --list --name-only -z`: no `filter.*`,
+   `include.*` / `includeIf.*`, `http.*`, `core.alternateRefsCommand`, `core.attributesFile`,
+   `extensions.partialClone` / `remote.<name>.promisor` / `.partialCloneFilter`, `extensions.worktreeConfig`, and no
+   `remote.<name>.*` whose name is not an ordinary remote name (a section named like the address applies to a
+   fetch of that address: uploadpack, proxy, refspecs). This comes before every command that reads a file of the
+   work tree or fetches, because these are the settings no fixed `-c` option can switch off - their keys hold a
+   name of the writer's choosing. Files in `.git` can be written by anything that can write below the app folder
+   (an AI run with file tools when the workspace is elsewhere), and a filter would otherwise run on the next
+   `git status`. Deliberately not refused: `url.*` (step 4 catches a rewrite from any file), `credential.*`,
+   `core.fsmonitor`, `core.hooksPath`, `branch.main.mergeOptions` (all overridden below), `core.sshCommand` (ssh is
+   not an allowed protocol), other `remote.origin.*` keys and remotes with ordinary names (the fetch names the
+   address, never a remote), what editors add (`branch.*.vscode-merge-base`, `remote.origin.gh-resolved`);
+3. no `.git/index.lock` (`locked`), no `MERGE_HEAD`, `rebase-merge`, `rebase-apply`, `CHERRY_PICK_HEAD`,
+   `REVERT_HEAD`, `BISECT_LOG` (`in-progress`);
+4. `git ls-remote --get-url <OFFICIAL_URL>` gives the address back unchanged (no `url.*.insteadOf` rewrite; this
+   form asks nothing of the network) (`redirect`);
+5. `git remote get-url origin` matches `OFFICIAL_RE` - https or ssh form of `github.com/purple-ginseng/ResearchTool`,
+   fully anchored (`origin`); `git symbolic-ref -q HEAD` is `refs/heads/main` (`detached`, `branch`);
+   `branch.main.remote` = `origin` and `branch.main.merge` = `refs/heads/main` (`tracking`);
+6. `git status --porcelain --untracked-files=no` is empty (`dirty`) - untracked and ignored files (the workspace,
+   the backups) do not count and are never touched. When it is not empty, HEAD is still the commit an earlier
+   fast-forward of this app stopped on and that stop is on record, the answer is `interrupted` instead (see
+   "State");
+7. the one network request: `git fetch --no-tags --no-recurse-submodules --refmap= --quiet <OFFICIAL_URL>
+   +refs/heads/main:refs/remotes/origin/main` (`offline`, `fetch-failed`). The address is the constant, never the
+   remote's name, so nothing under `remote.origin.*` (uploadpack, extra refspecs, a proxy) plays a part, and a bug
+   in the origin matcher could only stop an update, never redirect one. `--refmap=` (empty) keeps git from
+   applying any configured refspec on top of the one given, so a check writes this one ref and no other. https only, also for a clone made over ssh:
+   the repository is public, so no key, passphrase or host-key question can come up;
+8. `refs/remotes/origin/main^{commit}` is resolved once, and from then on only that commit id is used:
+   `git rev-list --left-right --count HEAD...<sha>` (`ahead`, `diverged`, `compare`); a force-push that removes
+   commits this copy has shows as diverged or ahead, so there is never a step back;
+9. what the commit holds, read from the object store before anything is checked out: `git ls-tree -r -z --full-tree
+   <sha>` through `treeProblem()` (`blocked`: a path under `workspace/` or `backups/` - or under `RT_WORKSPACE` /
+   the chosen backup folder when they lie inside the app folder -, a symbolic link, a submodule, a file mode other
+   than 644 / 755, a name Windows cannot write, two names that differ only in case) and `git show
+   <sha>:package.json` through `packageProblem()` (`blocked` when unreadable, `needs-node` when `engines.node` -
+   only the form `>=N[.N[.N]]` is understood - excludes the running Node, `manual` when `updateEpoch` is above
+   `EPOCH`);
+10. only with `apply`: steps 1-6 once more and HEAD unchanged (`moved`), then `git merge --ff-only
+    --no-overwrite-ignore --no-edit --quiet <sha>`, and HEAD must be `<sha>` afterwards. git refuses before it
+    writes when a file of the user's lies where a new tracked file would go (`refused`, with the names) or a
+    tracked file was edited that very moment (`dirty`). Otherwise `git status` decides: HEAD unchanged and the
+    tree clean means nothing was written (`refused` - also when the merge was stopped by its timeout before it
+    got anywhere); anything else is `interrupted`: some files are new, HEAD is not.
+
+Never: `git pull` (a user's `pull.rebase` would apply), a merge commit, rebase, reset, stash, clean, checkout of
+another branch, submodules, tags, `safe.directory` changes, a restart of the server.
+
+**Every git call** (the local ones too) is `core.spawnTool('git', [...])` with a fixed argument array, `cwd` = the app
+folder, a timeout (30 s local, 150 s for the fetch - stopping a fetch is harmless -, 10 min for the merge - long on purpose: a
+merge stopped half way leaves a half-updated folder) and:
+`-c core.hooksPath=/dev/null` (Windows: node.exe - a path below a file, as lib/overleaf.js does; no
+reference-transaction or post-merge hook runs), `core.fsmonitor=false`, `core.askPass=`, `credential.helper=`,
+`protocol.allow=never` + `protocol.https.allow=always`, `protocol.ext.allow=never`, `submodule.recurse=false`,
+`fetch.recurseSubmodules=false`, `fetch.prune=false`, `merge.autoStash=false` (the config form: an old git ignores
+an unknown key but refuses an unknown flag), `branch.main.mergeOptions=` (empty: git puts that setting in front of
+the options of every merge into main - `--squash` there would rewrite the files without moving HEAD, `--autostash`
+beats `merge.autoStash`), `merge.verifySignatures=false`, `gc.auto=0`, `maintenance.auto=false`,
+`http.sslVerify=true`, `http.extraHeader=` (empties the list: no token header of the user's settings is sent),
+`http.cookieFile=`, `http.saveCookies=false`, `http.lowSpeedLimit/Time`, `fetch.fsckObjects=true`,
+`core.protectHFS/NTFS=true`, `core.longpaths=true`. git resolves `http.*` per address, and a key that names an
+address (`http.https://github.com/.sslVerify=false`, a common workaround behind an intercepting proxy) beats the
+plain key whatever file it stands in - so `sslVerify`, `extraHeader`, `cookieFile` and `saveCookies` are given a
+second time as `http.<OFFICIAL_URL>.<key>` (`httpScoped()`): no key can match the fetched address better, and of
+two equal ones the command line, read last, wins. The user's global proxy and certificate files (`http.proxy`,
+`http.sslCAInfo`, also per address) are kept on purpose; inside the app folder `http.*` is refused (step 2a). `core.autocrlf` and `core.fileMode` are deliberately left alone (`.gitattributes` pins the
+line ends; overriding them makes clean files look modified). The environment drops every inherited `GIT_*`
+variable except `GIT_SSL_CAINFO`, `GIT_SSL_CAPATH`, `GIT_EXEC_PATH`, then sets `GIT_TERMINAL_PROMPT=0`,
+`GIT_ASKPASS=''` (not `echo`: that would answer a prompt with an empty credential, and is no program on Windows),
+`GCM_INTERACTIVE=never`, `GIT_OPTIONAL_LOCKS=0`, `GIT_NO_REPLACE_OBJECTS=1`, `GIT_ALLOW_PROTOCOL=https` (it beats any
+configuration) and `GIT_CEILING_DIRECTORIES`. The user's global git configuration is kept: it carries the proxy, a
+company's certificates and `safe.directory`.
+
+**What can and cannot be changed from outside.** Nothing of a request reaches a git argument: the POST reads only
+`apply` (a boolean, 400 otherwise). settings.json (which the AI panel can write) holds only the on/off flag - a
+flipped flag can do no more than switch the official updates on. The address, the branch, the origin matcher, the
+allowed protocol and the timeouts are constants; the tests replace them through parameters of `createUpdater()`
+(`allowOrigin`, `fetchUrl`, `protocols`, `env`, `now`, `settings`, `stateFile`, `disabled`, `userDirs`, `onGit`),
+and no environment variable or setting reaches those. `RT_NO_UPDATE=1` can only switch everything off.
+
+**State.** `boot = {version, commit}` is read from `package.json` and `.git` (files, no process:
+`headOnDisk()`) when the updater is created, before any timer exists. `status()` compares it with the disk:
+`restartNeeded` is true after our own update, after a `git pull` by hand, and after a fast-forward of this
+process that stopped half way (`halfNew` - the version and HEAD may both still be the old ones then). Creating
+the updater and the plain status never start git: in a clone whose refs are not files (reftable) `headOnDisk()`
+is null, the commit is `''` until the first look at the local conditions has asked git (`seen`; `boot.commit` is
+set then), and until then only the version tells that the files are newer. The last check `{when, result,
+reason}` is kept in `<workspace>/cache/update.json` so a restart does not ask again within 20 hours; that file is
+display-and-timing only (it sits in the workspace), is sanitised when read, and a time in the future counts as
+never.
+
+*What is shown as the reason.* `pre` is the last look at the folder (steps 1-6), `last` the last check of this
+process. `status()` gives `pre`'s reason when the folder is not in order; else the reason of `last` - unless that
+reason was about the folder itself (`last.local`: it came from steps 1-6, or is `dirty` / `interrupted` from the
+merge) and a later look found the folder in order (`last.stale`). So "can update: yes" never comes with an old
+`dirty`, while `offline`, `diverged`, `blocked` ... stay until the next check. `lastCheck` keeps the record as it
+was.
+
+*Interrupted.* A fast-forward that stopped half way leaves changed files and the old HEAD - to step 6 that is
+`dirty`, and the advice for `dirty` ("your changes are in the way") is wrong. So `{interrupted: {head, sha}}` is
+remembered (memory and the state file): while HEAD is still `head` and the tree is not clean, step 6 answers
+`interrupted`, every check stops there (no second merge on top), and the page shows the repair instead of "was
+updated" (README, Troubleshooting: `git reset --hard origin/main`). The mark ends when a look finds the tree
+clean or HEAD elsewhere - the one thing a look may write (it takes the mark out of the state file) - and the
+plain status drops the reason as soon as HEAD has moved. A forged mark in the state file can only turn `dirty`
+into `interrupted` for the same HEAD. `tick()` (75 s after the start - `RT_UPDATE_FIRST_MS` - then hourly, unref'd timers) reads the setting every
+time and returns before starting any process unless it is `true`; a failed check is tried again after 50 minutes.
+One check at a time: a second caller gets `result: 'busy'`. At most one fetch a minute, failed ones included: a
+call within the minute is answered from the commit the last fetch brought (`throttled: true`) - which is also how
+"Update now" right after "Check for updates now" installs exactly the commit that was shown, with no second request.
+
+**API.** Both endpoints answer `{auto, disabled, supported (true | false | null = not looked at yet), reason,
+detail?, version, commit (on disk, 7 characters), running: {version, commit}, restartNeeded, checking, ahead,
+behind, available: {commit, version} | null, lastCheck: {when, result, reason} | null, updated: {from, to,
+version, restartNeeded: true} | null}`; the POST adds `result` (`up-to-date`, `available`, `updated`, `failed`,
+`busy`) and `throttled`. `GET /api/update/status` starts no process and writes nothing (a cross-site GET is not
+stopped by the `X-RT` rule, so it must stay free of effects); `?local=1` runs steps 1-6 (read-only git commands,
+`GIT_OPTIONAL_LOCKS=0`; step 2a first, so nothing that `.git/config` names is run by them) - one look at a time
+(`look()`: callers that arrive while it runs share it) and the answer is reused for 5 seconds, so a page that
+asks a hundred times starts eight git processes, not eight hundred. Reasons are codes; the sentences are in `public/js/update.js`, so they are translated
+and no git output or path reaches the browser or the diagnostics. A check does write inside `.git` (the fetched
+objects and `refs/remotes/origin/main`), nothing else.
+
+**Trust.** With the box ticked, whoever can push to `main` of the official repository runs code on that computer:
+the new front end at the next reload, the new server code at the next restart - "restart needed" is a notice, not
+a gate. The Preferences text and the README say so. Fast-forward-only means no rollback can be pushed. Do not rename
+the repository or the account lightly: GitHub redirects the old address only until someone else takes the old
+name, and from then on old clones would take their updates from that someone. Before any rename, ship a release
+whose `OFFICIAL_URL` / `OFFICIAL_RE` name the new address, and give it time to reach the clones. A release that needs a manual step raises `updateEpoch` in
+`package.json` (old updaters then say `manual` and install nothing); a release that needs a newer Node raises
+`engines.node`. Not done in this version: verifying signed commits against an allowed-signers file (the only
+defence against a taken-over account), checking the syntax of the changed server files before the merge, and
+applying a fetched update at the next start instead of while running (which would remove the window in which the
+pages and the server are of two versions).
+
 ### Static files and the security gate
 
 `*.html` is served with `Content-Security-Policy: script-src 'self' 'unsafe-eval' blob:; ...`: no inline `<script>`, no inline
@@ -1003,6 +1196,13 @@ that another module caught.
 Anything under `public/` is served at its path (nested folders fine, dotfiles refused, `..` cannot escape), always with
 `Cache-Control: no-store`. Known types: html js mjs css json map txt md svg png jpg gif webp ico woff woff2 ttf otf eot
 wasm pdf (others: `application/octet-stream`).
+
+Because nothing is cached, the files under `public/` are read from disk on every request - so after an update of the
+app (below) a reload already gets the new pages while the server process still runs the old `server.js` and
+`lib/`. The two workers (`lib/fulltext.js`, `lib/search-worker.js`: `new Worker(__filename)`) also load their code
+from disk when they start. `GET /api/update/status` says `restartNeeded` for exactly that state, and the page shows
+a banner until the server is started again (then a page that was loaded from the older files is asked to reload);
+keep API changes tolerant of a page that is one version ahead - or, until that reload, one behind.
 
 Gate (keep intact): `Host` must be `localhost|127.0.0.1|[::1]:PORT`; an `Origin` header must be the app's own;
 `/api` requests with `Sec-Fetch-Site` other than `same-origin`/`none` are refused; every non-GET/HEAD `/api` request
@@ -1055,6 +1255,8 @@ Module APIs:
   'paper' | 'ids', category?, pid?, id?, ids?, label?})`, `reopen()` (the window as "Open in reader" left it), `ICON`,
   and the pure functions listed under public/js/lineage.js. `RT.pdfnav`: `create(adapter)`, `controls(prefix, cls)`.
   `RT.highlights`: `create(adapter)`, `control(prefix)`.
+- `RT.update`: `status(local?)` (GET /api/update/status, shows the restart banner when one is needed), `check(apply?)`
+  (POST /api/update/check), `show()` (paints the Updates part of Preferences), `sentence(r)` (the text for a reason code).
 - `RT.safety`: `open()` (Backups window), `trash()` (Recently deleted), `deleted(bins, label)`, `putBack(bins)`,
   `backupState(el)`. `RT.palette`: `open()`, `close()`, `pickPaper({placeholder, icon, run(item)})` (the box for a paper only). `RT.tour`: `start({chapter (id or 1-8), step (id)})`, `end()`, `next()`, `back()`, `goTo(stepId)`, `active()`, `current()`, `steps()` (the whole script, for the demo recorder), `chapters()`, `seen()`, `dismiss()`, `forChapterOfView()`, `actions()` (the buttons the palette runs by name).
   `RT.guide`: `open(page?, at?)`. `RT.account`: `open()`, `status()`.
@@ -1147,6 +1349,7 @@ localStorage `rt.claude.chats` (`{chats: {key: {s: sessionId, t, log: [[class, t
 | Module | Container | Ids / classes it creates inside |
 | --- | --- | --- |
 | core | header (`#toast`, `#btn-export`, `#btn-settings`, `header nav` tabs `.tab[data-view]`), `<dialog id="dlg-settings">` appended to body | `#export-dir #backup-dir #backup-pick #backup-auto #backup-state #backup-now #set-backups #set-ok #set-cancel` |
+| update | the Updates part of the General pane of `#dlg-settings` (markup in prefs.js); `#banner-slot` | `#pref-auto-update` (prefs.js), `#update-state #update-check #update-apply`; banners `update-restart`, `update-reload` |
 | safety | `<dialog id="dlg-backups">`, `<dialog id="dlg-trash">` appended to body | `#bk-seg #bk-info #bk-list .bk-row #bk-now #bk-close`, `#tr-list .tr-row[data-bin] #tr-sum #tr-old #tr-all #tr-close` |
 | claude | `<aside id="claude">` (toggled by header `#btn-claude`) | `.claude-head #claude-ctx #claude-new #claude-log .msg(.user/.bot(.live)/.tool/.err/.hint/.wait) #claude-sel #claude-form #claude-input #claude-send #claude-cmd` |
 | library-list (+ categories) | `#library-list.list-pane` (left column of `#view-library`) | `.list-actions #btn-import-pdf #btn-paste-bib #file-pdf .search-row #search #search-scope #proj-chip.proj-chip .list-opts #btn-view #btn-expand-all #btn-collapse-all #btn-regroup #btn-review #btn-compare #tag-filter #btn-trash #bulk #jobs .job #list .grp .item(.sel/.picked)[data-id] .cat-dot .drop-hint`; project: row button `.pj[data-proj]`, pinned group `.proj-wrap[data-pid]` (`[data-pmenu]`, `button.proj-stats[data-pstats]`, rows `.item.recent.proj`), group by project `.grp-wrap[data-pid]` `.grp-pj`, bulk `[data-bulk=project]`; dialogs `#dlg-bib #dlg-ask #dlg-regroup` (`rg-*`), `.ctx-menu` |
@@ -1241,6 +1444,25 @@ curl -s -X POST localhost:4841/api/projects/demo/compile -H 'X-RT: 1'
 curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:4841/api/export     # 403: missing X-RT
 kill %1; rm -rf /tmp/rt-test
 ```
+
+The app's own updates (`node scripts/test-update.js`): every test builds a bare "origin", a "seed" clone that
+pushes new versions and an "app" clone in a temporary folder and gives `createUpdater()` that folder, the bare
+repository as the address and a matcher that accepts it, with a temporary HOME (no global git settings). Besides
+the reasons and the update itself it plants what must never run (hooks, fsmonitor, uploadpack, a clean / smudge
+filter, `core.alternateRefsCommand`) with a marker file and a control that shows the plant works; makes a real
+half checkout (a folder without write permission, POSIX) and runs the README's repair on it; puts a stand-in
+`git` that sleeps on `fetch` / `status` / `merge` on the PATH for the timeouts; asks git itself which `http.*`
+value applies to the official address under the app's options (`config --get-urlmatch`, no request); points one
+updater at a listener on 127.0.0.1 that answers 404 to see that no `Authorization` header or cookie of the
+user's settings is sent; and runs `public/js/update.js` in a `vm` with a stand-in for `RT` for the banner and the
+status line. Rules:
+never set `autoUpdate: true` and never POST `/api/update/check` with a valid body against a server that runs from
+the real checkout (smoke-server.js, a manual test server) - in CI that checkout has the official origin and the
+request would really go to github.com; never run `git fetch` / `pull` / `reset` in the app folder from a test.
+run-tests.js, test-ai.js and smoke-server.js set `RT_NO_UPDATE=1` for that reason, and their PATH has no git.
+The same test file checks that this repository passes its own rules (`package.json` readable by
+`packageProblem()`, no tracked file that `treeProblem()` refuses) - a commit that breaks them would stop every
+automatic update, so CI stops it first.
 
 `RT_BURST_MS=0` makes every autosave its own history version. For features that call an AI CLI put the fake CLIs first
 on `PATH` (`require('./scripts/fixtures/fake-ai/install').installFakes(dir)`: claude, codex, grok, agy; they log to

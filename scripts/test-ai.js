@@ -55,6 +55,7 @@ process.env[pathKey] = TEST_PATH.join(path.delimiter);
 for (const k of Object.keys(process.env)) if (/^(CLAUDE|ANTHROPIC|OPENAI|CODEX|GEMINI|GOOGLE|XAI|GROK|AGY|ANTIGRAVITY|XDG_|APPDATA$|LOCALAPPDATA$)/i.test(k)) delete process.env[k];
 Object.assign(process.env, {
   HOME, USERPROFILE: HOME, RT_NO_EXTRA_PATH: '1',
+  RT_NO_UPDATE: '1', // the route modules are loaded from the real checkout: its updater (lib/update.js) stays off
   // the XDG folders (Linux: where a CLI may keep its config or sign-in) and the Windows app-data folders: temporary too
   XDG_CONFIG_HOME: path.join(HOME, '.config'), XDG_DATA_HOME: path.join(HOME, '.local', 'share'), XDG_CACHE_HOME: path.join(HOME, '.cache'), XDG_STATE_HOME: path.join(HOME, '.local', 'state'),
   ...(process.platform === 'win32' ? { APPDATA: path.join(HOME, 'AppData', 'Roaming'), LOCALAPPDATA: path.join(HOME, 'AppData', 'Local') } : {}),
@@ -524,6 +525,10 @@ async function runPath(name) {
     assert.equal(d.ai.provider, 'claude'); assert.equal(d.ai.version, '9.9.9'); assert.equal(d.ai.installed, true); assert.equal(d.ai.signedIn, true);
     assert.equal(d.ai.compatibleOptions, false);
     assert.deepEqual(Object.keys(d.tools).sort(), ['git', 'latexmk', 'pdftotext', 'unzip']);
+    // the updates: codes only; app.version / app.commit are what the server loaded (nothing newer on disk here)
+    assert.deepEqual(Object.keys(d.update).sort(), ['auto', 'behind', 'disabled', 'lastCheck', 'reason', 'restartNeeded', 'supported']);
+    assert.equal(d.update.auto, false); assert.equal(d.update.disabled, true); assert.equal(d.update.restartNeeded, false); assert.ok(!('onDisk' in d.app));
+    assert.match(d.app.commit, /^([0-9a-f]{7})?$/);
     assert.equal(d.workspace, '<workspace>');
     for (const bad of [WS, TOP, REAL_HOME, os.homedir(), 'fake@example.invalid', 'bob.smith', '@example.com']) assert.ok(!s.includes(bad), 'leaks ' + bad + ': ' + s.slice(0, 600));
     assert.ok(!('account' in d.ai) && !/"email"|"account"/i.test(s), 'no account name');

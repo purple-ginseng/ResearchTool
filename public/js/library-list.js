@@ -87,17 +87,22 @@
 </dialog>`);
 
   // The icons drawn in every row (star, bookmark, key points) come from one hidden sprite: a row holds a short <use>
-  // instead of the whole drawing, which keeps a list of thousands of papers quick to draw.
+  // instead of the whole drawing, which keeps a list of thousands of papers quick to draw. The sprite is made from
+  // the icon set that is on (Preferences › General › Icon style) and made again when that changes; a hand-drawn icon
+  // is a filled outline (class sk on the row's svg: no stroke; its "on" body is shown by --ic-on in the CSS).
   const ROW_IC = {};
-  {
+  function buildRowIcons() {
     const syms = [];
     for (const n of ['star', 'bookmark', 'highlight']) {
       const svg = RT.icon(n), inner = svg.replace(/^<svg[^>]*>|<\/svg>$/g, '');
       syms.push(`<symbol id="ll-i-${n}" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">${inner}</symbol>`);
-      ROW_IC[n] = `<svg class="ic" aria-hidden="true" focusable="false"><use href="#ll-i-${n}"/></svg>`;
+      ROW_IC[n] = `<svg class="ic${RT.icon.sketched(n) ? ' sk' : ''}" aria-hidden="true" focusable="false"><use href="#ll-i-${n}"/></svg>`;
     }
+    const old = host.querySelector('.ll-sprite');
+    if (old) old.remove();
     host.insertAdjacentHTML('beforeend', `<svg class="ll-sprite" width="0" height="0" aria-hidden="true" focusable="false">${syms.join('')}</svg>`);
   }
+  buildRowIcons();
   let items = [];
   let groupBy = ['category', 'year', 'venue', 'status', 'project', 'none'].includes(ls.get('rt.lib.group')) ? ls.get('rt.lib.group') : 'category';
   let sortBy = ['added', 'opened', 'status', 'year', 'pubNew', 'pubOld', 'title'].includes(ls.get('rt.lib.sort')) ? ls.get('rt.lib.sort') : 'added';
@@ -563,7 +568,6 @@
 
   // a row: title (two lines), byline, one meta line (year · venue · pages · where the reading stopped · category), the
   // brief (Category grouping, when shown), then the small chips (no PDF, key points, cite key, up to 3 tags + N)
-  const KP_IC = ROW_IC.highlight;
   function metaBits(i) {
     const out = [];
     if (groupBy === 'venue') { const [text, tip] = venueBits(i); out.push(`<span class="vn" title="${esc(tip)}">${esc(text)}</span>`); }
@@ -586,7 +590,7 @@
     else if (i.categoryStatus === 'failed') state = `<span class="grp-failed" data-brand-keep title="${esc(i.categoryError || 'Grouping failed')}">${RT.icon('warning')}<span>Not grouped</span></span><button class="mini ib" data-retry="${esc(i.id)}" title="Retry grouping: ask Claude again" aria-label="Retry grouping">${RT.icon('refresh')}</button>`;
     const kp = (i.keypoints || []).length;
     const chips = (i.pdf ? '' : '<span class="badge nopdf" title="No PDF attached: open the paper to attach one">No PDF</span>')
-      + (kp ? `<span class="badge kp" title="Key points">${KP_IC}${kp}</span>` : '')
+      + (kp ? `<span class="badge kp" title="Key points">${ROW_IC.highlight}${kp}</span>` : '')
       + `<code>${esc(i.citekey)}</code>`
       + tags.slice(0, 3).map((t) => `<button class="tag${tagFilter && t.toLowerCase() === tagFilter.toLowerCase() ? ' on' : ''}" data-tag="${esc(t)}" title="Show only papers tagged “${esc(t)}”">${esc(t)}</button>`).join('')
       + (tags.length > 3 ? `<span class="tag more" title="${esc(tags.slice(3).join(', '))}">+${tags.length - 3}</span>` : '');
@@ -1534,6 +1538,8 @@
   RT.registerView({ id: 'library', title: 'Library', icon: 'library', order: 10, onDrop: (e) => { if (RT.state.view === 'library') dropped(e).catch((err) => toast(err.message, 'bad')); } });
 
   RT.on('library:changed', () => { if (!selfEmit) refresh().catch((e) => toast('Could not load the library: ' + e.message, 'bad')); });
+  // the icon set changed (Preferences › General › Icon style): the row sprite is of the other set now
+  RT.on('icons:style', () => { buildRowIcons(); renderList(); });
   // Group with Claude stays last in the Explore group, whatever the other modules appended after it
   RT.on('library:refreshed', () => { const sl = toolbarSlot('explore'), rg = $('#btn-regroup'); if (sl && rg && sl.lastElementChild !== rg) sl.append(rg); });
   RT.on('item:updated', () => { if (!selfEmit) renderList(); });  // an item object was edited in place (no refetch needed)

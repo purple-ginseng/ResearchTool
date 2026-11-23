@@ -1,6 +1,6 @@
 /* Help › Copy diagnostics (also in the ⌘K palette): a plain-text block for a bug report, copied to the clipboard.
    App version and commit, OS, Node, AI provider and its CLI's version / installed / signed-in state, the helper
-   programs (GET /api/diagnostics - lib/routes/diagnostics.js: no AI call, no user content, redacted on the server),
+   programs, the state of the updates (GET /api/diagnostics - lib/routes/diagnostics.js: no AI call, no user content, redacted on the server),
    plus what only the page knows: the browser, the display language and the last client errors (RT.errors, core.js).
    Redacted here too (public/js/redact.js): the workspace path is <workspace>, a home folder <home>, an e-mail address
    <email>, a key or token <secret>, and a quoted piece of a page error "<text>". When the
@@ -25,6 +25,8 @@
     const L = ['ResearchTool diagnostics (' + new Date().toISOString() + ')'];
     if (d) {
       L.push(`App version: ${d.app.version || 'unknown'}${d.app.commit ? ` (commit ${d.app.commit})` : ''}`);
+      // (what the server loaded when it started; after an update that waits for a restart the files on disk are newer)
+      if (d.app.onDisk) L.push(`App files on disk: ${d.app.onDisk.version || 'unknown'}${d.app.onDisk.commit ? ` (commit ${d.app.onDisk.commit})` : ''} - restart needed`);
       L.push(`OS: ${d.os.platform} ${d.os.release} (${d.os.arch})`);
       L.push(`Node: ${d.node}`);
     } else L.push(`Server details: not available (${quoted(failed)})`);
@@ -35,6 +37,9 @@
       L.push(`AI provider: ${a.name} (${a.bin}) - installed: ${yes(a.installed)}, version: ${a.version || 'unknown'}, signed in: ${yes(a.signedIn)}`
         + (a.compatibleOptions ? ', using the compatible option set (an older Claude Code)' : '') + (a.problem ? `, problem: ${a.problem}` : ''));
       L.push('Tools: ' + Object.entries(d.tools).map(([k, v]) => `${k} ${yes(v)}`).join(', '));
+      const u = d.update; // (an older server has none)
+      if (u) L.push(`Updates: automatic ${u.auto ? 'on' : 'off'}${u.disabled ? ', switched off by RT_NO_UPDATE' : ''}, can update: ${yes(u.supported)}${u.reason ? ` (${u.reason})` : ''}, behind: ${u.behind == null ? 'unknown' : u.behind}`
+        + `, last check: ${u.lastCheck ? `${u.lastCheck.when} ${u.lastCheck.result}` : 'never'}, restart needed: ${yes(u.restartNeeded)}`);
       L.push(`Workspace: ${d.workspace}`);
     }
     const ce = RT.errors ? RT.errors.list().slice(-20) : [];

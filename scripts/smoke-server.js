@@ -124,7 +124,8 @@ function check(name, ok, detail) {
   fakeClaude(bin, log);
   installFakes(bin, { names: ['codex', 'grok', 'agy'] });
   const home = path.join(top, 'home'); fs.mkdirSync(home, { recursive: true });
-  const env = { ...process.env, PORT: String(port), RT_WORKSPACE: ws, FAKE_AI_LOG: aiLog, FAKE_AI_STATE: 'ok', GEMINI_API_KEY: 'gm-fake-smoke', HOME: home, USERPROFILE: home, RT_NO_EXTRA_PATH: '1' };
+  const env = { ...process.env, PORT: String(port), RT_WORKSPACE: ws, FAKE_AI_LOG: aiLog, FAKE_AI_STATE: 'ok', GEMINI_API_KEY: 'gm-fake-smoke', HOME: home, USERPROFILE: home, RT_NO_EXTRA_PATH: '1',
+    RT_NO_UPDATE: '1' }; // this server runs from the real checkout: its updater is switched off (and no request here asks it to check)
   const pathKey = Object.keys(env).find((k) => k.toUpperCase() === 'PATH') || 'PATH';
   const helperDirs = linkHelpers(bin, env[pathKey], ['pdftotext', 'pdftoppm', 'pdfinfo', 'zip', 'unzip']); // (Windows: folders)
   const nodeDir = nodeOnlyDir(path.join(top, 'node')), guardLog = path.join(top, 'guard.jsonl');
@@ -165,6 +166,12 @@ function check(name, ok, detail) {
     check('GET / -> the app page with its Content-Security-Policy', page.status === 200 && /text\/html/.test(page.headers['content-type']) && /script-src 'self'/.test(page.headers['content-security-policy'] || '') && /<html/i.test(page.text));
     const js = await request(port, 'GET', '/js/core.js');
     check('GET /js/core.js -> a static script', js.status === 200 && /javascript/.test(js.headers['content-type']));
+    // the two icon sets the page loads (the hand-drawn one and the classic line icons); the old file name is gone
+    for (const [f, global] of [['icons-sketch.js', 'RT_ICON_SKETCH'], ['icons-classic.js', 'RT_ICON_DEFS']]) {
+      const r = await request(port, 'GET', '/js/' + f);
+      check(`GET /js/${f} -> the icon data the page names`, r.status === 200 && /javascript/.test(r.headers['content-type']) && r.text.includes('window.' + global + ' = ') && page.text.includes(`src="js/${f}"`), r.status);
+    }
+    check('GET /js/icons.js -> gone (renamed icons-classic.js)', (await request(port, 'GET', '/js/icons.js')).status === 404 && !page.text.includes('src="js/icons.js"'));
     for (const p of ['/../server.js', '/%2e%2e/server.js', '/..%5cserver.js', '/js/..%2f..%2fserver.js', '/.git/config']) {
       const r = await request(port, 'GET', p);
       check(`GET ${p} -> not served`, r.status !== 200 && !r.text.includes('createServer'), r.status + ' ' + r.text.slice(0, 100));
@@ -175,6 +182,7 @@ function check(name, ok, detail) {
     check('GET /api/library -> an empty library', lib.status === 200 && lib.json && Array.isArray(lib.json.items) && lib.json.items.length === 0, lib.text);
     const st = await request(port, 'GET', '/api/settings');
     check('GET /api/settings', st.status === 200 && st.json && typeof st.json === 'object', st.text);
+    check('the icon style is hand-drawn unless the workspace says otherwise', st.json && st.json.iconStyle === 'sketch', st.text.slice(0, 300));
     const pr = await request(port, 'GET', '/api/projects');
     check('GET /api/projects', pr.status === 200 && Array.isArray(pr.json && pr.json.projects), pr.text);
     const tools = await request(port, 'GET', '/api/fs/tools');
@@ -219,8 +227,31 @@ function check(name, ok, detail) {
     check('a cross-site API read -> 403', cross.status === 403);
     check('nothing was created by the refused requests', !fs.existsSync(path.join(ws, 'projects', 'nope')));
 
+    // ---------- updates of the app itself: only what asks nothing of git or the network (lib/update.js) ----------
+    const ups = await request(port, 'GET', '/api/update/status');
+    check('GET /api/update/status -> the running version, updates off by default and switched off by RT_NO_UPDATE, no path in it', ups.status === 200 && ups.json.auto === false && ups.json.disabled === true
+      && /^\d+\.\d+\.\d+/.test(ups.json.version) && ups.json.running.version === ups.json.version && ups.json.restartNeeded === false && ups.json.updated === null && ups.json.lastCheck === null
+      && ![ws, top, ROOT].some((x) => ups.text.includes(x)), ups.text.slice(0, 400));
+    const upNo = await request(port, 'POST', '/api/update/check', { body: {} });
+    check('POST /api/update/check without the X-RT header -> 403 (the gate, before the route)', upNo.status === 403 && /X-RT/.test(upNo.text), upNo.status + ' ' + upNo.text);
+    const upForeign = await request(port, 'POST', '/api/update/check', { body: { apply: true }, headers: { 'X-RT': '1', Origin: 'https://evil.example' } });
+    check('POST /api/update/check from another origin -> 403', upForeign.status === 403, upForeign.status + ' ' + upForeign.text);
+    const upBad = await request(port, 'POST', '/api/update/check', { body: { apply: 'yes' }, headers: { 'X-RT': '1' } });
+    check('POST /api/update/check {apply: "yes"} -> 400', upBad.status === 400 && /apply must be true or false/.test(upBad.text), upBad.status + ' ' + upBad.text);
+    const upSet = await request(port, 'PUT', '/api/settings', { body: { autoUpdate: 'yes' }, headers: { 'X-RT': '1' } });
+    check('PUT /api/settings {autoUpdate: "yes"} -> 400, and the setting stays off', upSet.status === 400 && /autoUpdate must be true or false/.test(upSet.text)
+      && (await request(port, 'GET', '/api/settings')).json.autoUpdate === false, upSet.status + ' ' + upSet.text);
+
     // ---------- a project: create, read a file, path checks, download as zip ----------
     const X = { 'X-RT': '1' };
+    // the icon style (Preferences > General): only the two names, kept in settings.json
+    const icBad = await request(port, 'PUT', '/api/settings', { body: { iconStyle: 'crayon' }, headers: X });
+    check('PUT /api/settings {iconStyle: crayon} -> 400', icBad.status === 400 && /iconStyle/.test(icBad.text), icBad.status + ' ' + icBad.text.slice(0, 200));
+    const icSet = await request(port, 'PUT', '/api/settings', { body: { iconStyle: 'classic' }, headers: X });
+    const icFile = JSON.parse(fs.readFileSync(path.join(ws, 'settings.json'), 'utf8'));
+    check('PUT /api/settings {iconStyle: classic} -> saved in settings.json', icSet.status === 200 && icSet.json.iconStyle === 'classic' && icFile.iconStyle === 'classic', icSet.text.slice(0, 200));
+    const icBack = await request(port, 'PUT', '/api/settings', { body: { iconStyle: 'sketch' }, headers: X });
+    check('... and back to hand-drawn', icBack.status === 200 && icBack.json.iconStyle === 'sketch', icBack.text.slice(0, 200));
     const made = await request(port, 'POST', '/api/projects', { body: { name: 'smoke', template: 'blank' }, headers: X });
     check('POST /api/projects (with X-RT) creates a project', made.status === 200 && made.json.project && made.json.project.id === 'smoke', made.text);
     const main = await request(port, 'GET', '/api/projects/smoke/file?path=main.tex');

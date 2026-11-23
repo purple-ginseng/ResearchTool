@@ -1,6 +1,6 @@
 {
   "name": "researchtool",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "Local research workspace: reference library, PDF reader and notes, LaTeX editor with live preview, optional AI panel (Claude Code, Codex, Grok Build or Antigravity)",
   "license": "MIT",
@@ -8,6 +8,7 @@
   "engines": {
     "node": ">=18"
   },
+  "updateEpoch": 1,
   "scripts": {
     "start": "node server.js"
   }

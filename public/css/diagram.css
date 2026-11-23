@@ -14,6 +14,7 @@
 .dg-form button { flex: none; }
 .dg-empty { height: auto; flex: 1; gap: 10px; align-content: center; line-height: 1.6; }
 .dg-empty .ic { width: 34px; height: 34px; opacity: .55; }
+.dg-empty .ic.sk { opacity: .85; } /* a hand-drawn mark (the finer 48 master, with its wash) is faded less */
 
 .dg-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
 .dg-head { max-width: 640px; margin: 0 auto 12px; }

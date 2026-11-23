@@ -130,7 +130,7 @@
 .grp.grp-pin:hover { background: var(--sel); }
 .grp-pin-ic, .grp-pj { display: inline-flex; flex: none; color: var(--accent); margin-top: 1px; }
 .grp-pin-ic .ic, .grp-pj .ic { width: 15px; height: 15px; }
-.grp-pj .ic { fill: currentColor; }
+.grp-pj .ic { fill: currentColor; --ic-on: 1; }
 .ll-divider { background: var(--panel); border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); margin-top: 6px; }
 .recent-wrap + .ll-divider, .proj-wrap + .ll-divider { margin-top: 10px; }
 
@@ -157,9 +157,9 @@ button.st:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, tr
 .item .star:hover { opacity: 1; color: var(--star); background: transparent; }
 .item .pj:hover { opacity: 1; color: var(--accent); background: transparent; }
 .item .star.on { opacity: 1; color: var(--star); }
-.item .star.on .ic { fill: currentColor; }
+.item .star.on .ic { fill: currentColor; --ic-on: 1; }
 .item .pj.on { opacity: 1; color: var(--accent); }
-.item .pj.on .ic { fill: currentColor; }
+.item .pj.on .ic { fill: currentColor; --ic-on: 1; }
 /* byline, meta line (year · venue · pages · …), brief, chips */
 .item .by { margin: 2px 0 0 18px; font: 400 12px/1.4 var(--font-body, inherit); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item .m { margin-left: 18px; color: var(--subtle); font: 400 11px/1.5 var(--font-meta, inherit); letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -238,7 +238,7 @@ body.dragging .list-pane { outline: 2px dashed var(--accent); outline-offset: -6
 .proj-chip[hidden] { display: none; }
 .proj-chip .ic { width: 13px; height: 13px; flex: none; }
 .proj-chip.on { color: var(--ink); background: var(--soft); }
-.proj-chip.on > .ic:first-child { color: var(--accent); fill: currentColor; }
+.proj-chip.on > .ic:first-child { color: var(--accent); fill: currentColor; --ic-on: 1; }
 .proj-chip .pc-lab { color: var(--muted); flex: none; }
 .proj-chip .pc-name { min-width: 0; max-width: 18ch; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .proj-chip .pc-caret { width: 12px; height: 12px; color: var(--subtle); }
@@ -256,7 +256,8 @@ body.dragging .list-pane { outline: 2px dashed var(--accent); outline-offset: -6
 #venue-bar .spin { margin-right: 0; }
 #venue-bar button.mini:not(.ib) { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
 
-/* the sprite of the row icons (library-list.js ROW_IC): drawn through <use>; the stroke comes from the .ic rules below */
+/* the sprite of the row icons (library-list.js ROW_IC): drawn through <use>. Classic icons: the stroke comes from the
+   .ic rules below. Hand-drawn icons (.ic.sk) are filled outlines: no stroke, and "on" shows their solid body */
 .ll-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
-.item .star .ic, .item .pj .ic, .item .tags .badge.kp .ic { fill: none; stroke: currentColor; stroke-width: 2; }
-.item .star.on .ic, .item .pj.on .ic { fill: currentColor; }
+.item .star .ic:not(.sk), .item .pj .ic:not(.sk), .item .tags .badge.kp .ic:not(.sk) { fill: none; stroke: currentColor; stroke-width: 2; }
+.item .star.on .ic, .item .pj.on .ic { fill: currentColor; --ic-on: 1; }

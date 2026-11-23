@@ -10,12 +10,17 @@
        rt.ui.theme  'system' | 'light' | 'dark' <html data-theme> overrides prefers-color-scheme
        rt.ui.startView 'library' | 'overview' | 'last'   the view the page opens on (read by core.js at boot)
        rt-auto-compile, rt-halt-on-error   the Write tab's compile options (read by write.js when the page loads)
+       rt.ui.icons  'sketch' | 'classic'  this browser's copy of the workspace setting iconStyle (settings.json, sent
+                    with PUT /api/settings; the icon set RT.icon draws): ui-boot.js reads it, so the first paint has
+                    the right icons, and it is corrected on load when the workspace says otherwise
      the workspace (settings.json through PUT /api/settings, the server uses them):
        draftLanguage ('zh' | 'en'), aiMode, teachStyle, autoCategorize, categoryLanguage, exportDir, backupDir,
-       backupAuto; the research lines through PUT /api/categories/lines
+       backupAuto, autoUpdate (the Updates part of General: its line and buttons are painted by update.js); the
+       research lines through PUT /api/categories/lines
 
    RT.prefs = { open(pane?), draftLanguage() -> 'zh' | 'en', setDraftLanguage(l) -> Promise, theme(), isDark() }
-   events: 'prefs:draftLanguage' (l), 'theme:changed' ({theme, dark}), 'prefs:saved' */
+   events: 'prefs:draftLanguage' (l), 'theme:changed' ({theme, dark}), 'prefs:saved'; RT.icon.setStyle emits
+   'icons:style' when the icon set changes */
 (() => {
   const { $, $$, api, toast, esc, icon, ls, flush } = RT;
 
@@ -38,6 +43,11 @@
     if (await RT.confirm('The display language changes when the page is reloaded.', { title: 'Display language', okText: 'Reload now' })) { await flush(); location.reload(); }
   }
 
+  // ---------------- the icon set (settings.json iconStyle; this browser's copy is rt.ui.icons) ----------------
+  // RT.icon.setStyle redraws every icon on the page at once, so nothing needs a reload
+  let savedIcons = icon.style();
+  function iconsSaved(style) { savedIcons = icon.styles.includes(style) ? style : icon.styles[0]; ls.set('rt.ui.icons', savedIcons); icon.setStyle(savedIcons); }
+
   // ---------------- the first-draft language (settings.json draftLanguage, cached for the reader) ----------------
   let draftLang = ls.get('rt.note.lang', 'zh') === 'en' ? 'en' : 'zh'; // until /api/settings answers: the old per-browser choice
   const draftLanguage = () => draftLang;
@@ -54,6 +64,7 @@
     if (!s.draftLanguageSet && (old === 'en' || old === 'zh')) { try { await api('/api/settings', { method: 'PUT', json: { draftLanguage: old } }); s.draftLanguage = old; } catch { /* stays the default */ } }
     if (old !== null) try { localStorage.removeItem('rt.note.lang'); } catch { /* no storage */ }
     setDraftCache(s.draftLanguage);
+    iconsSaved(s.iconStyle); // (another browser may have changed it: the copy of this one is put right)
   }).catch(() => {});
 
   // ---------------- the dialog ----------------
@@ -84,6 +95,12 @@
           <button type="button" role="radio" data-theme-pick="light" title="Always light">${icon('sun')}<span>Light</span></button>
           <button type="button" role="radio" data-theme-pick="dark" title="Always dark">${icon('moon')}<span>Dark</span></button>
         </div>
+        <h4>Icon style ${where(false)}</h4>
+        <p class="muted">How the icons are drawn: by hand with a fountain pen (the app's own set), or as plain lines of one weight.</p>
+        <div class="seg pf-seg" role="radiogroup" aria-label="Icon style" id="pref-icons">
+          <button type="button" role="radio" data-icons-pick="sketch" title="Hand-drawn icons: the app's own drawings, as if made with a fountain pen">${icon('library', { style: 'sketch' })}<span>Hand-drawn</span></button>
+          <button type="button" role="radio" data-icons-pick="classic" title="Classic icons: plain lines of one weight">${icon('library', { style: 'classic' })}<span>Classic</span></button>
+        </div>
         <h4>Start on ${where(true)}</h4>
         <p class="muted">The view the app opens on when the page is loaded.</p>
         <div class="seg pf-seg" role="radiogroup" aria-label="Start on" id="pref-start">
@@ -91,6 +108,11 @@
           <button type="button" role="radio" data-start-pick="overview" title="Open on the Overview">${icon('dashboard')}<span>Overview</span></button>
           <button type="button" role="radio" data-start-pick="last" title="Open on the view you used last">${icon('history')}<span>Last used</span></button>
         </div>
+        <h4>Updates ${where(false)}</h4>
+        <label class="set-check"><input type="checkbox" id="pref-auto-update"> Keep ResearchTool up to date automatically</label>
+        <p class="muted">When ticked, ResearchTool asks GitHub about once a day whether there is a newer version, and downloads and installs the new program code by itself, without asking each time. The request is anonymous: nothing about you, your library or your notes is sent, and your workspace and backups are never touched. After an update, restart ResearchTool to finish it. Off unless you tick it; “Check for updates now” and “Update now” work either way, and ask GitHub only when you press them.</p>
+        <p class="muted" id="update-state" role="status"></p>
+        <div class="set-row"><button id="update-check" type="button" title="Ask GitHub now whether there is a newer version. Nothing is installed.">Check for updates now</button><button id="update-apply" type="button" title="Download the newer version from GitHub and install it now. ResearchTool has to be restarted afterwards." hidden>Update now</button></div>
       </section>
 
       <section class="pf-pane" id="pf-pane-claude" role="tabpanel" aria-labelledby="pf-tab-claude" hidden>
@@ -160,7 +182,7 @@
 </dialog>`);
 
   const dlg = $('#dlg-settings');
-  let pickedTheme = theme(), pickedStart = startView();
+  let pickedTheme = theme(), pickedStart = startView(), pickedIcons = savedIcons;
   function showPane(id) {
     if (!PANES.some(([p]) => p === id)) id = 'general';
     for (const b of $$('.pf-nav [data-pane]', dlg)) { const on = b.dataset.pane === id; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; }
@@ -176,9 +198,12 @@
   });
   function markTheme(t) { pickedTheme = t; for (const b of $$('[data-theme-pick]', dlg)) { const on = b.dataset.themePick === t; b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); } }
   function markStart(v) { pickedStart = v; for (const b of $$('[data-start-pick]', dlg)) { const on = b.dataset.startPick === v; b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); } }
+  function markIcons(v) { pickedIcons = v; for (const b of $$('[data-icons-pick]', dlg)) { const on = b.dataset.iconsPick === v; b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); } }
+  const withIcons = (body) => ({ ...body, iconStyle: pickedIcons }); // what PUT /api/settings gets: settingsBody() and the icon style picked here
   $('#pref-start').addEventListener('click', (e) => { const b = e.target.closest('[data-start-pick]'); if (b) markStart(b.dataset.startPick); });
-  // a radio group: the arrow keys move the choice (theme and start view)
-  for (const g of [$('#pref-theme'), $('#pref-start')]) g.addEventListener('keydown', (e) => {
+  $('#pref-icons').addEventListener('click', (e) => { const b = e.target.closest('[data-icons-pick]'); if (b) { markIcons(b.dataset.iconsPick); icon.setStyle(pickedIcons); } }); // previewed at once, Cancel puts it back
+  // a radio group: the arrow keys move the choice (theme, icon style and start view)
+  for (const g of [$('#pref-theme'), $('#pref-icons'), $('#pref-start')]) g.addEventListener('keydown', (e) => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
     const bs = $$('[role=radio]', g), i = Math.max(0, bs.indexOf(document.activeElement)), n = bs[(i + (/Right|Down/.test(e.key) ? 1 : -1) + bs.length) % bs.length];
     e.preventDefault(); n.focus(); n.click();
@@ -195,12 +220,14 @@
       markTheme(theme()); markStart(startView());
       $('#pref-auto-compile').checked = ls.get('rt-auto-compile', '1') !== '0'; $('#pref-halt').checked = ls.get('rt-halt-on-error', '0') === '1';
       // the workspace
+      iconsSaved(s.iconStyle); markIcons(savedIcons);
       setDraftCache(s.draftLanguage); $('#pref-draft-lang').value = draftLang;
       $('#export-dir').value = s.exportDir; $('#ai-mode').value = s.aiMode || 'balanced';
       $('#teach-style').value = s.teachStyle || ''; $('#teach-reset').dataset.def = s.teachDefault || '';
       $('#pref-auto-cat').checked = s.autoCategorize !== false; $('#pref-cat-lang').value = s.categoryLanguage || 'auto';
       $('#backup-dir').value = s.backupDir || ''; $('#backup-auto').checked = s.backupAuto !== false;
       $('#backup-state').textContent = ''; if (RT.safety && RT.safety.backupState) RT.safety.backupState($('#backup-state'));
+      $('#pref-auto-update').checked = s.autoUpdate === true; if (RT.update && RT.update.show) RT.update.show(); // (not awaited: painted when the answer is there)
       $('#ai-usage').textContent = u.week && u.week.calls ? `AI features today: ${u.today.calls} calls, ${k(u.today.tokens)} tokens · last 7 days: ${u.week.calls} calls, ${k(u.week.tokens)} tokens` : 'No AI calls recorded yet.';
       // what each feature used in the last 7 days, and how long one of its calls takes on average
       const NAMES = { grouping: 'Grouping', brief: 'Briefs', 'key-points': 'Key points', ask: 'Explanations', translate: 'Translations', quiz: 'Quizzes', draft: 'Note drafts', diagram: 'Diagrams', 'diagram-explain': 'Diagram examples', chat: 'AI panel', rewrite: 'Rewrites in the editor', 'related-work': 'Related-work drafts', compare: 'Tables and questions across papers' };
@@ -220,12 +247,12 @@
       if (!dlg.open) dlg.showModal();
     } catch (e) { toast(e.message, 'bad'); }
   }
-  // closing without Save: a previewed theme goes back
-  dlg.addEventListener('close', () => { if (pickedTheme !== theme()) applyTheme(theme()); if (RT.ai && RT.ai.preview) RT.ai.preview(null); });
+  // closing without Save: a previewed theme or icon style goes back
+  dlg.addEventListener('close', () => { if (pickedTheme !== theme()) applyTheme(theme()); if (icon.style() !== savedIcons) icon.setStyle(savedIcons); if (RT.ai && RT.ai.preview) RT.ai.preview(null); });
   $('#set-cancel').addEventListener('click', () => dlg.close());
   $('#pf-close').addEventListener('click', () => dlg.close());
   $('#btn-settings').addEventListener('click', () => open());
-  $('#btn-settings').title = `Preferences: language, theme, start view, Claude, first-draft language, export folder, backup (${RT.modKey === 'Ctrl' ? 'Ctrl+' : '⌘'},)`;
+  $('#btn-settings').title = `Preferences: language, theme, icon style, start view, Claude, first-draft language, export folder, backup (${RT.modKey === 'Ctrl' ? 'Ctrl+' : '⌘'},)`;
   $('#btn-settings').setAttribute('aria-label', 'Preferences');
   document.addEventListener('keydown', (e) => {
     if (e.key === ',' && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && !document.querySelector('dialog[open]:not(#dlg-settings)')) { e.preventDefault(); if (!dlg.open) open(); }
@@ -316,7 +343,7 @@
   })();
 
   const settingsBody = () => ({ ...aiPane.body(), exportDir: $('#export-dir').value, aiMode: $('#ai-mode').value, teachStyle: $('#teach-style').value, backupDir: $('#backup-dir').value, backupAuto: $('#backup-auto').checked,
-    draftLanguage: $('#pref-draft-lang').value === 'en' ? 'en' : 'zh', autoCategorize: $('#pref-auto-cat').checked, categoryLanguage: $('#pref-cat-lang').value });
+    draftLanguage: $('#pref-draft-lang').value === 'en' ? 'en' : 'zh', autoCategorize: $('#pref-auto-cat').checked, categoryLanguage: $('#pref-cat-lang').value, autoUpdate: $('#pref-auto-update').checked });
   // the native folder chooser of macOS; when it is not available the path is typed
   $('#backup-pick').addEventListener('click', async (e) => {
     const b = e.currentTarget; b.disabled = true;
@@ -328,8 +355,8 @@
     const b = e.currentTarget, st = $('#backup-state');
     b.disabled = true; st.className = 'muted'; st.innerHTML = '<span class="spin"></span> Backing up…';
     try {
-      await api('/api/settings', { method: 'PUT', json: settingsBody() }); // the folder as it is typed now
-      setDraftCache(settingsBody().draftLanguage);
+      await api('/api/settings', { method: 'PUT', json: withIcons(settingsBody()) }); // the folder as it is typed now
+      setDraftCache(settingsBody().draftLanguage); iconsSaved(pickedIcons);
       const r = await api('/api/backup', { method: 'POST', json: {} });
       toast(`Backup made: ${r.snapshot.files} files in ${r.dir}`, 'ok');
       if (RT.safety && RT.safety.backupState) RT.safety.backupState(st, r);
@@ -340,11 +367,11 @@
   $('#lines-reset').addEventListener('click', (e) => { $('#research-lines').value = e.currentTarget.dataset.def || ''; });
   $('#set-ok').addEventListener('click', async () => {
     try {
-      const body = settingsBody();
+      const body = withIcons(settingsBody());
       await api('/api/settings', { method: 'PUT', json: body });
       if (RT.ai) RT.ai.refresh(); // the provider's name on buttons and messages, the panel mode
       await api('/api/categories/lines', { method: 'PUT', json: { lines: $('#research-lines').value } });
-      setDraftCache(body.draftLanguage);
+      setDraftCache(body.draftLanguage); iconsSaved(body.iconStyle);
       // this browser
       const h = !$('#pref-hints').checked ? 'off' : $('#pref-hint-delay').value === 'normal' ? 'normal' : 'fast';
       ls.set('rt.ui.hints', h); document.documentElement.dataset.hints = h; if (RT.tips) RT.tips.configure();

@@ -673,7 +673,7 @@
     // at the top of the pane, the button before the explanations: visible at any window size or zoom (the pane
     // scrolls when the text is longer than it)
     $('#lg-view').innerHTML = `<div class="lg-intro">
-      <div class="lg-intro-head">${RT.icon(I.lineage)}<p><b>Where ${n === 1 ? 'this paper comes' : 'these ' + (n ? num(n) + ' ' : '') + 'papers come'} from, and where the work went.</b></p></div>
+      <div class="lg-intro-head">${RT.icon(I.lineage, { duo: 'sketch' })}<p><b>Where ${n === 1 ? 'this paper comes' : 'these ' + (n ? num(n) + ' ' : '') + 'papers come'} from, and where the work went.</b></p></div>
       <div class="lg-intro-go"><button id="lg-go" class="accent">${RT.icon('search')} Look up the lineage</button>${est ? `<span class="muted lg-est">${esc(est)}</span>` : ''}</div>
       ${st.error ? `<div class="notice lg-bad">${esc(st.error)}</div>` : ''}
       <p><b>The history line</b> lays them out in time, one lane per research line, with an arrow from a paper to each later paper of yours that cites it. <b>Prior works</b> are the papers yours cite most - usually the seminal works the line builds on. <b>Derivative works</b> cite many of yours - surveys and the newest work of the line. (The same ideas as Connected Papers.)</p>

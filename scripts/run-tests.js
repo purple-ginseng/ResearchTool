@@ -21,7 +21,9 @@ function runOne(file) {
   return new Promise((resolve) => {
     const t0 = Date.now();
     let out = '';
-    const child = spawn(process.execPath, [path.join(DIR, file)], { cwd: path.join(DIR, '..'), stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+    // RT_NO_UPDATE=1: no test may make this checkout look for an update of itself (lib/update.js; test-update.js
+    // builds its own updaters on temporary repositories, which the variable does not reach)
+    const child = spawn(process.execPath, [path.join(DIR, file)], { cwd: path.join(DIR, '..'), env: { ...process.env, RT_NO_UPDATE: '1' }, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
     const timer = setTimeout(() => { out += `\n[run-tests: killed after ${TIMEOUT / 1000} s]\n`; child.kill('SIGKILL'); }, TIMEOUT);
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { out += d; });

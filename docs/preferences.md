@@ -139,6 +139,10 @@ public/js/prefs.js     the Preferences dialog (#dlg-settings, it replaces the Se
                        AI, Library & files, Write; RT.prefs = {open(pane), draftLanguage(), setDraftLanguage(l),
                        theme(), isDark()}; events 'theme:changed', 'prefs:draftLanguage', 'prefs:saved'
 public/js/tips.js      fast hover / focus hints (RT.tips = {configure, hide}; data-no-tip turns one off)
+public/js/update.js    the Updates part of the General pane (the line #update-state, the buttons #update-check and
+                       #update-apply), the "restart to finish" banner (update-restart) and the "reload this page"
+                       banner after the restart (update-reload); RT.update = {status(local), check(apply), show(),
+                       sentence(r)}. The checkbox #pref-auto-update itself is prefs.js (saved with Save).
 public/css/prefs.css   the dialog and the data-theme light / dark overrides
 public/css/tips.css    the hint
 ```
@@ -150,7 +154,50 @@ Storage: per browser (localStorage) `rt.ui.lang` (en | zh), `rt.ui.hints` (fast 
 In the workspace (settings.json, PUT /api/settings): `draftLanguage` ('zh' | 'en', 'zh' when absent; anything else is a
 400). POST /api/items/:id/note/draft and /note/ask use it when the request gives no language (lib/notes.js
 pickLanguage); the reader sends the cached value of RT.prefs.draftLanguage(), and its "Draft language" select edits the
-same setting.
+same setting. `autoUpdate` (only `true` when "Keep ResearchTool up to date automatically" is ticked; absent means
+off; anything but true / false is a 400) switches the app's own updates on (lib/update.js). It is the only thing
+about updates that settings.json holds - the address, the branch and the interval are constants of the code - and
+a backup restore keeps the value of this computer (lib/backup.js), like the backup folder.
+
+The General pane ends with **Updates** (badge "Workspace"): the checkbox, one paragraph saying plainly what ticking
+it means (new program code is downloaded and installed without asking each time; an anonymous request to
+github.com; the workspace and backups are never touched), a status line and two buttons. The line is painted by
+update.js from GET /api/update/status?local=1 when the dialog opens (not awaited: the dialog opens first): the
+version and commit on disk, the time of the last check, and one sentence - "ResearchTool is up to date.", "A newer
+version is available: v… (…)." (then "Update now" shows), the restart sentence, or why this copy cannot update
+itself. The server sends a reason code; the sentences are in update.js (WHY, sentence()), so the Chinese dictionary
+covers them (zh-dialogs.js). "Check for updates now" does not save the dialog and works with the box unticked: POST
+/api/update/check {} - "Update now" sends {apply: true}. Both ask github.com: "Update now" pressed within a minute
+of the check installs the commit that was shown without a second request, later it fetches again first (the
+paragraph and the button's hint say so). A sentence is red when it stands in the way of what was asked (the box
+is ticked, or a button was just pressed), muted otherwise.
+
+After a restart the server knows of the last check only its time, outcome and reason code (cache/update.json), so
+the line falls back to that record: "A newer version was found at the last check. Press “Check for updates now” to
+see it." (no "Update now": the commit is not known any more), the sentence of a failed check that was not about
+the folder itself (offline, diverged ...), or "ResearchTool is up to date." after an update. A recorded reason
+about the folder (a changed file, another branch, a lock, the settings in .git - the set LOCAL in update.js) is
+not repeated: the look just made (?local=1) answers that afresh.
+
+The banner: `update-restart` while GET /api/update/status says restartNeeded (the text is "was updated to vX
+(commit)" only when this server installed it or the commit on disk differs from the running one; the "interrupted"
+sentence, tone warn, when a fast-forward stopped half way; the neutral "files are newer" sentence otherwise). While
+it shows, the status is asked every 20 seconds; when restartNeeded is false again the banner is removed, and if the
+running version is not the one this page was loaded from, `update-reload` ("ResearchTool was restarted with another
+version. Reload this page to use it.", button "Reload now") takes its place.
 
 Not covered yet: the note editor (Vditor) keeps the language it was created with until the note is opened again; a
 change of the Write compile options applies after a reload.
+
+## Icon style (Hand-drawn / Classic)
+
+Preferences › General › Icon style chooses the icon set `RT.icon` draws: **Hand-drawn** (the default; the app's own
+pen drawings, `public/js/icons-sketch.js`) or **Classic** (the Ginseng line icons, `public/js/icons-classic.js`).
+
+- Stored in the workspace: `settings.json` `iconStyle`, `'sketch'` (also when absent or unknown) or `'classic'`;
+  `PUT /api/settings {iconStyle}` refuses anything else with 400.
+- This browser keeps a copy in `localStorage['rt.ui.icons']`; `ui-boot.js` puts it on `<html data-icons>` before the
+  first paint, and `prefs.js` corrects it when `GET /api/settings` says otherwise (another browser changed it).
+- A click in the dialog previews the set at once (`RT.icon.setStyle`), Cancel or Esc puts the saved one back, Save
+  keeps it. Nothing is reloaded: every icon on the page is redrawn in place.
+- The strings ("Icon style", "Hand-drawn", "Classic" and the two hints) are in `public/js/i18n/zh-dialogs.js`.
