@@ -180,7 +180,11 @@ async function codex() {
     const wr = a.find((x) => x.startsWith('sandbox_workspace_write.writable_roots='));
     if (wr) { try { roots.push(...JSON.parse(wr.slice(wr.indexOf('=') + 1))); } catch { log({ forbidden: 'writable_roots is not a TOML array of basic strings: ' + wr }); return 97; } }
     // (the realpath of the nearest folder that exists: a file in a folder still to be made)
-    const real = (p) => { let rest = ''; p = path.resolve(p); for (;;) { try { return path.join(fs.realpathSync(p), rest); } catch { const up = path.dirname(p); if (up === p) return path.join(p, rest); rest = path.join(path.basename(p), rest); p = up; } } };
+    // (Windows: the native realpath, which expands 8.3 short names such as RUNNER~1 as the app's does; compared
+    // without regard to case, as the file system does)
+    const rp = process.platform === 'win32' ? fs.realpathSync.native : fs.realpathSync;
+    const fold = (p) => (process.platform === 'win32' ? p.toLowerCase() : p);
+    const real = (p) => { let rest = ''; p = path.resolve(p); for (;;) { try { return fold(path.join(rp(p), rest)); } catch { const up = path.dirname(p); if (up === p) return fold(path.join(p, rest)); rest = path.join(path.basename(p), rest); p = up; } } };
     const wrote = [];
     for (const target of targets) {
       const t = real(target);

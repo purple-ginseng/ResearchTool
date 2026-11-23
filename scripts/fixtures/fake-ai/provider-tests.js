@@ -18,7 +18,7 @@ async function run(h) {
   const agy = require('../../../lib/ai/providers/antigravity');
   const OTHERS = ['codex', 'grok', 'antigravity'];
   const TMP = ai.TMP_ROOT;
-  const real = (d) => { try { return fs.realpathSync(d); } catch { return d; } };
+  const real = (d) => { try { return plat.realpath(d); } catch { return d; } }; // (Windows: the native realpath, as the app's)
   // other secrets of the server's environment: never passed on to codex / grok / agy (only Claude keeps the
   // environment it always had - the golden above)
   const OTHER = { GROK_CODE_XAI_API_KEY: 'g-fake', CURSOR_API_KEY: 'c-fake', GROK_AUTH_PROVIDER_COMMAND: '/bin/false', GATEWAY_API_KEY: 'gw-fake', AWS_SECRET_ACCESS_KEY: 'aws-fake',
@@ -465,10 +465,10 @@ async function run(h) {
       const file = path.join(ext.path, 'main.tex'); process.env.FAKE_AI_WRITE = file;
       clearLog(); await panel(ext);
       let c = lastCodex();
-      assert.deepEqual(roots(c), [ext.path, NOTES]); assert.equal(c.wrote, file, JSON.stringify(c.roots));
+      assert.deepEqual(roots(c), [real(ext.path), NOTES]); assert.equal(c.wrote, file, JSON.stringify(c.roots));
       clearLog(); await panel(ext, SID);
       c = lastCodex();
-      assert.ok(c.argv.includes(`sandbox_workspace_write.writable_roots=[${codexP.tomlStr(ext.path)}, ${codexP.tomlStr(NOTES)}]`) && !c.argv.includes('--add-dir'), c.argv.join(' '));
+      assert.ok(c.argv.includes(`sandbox_workspace_write.writable_roots=[${codexP.tomlStr(real(ext.path))}, ${codexP.tomlStr(NOTES)}]`) && !c.argv.includes('--add-dir'), c.argv.join(' '));
       assert.equal(c.wrote, file, JSON.stringify(c.roots));
       const vs = versions(ext);
       assert.ok(vs.filter((v) => v.source === 'claude' && v.by === 'codex').length === 2 && vs.some((v) => v.source === 'baseline'), JSON.stringify(vs));
