@@ -2,7 +2,9 @@
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 async function run(h) {
   const { test, PATHS, runPath, settings, readLog, clearLog, WS, BIN, A, route, core } = h;
@@ -305,6 +307,307 @@ async function run(h) {
     assert.ok(!featureCalls(readLog())[0].argv.some((x) => /cli_auth|evil/.test(x)), 'an odd value is not passed');
     fs.rmSync(path.join(process.env.CODEX_HOME, 'config.toml'));
   });
+  // ================= "Let Codex edit files": the opt-in write mode of the Codex panel =================
+  const codexP = require('../../../lib/ai/providers/codex');
+  const routeClaude = require('../../../lib/routes/claude');
+  const BASE = ['--json', '--skip-git-repo-check', '--ignore-user-config', '--ignore-rules'];
+  const SAFE = ['-c', 'web_search="disabled"', '-c', 'shell_environment_policy.inherit="core"'];
+  const WSAFE = ['-c', 'approval_policy="never"', '-c', 'sandbox_workspace_write.network_access=false', '-c', 'sandbox_workspace_write.exclude_slash_tmp=true', '-c', 'sandbox_workspace_write.exclude_tmpdir_env_var=true'];
+  const SID = '11111111-2222-4333-8444-555555555555';
+  await test('codex argv, read-only (not opted in): exactly as before the write mode (golden), with or without write: false', () => {
+    const ws = path.join(h.TOP, 'ws-x');
+    const chat = ['exec', ...BASE, '-s', 'read-only', '-C', ws, ...SAFE, '-'];
+    const resume = ['exec', 'resume', SID, ...BASE, '-c', 'sandbox_mode="read-only"', ...SAFE, '-'];
+    const feature = ['exec', '--json', '--ephemeral', '--skip-git-repo-check', '--ignore-user-config', '--ignore-rules', '-s', 'read-only', '-C', ws, ...SAFE,
+      '-c', 'features.shell_tool=false', '-c', 'features.unified_exec=false', '-m', 'gpt-fake', '-c', 'model_reasoning_effort="low"', '-'];
+    for (const o of [{}, { write: false }, { write: undefined, addDirs: ['/ext/proj'] }]) {
+      assert.deepEqual(codexP.args({ mode: 'chat', cwd: ws, ...o }), chat, JSON.stringify(o));
+      assert.deepEqual(codexP.args({ mode: 'chat', cwd: ws, session: SID, ...o }), resume, JSON.stringify(o));
+    }
+    // a feature call never writes, whatever it is handed
+    for (const write of [false, true]) assert.deepEqual(codexP.args({ mode: 'feature', cwd: ws, model: 'gpt-fake', effort: 'low', write, addDirs: ['/ext/proj'] }), feature);
+  });
+  await test('codex argv, write mode: workspace-write, approvals never, no network, no /tmp or $TMPDIR; an external project writable', () => {
+    const ws = path.join(h.TOP, 'ws-x');
+    assert.deepEqual(codexP.args({ mode: 'chat', cwd: ws, write: true }), ['exec', ...BASE, '-s', 'workspace-write', '-C', ws, ...SAFE, ...WSAFE, '-']);
+    assert.deepEqual(codexP.args({ mode: 'chat', cwd: ws, write: true, session: SID, model: 'gpt-fake' }),
+      ['exec', 'resume', SID, ...BASE, '-c', 'sandbox_mode="workspace-write"', ...SAFE, ...WSAFE, '-m', 'gpt-fake', '-']);
+    // the external project: --add-dir for a new chat (exec has it), the writable_roots key for a resume (it has none)
+    assert.deepEqual(codexP.args({ mode: 'chat', cwd: ws, write: true, addDirs: ['/Users/x/My Paper'] }), ['exec', ...BASE, '-s', 'workspace-write', '-C', ws, ...SAFE, ...WSAFE, '--add-dir', '/Users/x/My Paper', '-']);
+    assert.deepEqual(codexP.args({ mode: 'chat', cwd: ws, write: true, session: SID, addDirs: ['/Users/x/My Paper'] }),
+      ['exec', 'resume', SID, ...BASE, '-c', 'sandbox_mode="workspace-write"', ...SAFE, ...WSAFE, '-c', 'sandbox_workspace_write.writable_roots=["/Users/x/My Paper"]', '-']);
+    // a Windows path keeps its backslashes, a quote is escaped: a TOML basic string (and JSON reads it the same)
+    const win = 'C:\\Users\\a "b"\\proj';
+    assert.equal(codexP.tomlStr(win), '"C:\\\\Users\\\\a \\"b\\"\\\\proj"');
+    assert.equal(JSON.parse(codexP.tomlStr(win)), win);
+    const odd = path.join(path.parse(ws).root, 'x "q"', 'back\\slash', 'p'); // (absolute on this OS)
+    const a = codexP.args({ mode: 'chat', cwd: ws, write: true, session: SID, addDirs: [odd, 'relative/never'] });
+    const wr = a.find((x) => x.startsWith('sandbox_workspace_write.writable_roots='));
+    assert.equal(wr, `sandbox_workspace_write.writable_roots=[${codexP.tomlStr(odd)}]`);
+    assert.deepEqual(JSON.parse(wr.slice(wr.indexOf('=') + 1)), [odd], 'only absolute folders, the value read back unchanged');
+    assert.equal(codexP.tomlStr('a\nb\u0001'), '"a\\u000ab\\u0001"');
+    // never anything that widens it
+    for (const x of [a, codexP.args({ mode: 'chat', cwd: ws, write: true })]) assert.ok(!x.some((y) => /danger|network_access=true|--approve-for-me|--trust|--dangerously/.test(y)), x.join(' '));
+  });
+  await test('aiPanelEdits: booleans only, only for a provider that supports it (Codex); Grok, Antigravity and Claude are refused', async () => {
+    let r = await route(routeLibrary, 'PUT', '/api/settings', { aiPanelEdits: { codex: true } });
+    assert.equal(r.code, 200, JSON.stringify(r)); assert.deepEqual(core.readJSON(core.SETTINGS_FILE, {}).aiPanelEdits, { codex: true });
+    for (const bad of [{ aiPanelEdits: { codex: 'yes' } }, { aiPanelEdits: { codex: 1 } }, { aiPanelEdits: { grok: true } }, { aiPanelEdits: { antigravity: true } }, { aiPanelEdits: { claude: true } },
+      { aiPanelEdits: { gemini: true } }, { aiPanelEdits: [true] }, { aiPanelEdits: null }, { aiPanelEdits: true }]) {
+      r = await route(routeLibrary, 'PUT', '/api/settings', bad); assert.equal(r.code, 400, JSON.stringify(bad) + ' -> ' + JSON.stringify(r));
+    }
+    assert.deepEqual(core.readJSON(core.SETTINGS_FILE, {}).aiPanelEdits, { codex: true }, 'a refused body changes nothing');
+    r = await route(routeLibrary, 'PUT', '/api/settings', { aiPanelEdits: { codex: false } });
+    assert.equal(r.code, 200); assert.ok(!('aiPanelEdits' in core.readJSON(core.SETTINGS_FILE, {})), 'off leaves no key behind');
+    // a hand-edited settings.json with a non-boolean or an unsupported provider is no opt-in
+    for (const v of [{ codex: 'true' }, { codex: 1 }, { grok: true }, 'codex']) { settings({ aiProvider: 'codex', aiPanelEdits: v }); assert.equal(ai.panelEdits('codex'), false, JSON.stringify(v)); assert.equal(ai.caps().agentic, false); }
+    settings({ aiProvider: 'grok', aiPanelEdits: { grok: true } }); assert.equal(ai.caps().agentic, false); assert.equal(ai.panelWrites(), false);
+    settings({ aiProvider: undefined, aiPanelEdits: undefined });
+  });
+  await test('ai.caps() and /api/ai/providers follow the opt-in: agentic for Codex only when ticked; Grok and Antigravity never', async () => {
+    const prov = async () => (await route(routeAi, 'GET', '/api/ai/providers')).data.providers;
+    settings({ aiProvider: 'codex', aiPanelEdits: undefined });
+    assert.equal(ai.caps().agentic, false); assert.equal(ai.panelWrites(), false);
+    let ps = await prov(), c = ps.find((p) => p.id === 'codex');
+    assert.equal(c.caps.agentic, false); assert.equal(c.panelWrite, true); assert.equal(c.panelEdits, false);
+    for (const id of ['grok', 'antigravity']) { const p = ps.find((x) => x.id === id); assert.equal(p.panelWrite, false); assert.equal(p.panelEdits, false); assert.equal(p.caps.agentic, false); }
+    settings({ aiPanelEdits: { codex: true } });
+    assert.equal(ai.caps().agentic, true); assert.equal(ai.panelWrites(), true);
+    ps = await prov(); c = ps.find((p) => p.id === 'codex');
+    assert.equal(c.caps.agentic, true); assert.equal(c.panelEdits, true); assert.equal(c.caps.readsPdf, false, 'the other capabilities stay');
+    assert.equal(ai.PROVIDERS.codex.caps.agentic, false, 'the provider module itself is not changed');
+    // another provider chosen: the Codex opt-in does not carry over; Claude stays agentic
+    settings({ aiProvider: 'grok' }); assert.equal(ai.caps().agentic, false); assert.equal(ai.panelWrites(), false);
+    settings({ aiProvider: undefined }); assert.equal(ai.caps().agentic, true); assert.equal(ai.panelWrites(), false, 'Claude: its own panel, no write mode');
+    settings({ aiPanelEdits: undefined });
+  });
+
+  // a LaTeX project the fake codex edits (FAKE_AI_WRITE), inside the workspace and outside it
+  const proj = core.P.create('CodexEdit', { template: 'blank' });
+  const extDir = path.join(h.TOP, 'ext-codex-proj'); fs.mkdirSync(extDir, { recursive: true });
+  fs.writeFileSync(path.join(extDir, 'main.tex'), '\\documentclass{article}\\begin{document}External\\end{document}\n');
+  const ext = core.P.openFolder(extDir);
+  const routeProjects = require('../../../lib/routes/projects');
+  const versions = (p, file = 'main.tex') => core.H.list(p.id, file, 100);
+  const panel = (p, sessionId, extra = {}) => route(routeClaude, 'POST', '/api/claude', { prompt: 'Fix the title SENTINEL-w', ...(sessionId ? { sessionId } : {}), context: { projectId: p.id, file: 'main.tex' }, ...extra });
+  const backups = () => { try { return fs.readdirSync(path.join(WS, 'backups')).filter((n) => /^library-\d.*\.json$/.test(n)).sort(); } catch { return []; } };
+  const lastCodex = () => featureCalls(readLog()).filter((c) => c.p === 'codex').pop();
+  const NOTES = real(path.join(WS, 'notes'));
+  const roots = (c) => { const r = []; c.argv.forEach((x, i) => { if (x === '--add-dir') r.push(c.argv[i + 1]); }); return r; };
+  const holdFile = path.join(h.TOP, 'hold-codex');
+  const settle = (ms) => new Promise((r) => setTimeout(r, ms));
+  // a panel run that waits (FAKE_AI_HOLD) until `during()` has looked at the app and changed files
+  async function heldPanel(p, during) {
+    fs.rmSync(holdFile, { force: true }); process.env.FAKE_AI_HOLD = holdFile; clearLog();
+    const run = panel(p);
+    let failed = null; // (the run is always waited for, so that a failed check leaves nothing going for the next test)
+    try {
+      for (let i = 0; i < 400 && !lastCodex(); i++) await settle(25);
+      assert.ok(lastCodex(), 'the fake codex was started');
+      await during();
+    } catch (e) { failed = e; } finally { fs.writeFileSync(holdFile, ''); }
+    const r = await run; delete process.env.FAKE_AI_HOLD; fs.rmSync(holdFile, { force: true });
+    if (failed) throw failed;
+    return r;
+  }
+  try {
+    await test('codex write mode, a project in the workspace: the file is changed, the history keeps a baseline and a version by codex', async () => {
+      settings({ aiProvider: 'codex', aiPanelEdits: { codex: true } }); state('ok');
+      const file = path.join(proj.path, 'main.tex'), before = fs.readFileSync(file, 'utf8');
+      process.env.FAKE_AI_WRITE = file; clearLog();
+      fs.rmSync(path.join(WS, 'backups'), { recursive: true, force: true });
+      const r = await panel(proj);
+      const done = (r.events || []).find((e) => e.type === 'done');
+      assert.ok(done && !done.isError, JSON.stringify(r.events).slice(0, 500));
+      const c = lastCodex();
+      assert.equal(c.wrote, file, 'the fake wrote the file: ' + JSON.stringify(c.roots));
+      assert.equal(c.argv[c.argv.indexOf('-s') + 1], 'workspace-write');
+      // its own empty folder (outside the workspace) is the -C folder; the project and the notes are the added ones
+      assert.equal(real(c.argv[c.argv.indexOf('-C') + 1]), real(ai.WRITE_PANEL_DIR)); assert.equal(real(c.cwd), real(ai.WRITE_PANEL_DIR));
+      assert.deepEqual(roots(c), [real(proj.path), NOTES]);
+      assert.ok(c.stdin.includes(ai.WRITE_NOTE) && c.stdin.includes('Edit the project files in place') && !/read-only sandbox/.test(c.stdin), 'the write note instead of the read-only note');
+      assert.ok(c.stdin.includes(`relative to the workspace folder ${WS}`) || !c.stdin.includes('relative to the folder you run in'), 'paths are named relative to the workspace');
+      assert.ok((r.events || []).some((e) => e.type === 'tool' && e.name === 'Edit'), 'the edit is shown in the panel');
+      assert.equal(fs.readFileSync(file, 'utf8'), before + '% edited by fake codex\n');
+      const vs = versions(proj);
+      assert.equal(vs.length, 2, JSON.stringify(vs)); assert.equal(vs[0].source, 'claude'); assert.equal(vs[0].by, 'codex'); assert.equal(vs[1].source, 'baseline');
+      assert.equal(core.claudeActive.get(proj.id), undefined, 'the run is over'); assert.equal(core.aiActiveBy.get(proj.id), undefined);
+      // library.json was copied right before the run (Codex has a shell)
+      const b = backups(); assert.ok(b.length >= 1, 'a library copy'); assert.ok(fs.readFileSync(path.join(WS, 'backups', b[b.length - 1])).equals(fs.readFileSync(core.LIB_FILE)));
+      const n = b.length; await panel(proj); assert.equal(backups().length, n, 'not a second identical copy');
+      // the resumed conversation keeps the write mode: sandbox_mode and the writable roots as config keys (resume takes
+      // no -s / -C / --add-dir) and runs in the same empty folder
+      clearLog(); const r2 = await panel(proj, SID);
+      assert.ok((r2.events || []).some((e) => e.type === 'done' && !e.isError));
+      const c2 = lastCodex(); assert.equal(c2.argv[1], 'resume'); assert.ok(c2.argv.includes('sandbox_mode="workspace-write"') && !c2.argv.includes('-s') && c2.wrote === file, c2.argv.join(' '));
+      assert.ok(c2.argv.includes(`sandbox_workspace_write.writable_roots=[${codexP.tomlStr(real(proj.path))}, ${codexP.tomlStr(NOTES)}]`), c2.argv.join(' '));
+      assert.equal(real(c2.cwd), real(ai.WRITE_PANEL_DIR));
+      assert.ok(versions(proj).filter((v) => v.by === 'codex').length >= 2);
+    });
+    await test('codex write mode: the workspace is never writable - settings.json, library.json, history, backups and its agent files stay as they are', async () => {
+      settings({ aiProvider: 'codex', aiPanelEdits: { codex: true } });
+      fs.mkdirSync(path.join(WS, 'backups'), { recursive: true });
+      const hist = core.H.dir(proj.id); fs.mkdirSync(hist, { recursive: true });
+      const targets = [core.SETTINGS_FILE, core.LIB_FILE, path.join(WS, 'backups', 'library-x.json'), path.join(hist, 'planted.json'), path.join(WS, 'CLAUDE.md'), path.join(WS, 'AGENTS.md'), path.join(WS, '.claude', 'settings.json'), path.join(WS, '.mcp.json')];
+      const before = targets.map((f) => (fs.existsSync(f) ? fs.readFileSync(f) : null));
+      for (const [i, sid] of [[0, null], [1, SID]]) {
+        process.env.FAKE_AI_WRITE = [path.join(proj.path, 'main.tex'), ...targets].join(path.delimiter); clearLog();
+        const r = await panel(proj, sid);
+        assert.ok((r.events || []).some((e) => e.type === 'done' && !e.isError), i + JSON.stringify(r).slice(0, 300));
+        const c = lastCodex();
+        assert.deepEqual(c.wroteAll, [path.join(proj.path, 'main.tex')], 'only the project file: ' + JSON.stringify(c.roots));
+        for (const r0 of c.roots) assert.ok(!core.plat.insideAnyCase(real(r0), real(WS)), 'never the workspace or a folder that holds it: ' + r0);
+      }
+      targets.forEach((f, i) => assert.deepEqual(fs.existsSync(f) ? fs.readFileSync(f) : null, before[i], f));
+    });
+    await test('codex write mode, an external project: --add-dir for a new chat, writable_roots for a resume; versions by codex', async () => {
+      settings({ aiProvider: 'codex', aiPanelEdits: { codex: true } });
+      const file = path.join(ext.path, 'main.tex'); process.env.FAKE_AI_WRITE = file;
+      clearLog(); await panel(ext);
+      let c = lastCodex();
+      assert.deepEqual(roots(c), [ext.path, NOTES]); assert.equal(c.wrote, file, JSON.stringify(c.roots));
+      clearLog(); await panel(ext, SID);
+      c = lastCodex();
+      assert.ok(c.argv.includes(`sandbox_workspace_write.writable_roots=[${codexP.tomlStr(ext.path)}, ${codexP.tomlStr(NOTES)}]`) && !c.argv.includes('--add-dir'), c.argv.join(' '));
+      assert.equal(c.wrote, file, JSON.stringify(c.roots));
+      const vs = versions(ext);
+      assert.ok(vs.filter((v) => v.source === 'claude' && v.by === 'codex').length === 2 && vs.some((v) => v.source === 'baseline'), JSON.stringify(vs));
+      // a file outside every writable root is not written (the fake sandbox, like the real one)
+      process.env.FAKE_AI_WRITE = path.join(h.TOP, 'outside.tex'); fs.writeFileSync(process.env.FAKE_AI_WRITE, 'x\n');
+      clearLog(); await panel(ext); assert.equal(lastCodex().wrote, null); assert.equal(fs.readFileSync(process.env.FAKE_AI_WRITE, 'utf8'), 'x\n');
+    });
+    await test('an external project whose settings.json entry was changed is never handed to the AI (home, disk, workspace, another folder)', async () => {
+      const saved = core.readJSON(core.SETTINGS_FILE, {}).externalProjects;
+      const idOf = (p) => 'ext-' + crypto.createHash('sha1').update(real(p)).digest('hex').slice(0, 10);
+      const other = path.join(h.TOP, 'other-folder'); fs.mkdirSync(other, { recursive: true });
+      const homeId = idOf(os.homedir());
+      const cases = [
+        ['the path of an existing entry changed (same id)', saved.map((e) => (e.id === ext.id ? { ...e, path: other } : e)), ext.id],
+        ['the home folder, with the id it would get', [...saved, { id: homeId, path: os.homedir() }], homeId],
+        ['a folder that holds the workspace', [...saved, { id: idOf(h.TOP), path: h.TOP }], idOf(h.TOP)],
+        ['the workspace itself', [...saved, { id: idOf(WS), path: WS }], idOf(WS)],
+        ['a folder inside the workspace', [...saved, { id: idOf(path.join(WS, 'history')), path: path.join(WS, 'history') }], idOf(path.join(WS, 'history'))],
+      ];
+      try {
+        for (const provider of ['codex', undefined, 'grok']) {
+          settings({ aiProvider: provider, aiPanelEdits: { codex: true } });
+          for (const [what, list, id] of cases) {
+            settings({ externalProjects: list }); clearLog();
+            const p = core.P.get(id);
+            const r = await route(routeClaude, 'POST', '/api/claude', { prompt: 'x SENTINEL-w', context: { projectId: id } });
+            assert.equal(r.code, 409, `${provider || 'claude'}: ${what}: ${JSON.stringify(r).slice(0, 300)}`);
+            assert.match(String((r.data || (r.events || [])[0] || {}).error), /cannot be given to the AI/); // (core.send: the JSON body)
+            assert.equal(readLog().filter((c) => c.argv[0] !== '--version').length, 0, 'no CLI was started: ' + what);
+            assert.ok(p.path, what);
+          }
+        }
+        // the entry as openFolder made it is fine
+        settings({ externalProjects: saved, aiProvider: 'codex' }); clearLog();
+        const r = await panel(ext); assert.ok((r.events || []).some((e) => e.type === 'done'), JSON.stringify(r).slice(0, 300));
+        assert.equal(core.P.aiRoot(ext), real(ext.path)); assert.equal(core.P.aiRoot(proj), real(proj.path));
+        // (the disk root, checked directly: listing it as a project would walk the whole disk)
+        const root = path.parse(WS).root;
+        assert.throws(() => core.P.aiRoot({ id: idOf(root), name: 'root', path: root, external: true }), /home folder, a folder that holds it, or a whole disk/);
+        assert.throws(() => core.P.aiRoot({ id: proj.id, name: 'x', path: extDir, external: false }), /projects folder/);
+      } finally { settings({ externalProjects: saved, aiProvider: undefined }); }
+    });
+    await test('codex write mode: agent files it plants or changes in the project and the notes go back as they were', async () => {
+      settings({ aiProvider: 'codex', aiPanelEdits: { codex: true } });
+      const keep = path.join(proj.path, 'AGENTS.md'); fs.writeFileSync(keep, '# the user\'s own AGENTS.md\n');
+      const kept = path.join(proj.path, '.codex-notes.txt'); // (not an agent file: changes stay)
+      const planted = [path.join(proj.path, 'CLAUDE.md'), path.join(proj.path, '.claude', 'settings.json'), path.join(proj.path, 'sub', 'CLAUDE.md'), path.join(NOTES, 'AGENTS.md'), path.join(NOTES, '.mcp.json')];
+      for (const f of planted) fs.rmSync(f, { force: true });
+      fs.rmSync(path.join(proj.path, '.claude'), { recursive: true, force: true });
+      process.env.FAKE_AI_WRITE = [path.join(proj.path, 'main.tex'), keep, kept, ...planted].join(path.delimiter); clearLog();
+      const r = await panel(proj);
+      const c = lastCodex();
+      assert.equal(c.wroteAll.length, 3 + planted.length, 'the fake wrote all of them: ' + JSON.stringify(c.wroteAll));
+      for (const f of planted) assert.ok(!fs.existsSync(f), 'removed again: ' + f);
+      assert.ok(!fs.existsSync(path.join(proj.path, '.claude')), 'the planted .claude folder is gone');
+      assert.equal(fs.readFileSync(keep, 'utf8'), '# the user\'s own AGENTS.md\n', 'a changed agent file has its content back');
+      const trashed = []; (function walk(d) { for (const n of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, n.name); if (n.isDirectory()) walk(f); else trashed.push(f); } })(path.join(WS, 'trash', 'ai-agent-files'));
+      assert.ok(trashed.some((f) => path.basename(f) === 'AGENTS.md' && fs.readFileSync(f, 'utf8').includes('edited by fake codex')), 'the changed one is kept in the trash: ' + trashed.join(' '));
+      assert.ok(fs.readFileSync(kept, 'utf8').includes('edited by fake codex'), 'other files keep the change');
+      assert.ok(fs.readFileSync(path.join(proj.path, 'main.tex'), 'utf8').includes('edited by fake codex'));
+      assert.ok(fs.existsSync(path.join(WS, 'trash', 'ai-agent-files')), 'what was planted is in the trash');
+      const err = (r.events || []).find((e) => e.type === 'error' && /agent files/.test(e.text));
+      assert.ok(err && /CLAUDE\.md/.test(err.text), JSON.stringify(r.events).slice(0, 600));
+      assert.ok(!versions(proj, 'AGENTS.md').some((v) => v.source === 'claude'), 'the undone change is not recorded');
+      fs.rmSync(keep); fs.rmSync(kept);
+      // a run that touches no agent file says nothing about them
+      process.env.FAKE_AI_WRITE = path.join(proj.path, 'main.tex'); const r2 = await panel(proj);
+      assert.ok(!(r2.events || []).some((e) => e.type === 'error'), JSON.stringify(r2.events).slice(0, 400));
+    });
+    await test('a file an AI panel run deleted keeps its content from before the run in the history (restorable)', () => {
+      const f = path.join(proj.path, 'gone.tex'); fs.writeFileSync(f, 'before the run\n');
+      const snap = core.snapshotProject(proj); fs.rmSync(f);
+      core.recordClaudeChanges(proj, snap, 'codex');
+      const vs = versions(proj, 'gone.tex'); assert.equal(vs.length, 1); assert.equal(vs[0].source, 'baseline');
+      assert.equal(core.H.open(proj.id).text(core.H.open(proj.id).find(vs[0].id)), 'before the run\n');
+    });
+    await test('codex not opted in: the panel stays read-only - argv as before, nothing is written, nothing recorded, no library copy', async () => {
+      settings({ aiProvider: 'codex', aiPanelEdits: undefined });
+      const file = path.join(proj.path, 'main.tex'), before = fs.readFileSync(file, 'utf8'), n = versions(proj).length, nb = backups().length;
+      fs.appendFileSync(core.LIB_FILE, ' '); // (a library that differs from its newest copy: a write-mode run would copy it)
+      process.env.FAKE_AI_WRITE = file; clearLog();
+      const r = await panel(proj);
+      assert.ok((r.events || []).some((e) => e.type === 'done' && !e.isError));
+      const c = lastCodex();
+      assert.deepEqual(c.argv, ['exec', ...BASE, '-s', 'read-only', '-C', c.argv[c.argv.indexOf('-C') + 1], ...SAFE, '-']);
+      assert.equal(real(c.argv[c.argv.indexOf('-C') + 1]), real(WS), 'read-only: in the workspace, as before');
+      assert.equal(c.wrote, null); assert.equal(fs.readFileSync(file, 'utf8'), before);
+      assert.ok(/read-only sandbox/.test(c.stdin) && !c.stdin.includes(ai.WRITE_NOTE) && !/Edit the project files in place/.test(c.stdin));
+      assert.equal(versions(proj).length, n, 'no version'); assert.equal(backups().length, nb, 'no copy');
+    });
+    await test('codex not opted in: while the run goes the project is not AI-active, and a change on disk stays an external version', async () => {
+      settings({ aiProvider: 'codex', aiPanelEdits: undefined }); delete process.env.FAKE_AI_WRITE;
+      const file = path.join(proj.path, 'main.tex');
+      const r = await heldPanel(proj, async () => {
+        assert.equal(core.claudeActive.get(proj.id), undefined); assert.equal(core.aiActiveBy.get(proj.id), undefined); assert.deepEqual(core.diskOpts(proj), {});
+        fs.appendFileSync(file, '% the user\'s own edit, in another editor\n');
+        const g = await route(routeProjects, 'GET', `/api/projects/${proj.id}/file?path=main.tex`);
+        assert.equal(g.code, 200, JSON.stringify(g).slice(0, 300));
+      });
+      assert.ok((r.events || []).some((e) => e.type === 'done' && !e.isError));
+      const v = versions(proj)[0]; assert.equal(v.source, 'external'); assert.ok(!('by' in v), JSON.stringify(v));
+    });
+    await test('codex write mode: a change the app notices on disk while the run goes is a version by codex', async () => {
+      settings({ aiProvider: 'codex', aiPanelEdits: { codex: true } }); delete process.env.FAKE_AI_WRITE;
+      const file = path.join(proj.path, 'main.tex');
+      const r = await heldPanel(proj, async () => {
+        assert.equal(core.claudeActive.get(proj.id), 1); assert.deepEqual(core.diskOpts(proj), { by: 'codex' });
+        fs.appendFileSync(file, '% written while the run goes\n');
+        const g = await route(routeProjects, 'GET', `/api/projects/${proj.id}/file?path=main.tex`);
+        assert.equal(g.code, 200, JSON.stringify(g).slice(0, 300));
+        const v = versions(proj)[0]; assert.equal(v.source, 'claude'); assert.equal(v.by, 'codex');
+      });
+      assert.ok((r.events || []).some((e) => e.type === 'done' && !e.isError));
+      assert.equal(core.claudeActive.get(proj.id), undefined);
+    });
+    await test('changes found on disk during AI panel runs name the provider of a run still going (core.diskOpts); none outside a run', () => {
+      assert.deepEqual(core.diskOpts(proj), {});
+      try {
+        core.aiRunStart(proj.id, 'codex');
+        assert.equal(core.diskSource(proj), 'claude'); assert.deepEqual(core.diskOpts(proj), { by: 'codex' });
+        // a Claude run in another tab, then the Codex run ends first: the changes are Claude's
+        core.aiRunStart(proj.id, 'claude'); assert.deepEqual(core.diskOpts(proj), { by: 'claude' });
+        core.aiRunEnd(proj.id, 'codex'); assert.deepEqual(core.diskOpts(proj), { by: 'claude' }); assert.equal(core.claudeActive.get(proj.id), 1);
+        core.aiRunEnd(proj.id, 'claude'); assert.deepEqual(core.diskOpts(proj), {});
+        // the other way round: the newer Claude run ends first, the older Codex run is still going
+        core.aiRunStart(proj.id, 'codex'); core.aiRunStart(proj.id, 'claude'); core.aiRunEnd(proj.id, 'claude');
+        assert.deepEqual(core.diskOpts(proj), { by: 'codex' });
+        core.aiRunEnd(proj.id, 'codex');
+        assert.equal(core.claudeActive.get(proj.id), undefined); assert.equal(core.aiActiveBy.get(proj.id), undefined);
+      } finally { core.claudeActive.delete(proj.id); core.aiActiveBy.delete(proj.id); }
+    });
+    await test('the fake codex refuses workspace-write without the panel\'s write settings (exit 97)', async () => {
+      const r = await core.run('codex', ['exec', ...BASE, '-s', 'workspace-write', '-C', WS, ...SAFE, '-'], { input: 'x', timeout: 20000, cwd: h.TOP });
+      assert.equal(r.code, 97, JSON.stringify(r));
+      const r2 = await core.run('codex', ['exec', '--json', '--ephemeral', '-s', 'workspace-write', '-C', WS, ...WSAFE, '-c', 'features.shell_tool=false', '-'], { input: 'x', timeout: 20000, cwd: h.TOP });
+      assert.equal(r2.code, 97, 'never in a feature call');
+    });
+  } finally { delete process.env.FAKE_AI_WRITE; delete process.env.FAKE_AI_HOLD; settings({ aiProvider: undefined, aiPanelEdits: undefined }); }
+
   settings({ aiProvider: 'grok' });
   await test('the panel folder of grok / antigravity is emptied before use (a planted .grok / .mcp.json is gone)', async () => {
     fs.mkdirSync(path.join(ai.PANEL_DIR, '.grok'), { recursive: true }); fs.writeFileSync(path.join(ai.PANEL_DIR, '.mcp.json'), '{}');

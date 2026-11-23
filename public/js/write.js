@@ -2262,7 +2262,8 @@ function logExcerpt(msg) { // the part of the raw log around a message
   for (let n = 0; n < 14 && b >= 0 && b < log.length; n++) { const nx = log.indexOf('\n', b + 1); if (nx < 0) { b = log.length; break; } b = nx; }
   return log.slice(a, b).trim().slice(0, 2000);
 }
-// a provider that edits the project files itself (Claude Code): the others run read-only and suggest the change
+// a provider that edits the project files itself (Claude Code; Codex with "Let Codex edit files" - RT.ai.caps() says
+// so): the others run read-only and suggest the change
 // (another provider chosen: the log's fix button says what it does now)
 RT.on('ai:changed', () => { if (W.lastCompile) renderLog(); });
 function canEdit() { return !(RT.ai && RT.ai.caps && RT.ai.caps().agentic === false); }

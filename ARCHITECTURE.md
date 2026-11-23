@@ -48,7 +48,8 @@ lib/routes/*.js           one route module per feature; ALL are auto-loaded in f
   account.js              /api/claude/auth[/login|code|logout]  is the claude CLI installed and signed in; sign in / out
                           through `claude auth` (UI: public/js/account.js; the app never sees a password or token)
   ai.js                   GET /api/ai/providers, GET /api/ai/status[?p=id][&fresh=1] (installed / version / signed in, no model call)
-  claude.js               POST /api/claude (NDJSON stream; with another AI provider a read-only chat through lib/ai)
+  claude.js               POST /api/claude (NDJSON stream; with another AI provider a read-only chat through lib/ai -
+                          Codex with "Let Codex edit files": a chat that edits files, in its workspace-write sandbox)
   drafting.js             GET /api/writing/material (ids of the papers that have a note), POST /api/projects/:id/rewrite
                           {mode, instruction?, text, section?, before?, after?} -> {text, same, newKeys}, POST
                           /api/projects/:id/related-work {ids, angle?, heading?} -> {latex, papers, cited, uncited, thin,
@@ -636,7 +637,7 @@ warms it, replacing the PDF or deleting the item drops it); never call pdftotext
 | `normRel(rel)`, `kindOf(abs)`, `mimeOf(abs)`, `expandHome(p)`, `inside(root, p)`, `MAX_TEXT` | path / file helpers from lib/projects.js |
 | `P` | the projects instance (`P.list() listLite() get(id) create(name) openFolder(path) remove(project) setSettings(project, patch) papers(project) editPapers(project, {add, remove}) live(list, items?) resolveIn(project, rel) listFiles(project, cap) trashFile(project, r) move(src, dest) stamp()`) |
 | `H` | the history instance (`H.open(pid)` -> `{record, commit, newest, find, files, blob, text, prevOf, touch}`, `H.list(pid, file, limit)`, `H.rename`, `H.pub`, `H.dir`) |
-| `sha1(buf)`, `claudeActive`, `diskSource(project)`, `snapshotProject(project)`, `recordClaudeChanges(project, snap)` | history plumbing shared with the Claude route |
+| `sha1(buf)`, `claudeActive`, `aiActiveBy`, `aiRunStart(id, by)`, `aiRunEnd(id, by)`, `diskSource(project)`, `diskOpts(project)`, `snapshotProject(project)`, `recordClaudeChanges(project, snap, by = 'claude')`, `keepCopyBeforeAi()`, `snapshotAgentFiles(roots)`, `restoreAgentFiles(snaps)` | history plumbing shared with the AI panel route (`by`: the provider whose panel run made the change; `aiActiveBy` keeps one provider entry per running run and each run removes its own, so `diskOpts` gives `{by}` of a run still going - the newest one when runs of several providers overlap; `recordClaudeChanges` also keeps the pre-run content of a file the run deleted; `keepCopyBeforeAi` copies `library.json` before a Codex write-mode run unless the newest copy is identical; the agent-file pair notes `CLAUDE.md` / `AGENTS.md` / `.claude/` / `.codex/` / `.mcp.json` ... in the writable folders of a Codex write-mode run and puts them back after it, a new one to `trash/ai-agent-files/`) |
 | `BIB_MARKER`, `TEMPLATE` | first line of a generated references.bib; new-project main.tex |
 | `writeWorkspaceGuide()`, `migrate()` | called once by server.js |
 
@@ -718,7 +719,9 @@ One provider for the whole app: `settings.json` `aiProvider` (`claude` when abse
 while Gemini CLI was offered: its `aiProviders` / `aiUseEnvKey` entries stay in the file and are ignored; Claude also
 leaves the key absent). Per provider `aiProviders: {codex: {model, categoryModel}, ...}` (names checked by
 `/^(?!-)[\w.\-\[\]:/]{1,80}$/`; Claude keeps its top-level `categoryModel` and `claudeArgs`) and `aiUseEnvKey: {codex:
-true}` (a boolean, false / absent by default for every provider; the app never stores, asks for or shows a key). A
+true}` (a boolean, false / absent by default for every provider; the app never stores, asks for or shows a key), and
+`aiPanelEdits: {codex: true}` ("Let Codex edit files": a boolean, absent by default; only for a provider whose module
+declares `panelWrite: true` - Codex; any other id, Claude included, is a 400). A
 panel session id from the browser must match `ai.SESSION_RE` `/^[0-9a-f][0-9a-f-]{7,63}$/i` (never a leading `-`). Written by `PUT /api/settings` through
 `ai.configure(s, body)`; `GET /api/settings` adds `aiProvider`.
 
@@ -728,8 +731,8 @@ panel session id from the browser must match `ai.SESSION_RE` `/^[0-9a-f][0-9a-f-
 | --- | --- | --- |
 | `ai.run(claudeArgs, runOpts, {kind, model?, image?})` | `core.run('claude', claudeArgs, runOpts)` - the same call as before | an `AiChild` in JSON mode: `{code, out, err}` with `out` = Claude's JSON envelope (`{type:'result', result, is_error, session_id, usage, total_cost_usd?, duration_ms, _provider}`), `err` = the readable error when it failed, `code` -1 when the CLI could not be started |
 | `ai.spawn(claudeArgs, spawnOpts, {kind, stream, partial, model?})` | `core.spawnTool('claude', claudeArgs, spawnOpts)` | an `AiChild` whose stdout is Claude's stream-json (`system/init`, `stream_event` text / thinking deltas when `partial`, `assistant` text and `tool_use`, `result`) |
-| `ai.spawnChat({system, session, addDirs})` | (not used: routes/claude.js keeps its own Claude call) | the panel: a read-only chat (Codex in the workspace; Grok / Antigravity in the empty panel folder with the workspace added); `system` = the panel's context + `READ_ONLY_NOTE`, sent ahead of the message |
-| `ai.caps()` | `readsPdf`, `readsImage`, `agentic`, `sessions`, `partial` all true | Codex: `readsImage`; none reads PDFs or edits |
+| `ai.spawnChat({system, session, addDirs, write})` | (not used: routes/claude.js keeps its own Claude call) | the panel: a read-only chat (Codex in the workspace; Grok / Antigravity in the empty panel folder with the workspace added); `system` = the panel's context + `READ_ONLY_NOTE`, sent ahead of the message. `write` (Codex opted in, `ai.panelWrites()`): Codex's workspace-write sandbox in an empty folder of its own (`ai.WRITE_PANEL_DIR`, outside the workspace), `addDirs` = its only other writable roots (the route passes the open project, checked by `P.aiRoot`, and the notes folder; the workspace or a folder that holds it is dropped); `system` keeps "Edit the project files in place" and gets `WRITE_NOTE` instead; `ai.chatRoot(write)` names the workspace's path for the relative file names |
+| `ai.caps()` | `readsPdf`, `readsImage`, `agentic`, `sessions`, `partial` all true | Codex: `readsImage`, and `agentic` when "Let Codex edit files" is ticked (`ai.capsOf(id)`, also the `caps` of `/api/ai/providers`, which adds `panelWrite` and `panelEdits` per provider); none reads PDFs; Grok and Antigravity never edit |
 
 So the features keep their one parser of Claude's output and their own prompts and post-processing; the only
 gating is `readsPdf` (the draft takes its text-only path, `[p. N]` markers kept) and `readsImage` (Grok / Antigravity
@@ -763,12 +766,14 @@ result (the callers' "stopped" paths stay as they were).
 
 | | feature call (cwd: the empty temp folder) | panel (cwd: the workspace) |
 | --- | --- | --- |
-| codex | `exec --json --ephemeral --skip-git-repo-check --ignore-user-config --ignore-rules [-i <picture>] -s read-only -C <tmp> -c web_search="disabled" -c shell_environment_policy.inherit="core" [-c cli_auth_credentials_store=".."] -c features.shell_tool=false -c features.unified_exec=false [-m M] [-c model_reasoning_effort="low\|medium"] -` | cwd and `-C`: the workspace. `exec --json ... -s read-only -C <ws> <the same -c web_search / shell_environment_policy / store> -`; `exec resume <id> --json ... -c sandbox_mode="read-only" ... -` (the shell stays: Codex reads files only with it) |
+| codex | `exec --json --ephemeral --skip-git-repo-check --ignore-user-config --ignore-rules [-i <picture>] -s read-only -C <tmp> -c web_search="disabled" -c shell_environment_policy.inherit="core" [-c cli_auth_credentials_store=".."] -c features.shell_tool=false -c features.unified_exec=false [-m M] [-c model_reasoning_effort="low\|medium"] -` (also with "Let Codex edit files") | cwd and `-C`: the workspace. `exec --json ... -s read-only -C <ws> <the same -c web_search / shell_environment_policy / store> -`; `exec resume <id> --json ... -c sandbox_mode="read-only" ... -` (the shell stays: Codex reads files only with it). With "Let Codex edit files": cwd and `-C`: an empty folder of its own (`<ai home>/panel-write`, never the workspace). `exec --json ... -s workspace-write -C <it> <SAFE> W --add-dir <project> --add-dir <notes> [-m M] -`; `exec resume <id> --json ... -c sandbox_mode="workspace-write" <SAFE> W -c sandbox_workspace_write.writable_roots=["<project>", "<notes>"] [-m M] -` with W = `-c approval_policy="never" -c sandbox_workspace_write.network_access=false -c sandbox_workspace_write.exclude_slash_tmp=true -c sandbox_workspace_write.exclude_tmpdir_env_var=true` (paths as TOML basic strings) |
 | antigravity | `agy --input-format stream-json --output-format stream-json --mode plan --sandbox --disable-slash-commands --print-timeout 600s --settings '{"agentMode":"plan","toolPermission":"request-review","permissions":R,"permission":R[,"modelProvider":"gemini"]}' [--model M] [--effort low\|medium] -p` with R = `{"allow":[],"ask":[],"deny":["command(*)","write_file(*)","read_url(*)","execute_url(*)","mcp(*)","read_file(*)"]}` (`-p` last: an agy before 1.1.18 took the next flag as its prompt); stdin: `{"event":"user","message":{"content":"<text>"}}` + newline | cwd: the empty panel folder. The same with `--print-timeout 1200s`, no `read_file(*)` in deny (it may read), `--add-dir <ws> [--add-dir <external project>] [--conversation <id>]` |
 | grok | `--prompt-file <tmp>/prompt.txt --verbatim --output-format json\|streaming-json --permission-mode dontAsk --sandbox read-only --no-memory --no-subagents --disable-web-search --tools todo_write --disallowed-tools run_terminal_cmd,search_replace,write,web_search,web_fetch,task,Shell,StrReplace,Delete,XSearch --max-turns 1 --cwd <tmp> [-m M] [--reasoning-effort low\|medium]` | cwd: the empty panel folder. The same with `--tools read_file,grep,list_dir`, without `--max-turns 1`, `--cwd <panel>`, `--add-dir <ws> [--add-dir <external project>]` or `[-r <id>]` |
 
 Never passed (the fake CLIs refuse them with exit 97): `--yolo`, `-y`, `--always-approve`, `--approve-for-me`,
-`--dangerously-*`, `bypassPermissions`, `workspace-write`, `danger-full-access`, `--with-api-key`, `login`, `logout`.
+`--dangerously-*`, `bypassPermissions`, `workspace-write` (except Codex's panel with "Let Codex edit files": the fake
+codex accepts it only in a chat call that also has approvals never, network off and no /tmp / $TMPDIR),
+`danger-full-access`, `--with-api-key`, `login`, `logout`.
 Codex: an "unknown config key" for the effort makes the call run once more without it, and it is not sent again.
 
 Environment of a non-Claude child: an allowlist of the server's environment (`ENV_ALLOW` in lib/ai/index.js: PATH,
@@ -790,12 +795,27 @@ Front end: `RT.ai` (public/js/ai.js). The UI text in the code keeps saying "Clau
 `RTI18n.setBrand({name, cliName, bin})` makes the display layer show "Codex" / "Codex CLI" / "codex CLI" instead
 (English and Chinese alike), except inside `[data-brand-keep]` and the parts the translator skips (answers, user
 text). Preferences › AI (`prefs.js` aiPane): the provider, its status line with the install / sign-in command for this
-OS, model fields, the env-key checkbox. Panel (`claude.js`): `#claude-ro` (read-only note) for a non-agentic
+OS, model fields, the env-key checkbox, and "Let Codex edit files in the AI panel" (`#ai-panel-edits`, shown only
+for a provider with `panelWrite`; saved as `aiPanelEdits`; after Save `RT.ai.refresh()` loads the caps in effect, so
+the panel, the compile log's fix button and the Guide / tour texts switch without a reload). Panel (`claude.js`): `#claude-ro` (read-only note) for a non-agentic
 provider; a conversation remembers its provider (`rt.claude.chats` entry `p`) and another provider starts a new one.
 The history source of AI versions stays `'claude'`; the version records the provider that made it in `by`
-(`'claude' | 'codex' | 'grok' | 'antigravity'`; older versions have none and were Claude's). Only an agentic provider
-(Claude Code) makes panel edits: with a read-only one the chat takes no snapshot and marks no project as Claude-active,
-so a change on disk during its run stays an `'external'` version.
+(`'claude' | 'codex' | 'grok' | 'antigravity'`; older versions have none and were Claude's). Only a provider whose
+panel edits files (Claude Code; Codex with "Let Codex edit files") makes panel edits: the route snapshots the project
+before the run and `recordClaudeChanges(project, snap, provider id)` records what changed after it (a baseline first
+for a file without history), and while it runs the project counts as AI-active (`claudeActive`, `aiActiveBy`), so a
+change the app notices on disk is a `'claude'` version by that provider. With a read-only one the chat takes no
+snapshot and marks no project as AI-active, so a change on disk during its run stays an `'external'` version. A Codex
+write-mode run also gets a fresh copy of `library.json` first (`core.keepCopyBeforeAi`: Codex works through a shell).
+Its writable roots are only the open project's folder and `<workspace>/notes` (and its own empty folder): the
+workspace itself never is, so the run cannot change `settings.json` (which names the external project folders - a
+rewritten entry would make any folder writable for the next run), `library.json`, `history/`, `backups/` or the
+`CLAUDE.md` / `.claude/` the Claude panel loads. Every panel run checks the project folder again before handing it to
+any CLI (`P.aiRoot`: its realpath, an internal project directly in `projects/`, an external one never the home folder,
+a disk, the workspace, inside it or holding it, and its id still `ext-<sha1 of the realpath>` as `openFolder` made it -
+else a 409). Agent files the run creates or changes in its writable folders are put back after it
+(`core.restoreAgentFiles`, before the changes are recorded; the panel shows an error line naming them). Notes Codex changes on disk are handled as Claude's are: no snapshot, the next
+save records the disk content as an `'external'` version first.
 
 Saved content names the provider that produced it, never the one chosen when it is looked at: the server builds such
 text with `ai.name()` captured when the call starts (note drafts and their History labels `Draft by <name>`, the
@@ -813,6 +833,13 @@ codex-cli 0.171.0, grok 1.0.92 - no model was ever run while building this):
 - Codex: the `agent_message` item and its `text` field in `exec --json`; the `model_reasoning_effort` key; the
   not-signed-in, usage-limit and unknown-resume-id texts; that `exec -s read-only` never stops to ask for approval;
   that `exec resume` accepts `-c sandbox_mode="read-only"` (it has no `-s`); `-i` with a picture.
+- Codex "Let Codex edit files": that `exec resume` applies `-c sandbox_mode="workspace-write"` and
+  `sandbox_workspace_write.writable_roots` to the resumed session, and takes the folder it runs in (not the one a
+  conversation begun read-only in the workspace started in) as its working root; that `--add-dir` and `writable_roots` give the same
+  writable folder; that `approval_policy="never"` makes a refused write fail at once (no wait); that
+  `exclude_slash_tmp` / `exclude_tmpdir_env_var` and `network_access=false` are applied on macOS / Linux / Windows; the
+  `file_change` item's `changes[].path`. (The flag and key names are from `codex exec --help`, `codex exec resume
+  --help` of 0.171.0 and the config reference.)
 - Codex: that `-c features.shell_tool=false` / `features.unified_exec=false` remove every command tool in exec
   (and are only warnings on a version that does not know them); `web_search="disabled"`.
 - Grok Build: that `--prompt-file` alone runs one headless turn; the `streaming-json` event fields (`text`,

@@ -41,7 +41,7 @@ ResearchTool 是一个在自己电脑上运行的科研工作区：文献库、P
 带页码的论文要点、从 PDF 中自动裁出的图表、论文之间的引用脉络，以及带实时 PDF 预览、版本历史和可选 Overleaf 同步的
 LaTeX 编辑器。所有数据都保存在一个普通文件夹里，没有账号、没有遥测。AI 功能是可选的，通过你本机的 AI 命令行工具运行，用的是你自己的账号：
 默认是 Claude Code（`claude`），也可以在偏好设置 › AI 中换成 OpenAI Codex、xAI Grok Build 或 Google Antigravity
-（`agy`，个人 Google 账号可用）。只有 Claude Code 可以修改文件，其他工具在面板里是只读的；Grok Build 不支持 Windows。界面支持英文和简体中文（偏好设置 › 通用 › 显示语言）。
+（`agy`，个人 Google 账号可用）。Claude Code 可以修改文件；Codex 在偏好设置 › AI 里勾选「Let Codex edit files」后也可以（默认关闭，只能改打开的 LaTeX 项目和阅读笔记，改动记入项目历史、可以恢复）；Grok Build 和 Antigravity 在面板里是只读的；Grok Build 不支持 Windows。界面支持英文和简体中文（偏好设置 › 通用 › 显示语言）。
 
 快速开始：安装 Node 18 或更新版本，然后 `git clone https://github.com/purple-ginseng/ResearchTool.git`、
 `cd ResearchTool`、`node server.js`，再打开 http://localhost:4790 。项目主页（含中文演示视频）：
@@ -264,8 +264,9 @@ ResearchTool sends nothing to any other AI service. Gemini CLI is not offered (s
   must read a PDF or a picture. Each prompt carries the material of that feature (for example the brief, note, key
   points and the matching PDF passages of each paper in a comparison table, not the whole PDF); a token estimate is
   shown before the larger jobs.
-- The Claude panel runs a Claude Code session inside your workspace folder with file tools only. With Codex, Grok
-  Build or Antigravity the panel is a read-only chat: only Claude Code edits files.
+- The Claude panel runs a Claude Code session inside your workspace folder with file tools only. With Grok Build or
+  Antigravity the panel is a read-only chat; so is Codex's, unless you tick "Let Codex edit files" (off by default):
+  then it can change the open LaTeX project and your reading notes, and each project change is recorded in the history.
 - Only Claude reads the pages of a PDF itself; the other CLIs get the text extracted from it, so formulas and figures
   in a draft can be weaker. Grok Build does not work with ResearchTool on Windows. How Codex, Grok Build and
   Antigravity are kept read-only and how their output is read follow their published docs and are not yet confirmed
@@ -668,7 +669,7 @@ Everything you create is in `workspace/` (or `RT_WORKSPACE`):
 | `quizzes/<item id>.json` | the quizzes of a reference, your answers and the review schedule of every answered question |
 | `compare/<table id>.json` | the comparison tables and questions of "Ask across papers" |
 | `venues.json` | the verified venue of each paper (status, venue, year, first public date, publisher, which indexes confirmed it, why not) from "Check venues" |
-| `backups/` | copies of `library.json` alone (`library-<date>-<time>.json`), made before it changes |
+| `backups/` | copies of `library.json` alone (`library-<date>-<time>.json`), made before it changes and right before each Codex run with "Let Codex edit files" |
 | `note-template.md` | the note format guide that "Generate first draft" follows (edit it from the note's "..." menu; it starts as a copy of `templates/literature-note-guide.md` in the app folder) |
 | `projects/<name>/` | LaTeX projects (projects imported from Overleaf are Git clones) |
 | `history/`, `history-notes/` | version history of project files; of the notes and the note template |
@@ -685,7 +686,8 @@ Everything you create is in `workspace/` (or `RT_WORKSPACE`):
   Deleting one paper asks nothing - the message that follows has an Undo button. "Empty items older than 30 days" /
   "Empty the trash" are the only places where files are removed for good, and they show how much first.
 - **Copies of the list of references**: `library.json` is copied to `workspace/backups/` before it changes (at most
-  every 10 minutes; the newest 30 are kept, plus one per day for 60 days). A `library.json` that exists but cannot
+  every 10 minutes; the newest 30 are kept, plus one per day for 60 days), and right before each Codex run with "Let
+  Codex edit files" (unless the newest copy is the same). A `library.json` that exists but cannot
   be read is never taken for an empty library: nothing is loaded, nothing is saved over it, and the Backups window
   opens by itself on "List of references only", where one click puts the last good copy back (the file it replaces
   is kept beside the copies). The app also refuses to replace a library of five or more references with an empty one.
@@ -737,20 +739,41 @@ signs you in or out of these tools - you do that once in a terminal.
 | Provider | Command | Install (you run it) | Sign in (you run it) | What works |
 | --- | --- | --- | --- | --- |
 | Claude Code (default) | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` | the person button in the panel (`claude auth login`) | everything: the panel can edit your files; drafts read the PDF pages; questions about a picture |
-| OpenAI Codex | `codex` | `npm install -g @openai/codex` (or `brew install --cask codex`) | `codex login` (ChatGPT account) | every feature; the panel is read-only; drafts use the extracted text; questions about a picture (`-i`) |
+| OpenAI Codex | `codex` | `npm install -g @openai/codex` (or `brew install --cask codex`) | `codex login` (ChatGPT account) | every feature; the panel is read-only unless you tick "Let Codex edit files" (off by default); drafts use the extracted text; questions about a picture (`-i`) |
 | xAI Grok Build | `grok` | `curl -fsSL https://x.ai/cli/install.sh \| bash` (Windows: `irm https://x.ai/cli/install.ps1 \| iex`; or `npm install -g @xai-official/grok`) | `grok login` (an xAI / X account; a free tier with usage limits, more with a paid plan) | every feature on macOS and Linux (kernel 5.13+); the panel is read-only; drafts use the extracted text; no questions about a picture; **not on Windows** (see below) |
 | Antigravity (Google) | `agy` 1.5.13 or later | `curl -fsSL https://antigravity.google/cli/install.sh \| bash` (Windows: `irm https://antigravity.google/cli/install.ps1 \| iex`) | run `agy` once in a terminal and sign in with Google (a **personal Google account** works) | every feature; the panel is read-only; drafts use the extracted text; no questions about a picture. ResearchTool does not check whether you are signed in (that would mean starting agy): it shows at the first call. An older agy is not started - Preferences asks you to run `agy update`. Checked with a real agy 1.5.14 for its flags, its settings and one short turn; the read-only rules are tested only against a fake `agy` so far - see below |
 
 Gemini CLI is not offered: Google ended its personal-account use on 2026-06-18 - with a Google account, use Antigravity.
 A workspace that had chosen Gemini CLI opens on Claude Code.
 
-- **Only Claude Code edits files.** With another provider the panel is a read-only chat and is told it cannot change
-  anything; ask for a change and it shows it as text. "Find weak claims" works, it only reads. How each CLI is kept
-  read-only:
+- **Claude Code edits files; Codex can too, when you let it.** Preferences › AI › "Let Codex edit files in the AI
+  panel" (Codex only, off by default) lets the Codex panel change files: it then runs in Codex's `workspace-write`
+  sandbox, in an empty folder of its own, and the only folders it can write are the open LaTeX project's (inside the
+  workspace or an external folder) and your reading notes (`workspace/notes/`). The rest of the workspace stays
+  read-only for it - `library.json`, `settings.json`, `pdfs/`, the project history and the backups - so a run that
+  goes wrong cannot damage the app's data or what would restore it. Before handing a project folder to the AI, the app
+  checks it again (an external folder must still be the one you opened, and never your home folder, a disk or the
+  workspace). Its commands get no network, not even `/tmp` or `$TMPDIR`, and approvals are set to never
+  (`approval_policy="never"`, so that a refused write should fail at once instead of waiting - set from the help
+  texts and docs, **not yet confirmed by a real run**, see ARCHITECTURE.md "To verify with real accounts"). Agent
+  files it creates or changes in those folders (`CLAUDE.md`, `AGENTS.md`, `.claude/`, `.codex/`, `.mcp.json`), which
+  later Claude Code or Codex runs would load as instructions or hooks, are put back after the run (a new one goes to
+  `trash/ai-agent-files/`). It is told to change only the files you ask about; `library.json` is also copied right
+  before each such run (Library › More › Backups… › "List of references only" puts a copy back). Each change to a
+  LaTeX project is recorded in the project history as a version by Codex (with the file's earlier content as the
+  baseline; a file it deleted keeps its last content there) and can be restored, as with Claude. The feature calls
+  of Codex stay read-only either way. **Grok Build and Antigravity are read-only**: their panel is a read-only chat
+  and is told it cannot change anything; ask for a change and it shows it as text - so does Codex's when the box is
+  not ticked.
+  "Find weak claims" works, it only reads. How each CLI is kept read-only:
   - **Codex:** `-s read-only` (its sandbox: no writes, no network for commands), `--ignore-user-config`,
     `--ignore-rules`, no web search, commands get only the core environment variables. Codex reads files only through
     shell commands, so in the panel it can *read* files outside the workspace (no writes, nothing sent anywhere by a
-    command). Feature calls have the shell tool switched off.
+    command). Feature calls have the shell tool switched off. With "Let Codex edit files" the panel (only) runs with
+    `-s workspace-write -C <an empty folder of its own>` instead (a resumed conversation:
+    `-c sandbox_mode="workspace-write"`), plus `-c sandbox_workspace_write.network_access=false`,
+    `exclude_slash_tmp=true`, `exclude_tmpdir_env_var=true` and `--add-dir <project> --add-dir <notes>` (a resume:
+    `sandbox_workspace_write.writable_roots`).
   - **Grok Build:** a list of allowed tools (`read_file,grep,list_dir` in the panel, none that can act in feature
     calls), the shell, edit, web and subagent tools removed, `--permission-mode dontAsk`, `--sandbox read-only`, no web
     search, an empty folder of its own with the workspace added (`--add-dir`). Grok's sandbox exists only on macOS
@@ -803,10 +826,11 @@ A workspace that had chosen Gemini CLI opens on Claude Code.
   up). A sign-in that has expired shows when a call is made.
 - **Usage:** Preferences lists calls and tokens per feature for every provider; a cost is only recorded when the CLI
   reports one (Claude, Grok).
-- **Not supported:** signing in from the app for Codex / Grok / Antigravity, file edits and MCP servers for them, community
+- **Not supported:** signing in from the app for Codex / Grok / Antigravity, file edits for Grok and Antigravity (and for
+  Codex unless you tick "Let Codex edit files"), MCP servers for them, community
   "grok" CLIs (API key only), Grok on Windows, and a provider per feature.
-- The output formats of Codex and Grok Build were taken from their help texts, changelogs and published docs, not
-  from real runs. Antigravity's also come from its docs, checked against one short real turn of agy 1.5.14 (no tool
+- The output formats of Codex and Grok Build, and the sandbox and approval settings of Codex's write mode, were taken
+  from their help texts, changelogs and published docs, not from real runs. Antigravity's also come from its docs, checked against one short real turn of agy 1.5.14 (no tool
   step). See ARCHITECTURE.md ("To verify with real accounts") for what real runs must still confirm.
 
 ## Troubleshooting

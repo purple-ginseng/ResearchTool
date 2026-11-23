@@ -4,7 +4,9 @@
    browser's localStorage under rt.claude.chats (bounded) and shown again after a reload. The answer is drawn while
    it is written (text deltas of POST /api/claude); the Send button is a Stop button while a run is going.
    With another AI provider than Claude (Preferences › AI, RT.ai) the panel is a read-only chat: that CLI can read the
-   workspace but edits nothing. A conversation remembers its provider (p); another provider starts a new one. */
+   workspace but edits nothing - unless it is Codex with "Let Codex edit files" ticked (caps.agentic is then true, and
+   the panel shows the usual hint instead of the read-only note). A conversation remembers its provider (p); another
+   provider starts a new one. */
 (() => {
   const { $, $$ } = RT;
   RT.claude = RT.claude || {};
@@ -18,7 +20,7 @@
     </div>
     <div id="claude-log">
       <div class="msg hint" id="claude-hint" title="Runs your local claude CLI inside the workspace folder. It can read your library and notes and edit the files of your LaTeX project directly.">Local <code>claude</code> CLI — reads your library and notes, edits your LaTeX project. Try: “Draft a related-work paragraph from my key points.”</div>
-      <div class="msg hint ro" id="claude-ro" hidden><b>Read-only:</b> <span>Claude can read your library, notes and project files but cannot change them.</span> <span data-brand-keep>To let the AI edit your files, choose Claude Code in Preferences › AI.</span></div>
+      <div class="msg hint ro" id="claude-ro" hidden><b>Read-only:</b> <span>Claude can read your library, notes and project files but cannot change them.</span> <span data-brand-keep>To let the AI edit your files, choose Claude Code in Preferences › AI, or tick “Let Codex edit files” there with Codex.</span></div>
     </div>
     <div id="claude-sel" hidden>
       <span class="claude-sel-text"></span>
@@ -146,7 +148,7 @@
   RT.on('ai:changed', (p) => {
     const code = $('#claude-hint code'); if (code) code.textContent = p.bin;
     const agentic = !!(p.caps && p.caps.agentic);
-    $('#claude-ro').hidden = agentic; $('#claude-hint').hidden = !agentic; // ("edits your LaTeX project" is Claude's)
+    $('#claude-ro').hidden = agentic; $('#claude-hint').hidden = !agentic; // ("edits your LaTeX project": Claude's, or Codex opted in)
     showCmd();
   });
 

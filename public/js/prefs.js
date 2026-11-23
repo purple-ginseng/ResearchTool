@@ -103,6 +103,10 @@
           <div class="set-row"><label for="ai-model" class="pf-lab">Model</label><input type="text" id="ai-model" class="pf-narrow" spellcheck="false" maxlength="80" placeholder="the CLI's default" aria-label="Model" data-i18n-skip></div>
           <div class="set-row"><label for="ai-cat-model" class="pf-lab">Model for grouping</label><input type="text" id="ai-cat-model" class="pf-narrow" spellcheck="false" maxlength="80" placeholder="the same model" aria-label="Model for grouping" data-i18n-skip></div>
           <label class="set-check"><input type="checkbox" id="ai-env-key"> <span id="ai-env-key-text">Use an API key from the environment ResearchTool was started with, instead of my account</span></label>
+          <div id="ai-edits-box" hidden>
+            <label class="set-check"><input type="checkbox" id="ai-panel-edits"> <span>Let Codex edit files in the AI panel</span></label>
+            <p class="muted">It runs in Codex's workspace-write sandbox: it can change the files of the open project and your reading notes, nothing else of the workspace, with no network. Each change to a LaTeX project is recorded in the project history and can be restored. Off unless you tick it.</p>
+          </div>
         </div>
         <h4>First-draft language ${where(false)}</h4>
         <p class="muted">The language Claude writes a reading note's first draft in (“Generate first draft”), and the language of “Ask Claude” answers and figure captions in a note. The note's “More” menu changes the same setting.</p>
@@ -230,12 +234,12 @@
 
   // ---------------- the AI provider (lib/ai): choice, status, hints, model ----------------
   const aiPane = (() => {
-    let info = null, status = {}, edits = {}; // edits: id -> {model, categoryModel, useEnvKey} typed in this dialog
+    let info = null, status = {}, edits = {}; // edits: id -> {model, categoryModel, useEnvKey, panelEdits} typed in this dialog
     const osKey = () => (/Win/i.test(navigator.platform) ? 'win' : /Mac/i.test(navigator.platform) ? 'mac' : 'linux');
     const prov = (id) => (info && info.providers.find((p) => p.id === id)) || null;
     const sel = () => $('#ai-provider').value || 'claude';
     const cmd = (c) => `<span class="pf-cmd"><code>${esc(c)}</code><button type="button" class="ib" data-ai-copy="${esc(c)}" title="Copy the command" aria-label="Copy the command">${icon('copy')}</button></span>`;
-    function keep() { const id = sel(); if (id === 'claude' || !prov(id)) return; edits[id] = { model: $('#ai-model').value.trim(), categoryModel: $('#ai-cat-model').value.trim(), useEnvKey: $('#ai-env-key').checked }; }
+    function keep() { const id = sel(); if (id === 'claude' || !prov(id)) return; edits[id] = { model: $('#ai-model').value.trim(), categoryModel: $('#ai-cat-model').value.trim(), useEnvKey: $('#ai-env-key').checked, panelEdits: !!prov(id).panelWrite && $('#ai-panel-edits').checked }; }
     function paint() {
       const id = sel(), p = prov(id), s = status[id];
       if (!p) return;
@@ -257,11 +261,17 @@
       const other = id !== 'claude';
       $('#ai-other').hidden = !other;
       if (!other) return;
-      const e = edits[id] || { model: p.model || '', categoryModel: p.categoryModel || '', useEnvKey: !!p.useEnvKey };
+      const e = edits[id] || { model: p.model || '', categoryModel: p.categoryModel || '', useEnvKey: !!p.useEnvKey, panelEdits: !!p.panelEdits };
       $('#ai-model').value = e.model; $('#ai-cat-model').value = e.categoryModel; $('#ai-env-key').checked = e.useEnvKey;
+      // "Let Codex edit files": only for a provider that offers it (Codex); Grok and Antigravity stay read-only
+      $('#ai-edits-box').hidden = !p.panelWrite; $('#ai-panel-edits').checked = !!p.panelWrite && !!e.panelEdits;
       $('#ai-env-key-text').innerHTML = `<span>Use an API key from the environment ResearchTool was started with, instead of my account (off unless you tick it):</span> ${(p.keyVars || []).map((k) => `<code data-i18n-skip>${esc(k)}</code>`).join(' ')}`;
-      $('#ai-caps').innerHTML = ['With this provider the AI panel is read-only: it reads your files but does not edit them.', 'First drafts are written from the text extracted from the PDF.',
-        p.caps && p.caps.readsImage ? 'Questions about a picture in a note work.' : 'Questions about a picture in a note are not possible with this provider.', 'Only Claude Code edits files and reads PDFs itself.', p.configNote || '']
+      // what the panel does with this provider: as ticked in this dialog (saved or not)
+      const panel = !p.panelWrite ? 'With this provider the AI panel is read-only: it reads your files but does not edit them.'
+        : e.panelEdits ? 'With this provider the AI panel edits files, because you let it (below).' : 'With this provider the AI panel is read-only unless you let it edit files (below).';
+      $('#ai-caps').innerHTML = [panel, 'First drafts are written from the text extracted from the PDF.',
+        p.caps && p.caps.readsImage ? 'Questions about a picture in a note work.' : 'Questions about a picture in a note are not possible with this provider.',
+        p.panelWrite ? 'Only Claude Code reads PDFs itself.' : 'Only Claude Code (and Codex, when you let it) edits files; only Claude Code reads PDFs itself.', p.configNote || '']
         .filter(Boolean).map((t) => `<span>${esc(t)}</span>`).join(' ');
     }
     async function check(fresh) {
@@ -282,12 +292,13 @@
     const preview = () => { if (RT.ai && RT.ai.preview) RT.ai.preview(sel()); };
     $('#ai-provider').addEventListener('change', () => { paint(); preview(); if (!status[sel()]) check(true); });
     for (const f of ['#ai-model', '#ai-cat-model', '#ai-env-key']) $(f).addEventListener('change', keep);
+    $('#ai-panel-edits').addEventListener('change', () => { keep(); paint(); }); // (the sentence about the panel follows it)
     $('#ai-check').addEventListener('click', () => { status[sel()] = null; paint(); check(true); });
     $('#pf-pane-claude').addEventListener('click', async (e) => {
       const b = e.target.closest('[data-ai-copy]'); if (!b) return;
       try { await navigator.clipboard.writeText(b.dataset.aiCopy); toast('Copied', 'ok'); } catch { toast('Could not copy to the clipboard', 'bad'); }
     });
-    // what PUT /api/settings gets: the provider, and the model / key choice of every provider that was edited
+    // what PUT /api/settings gets: the provider, and the model / key / panel-edit choice of every provider that was edited
     function body() {
       keep();
       const out = { aiProvider: sel() };
@@ -295,6 +306,9 @@
       if (ids.length) {
         out.aiProviders = Object.fromEntries(ids.map((id) => [id, { model: edits[id].model, categoryModel: edits[id].categoryModel }]));
         out.aiUseEnvKey = Object.fromEntries(ids.map((id) => [id, edits[id].useEnvKey]));
+        // (only providers that offer it: the server refuses the others)
+        const w = ids.filter((id) => prov(id) && prov(id).panelWrite);
+        if (w.length) out.aiPanelEdits = Object.fromEntries(w.map((id) => [id, edits[id].panelEdits]));
       }
       return info ? out : {};
     }
