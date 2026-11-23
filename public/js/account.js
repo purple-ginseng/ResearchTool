@@ -41,7 +41,7 @@
     body.innerHTML = `<div class="acct-row" data-brand-keep><span class="acct-dot ${dot}"></span><div>${head}<br>${ver}</div></div>
       ${s.warning ? `<p class="set-bad" data-brand-keep>${esc(s.warning)}</p>` : ''}${s.problem ? `<p class="muted" data-i18n-skip>${esc(s.problem)}</p>` : ''}
       <div data-brand-keep>${s.signedIn === true ? '' : login}
-      <p class="muted">With this provider the AI panel is read-only: it reads your files but does not change them. PDFs are sent as their extracted text.</p></div>`;
+      <p class="muted">${p.caps && p.caps.agentic ? 'With this provider the AI panel edits files, because you let it in Preferences › AI. PDFs are sent as their extracted text.' : 'With this provider the AI panel is read-only: it reads your files but does not change them. PDFs are sent as their extracted text.'}</p></div>`;
   }
   let st = null;       // the last status from the server
   let flow = null;     // the running sign-in: { ctrl, url, waiting, lines, sending }

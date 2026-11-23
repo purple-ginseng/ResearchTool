@@ -15,6 +15,14 @@
 //   ancientclaude (the same, and it does not know --strict-mcp-config either: the compatible set fails too) |
 //   effortvalue (claude: a current Claude Code that offers no --effort low - commander's "error: option '--effort
 //   <level>' argument 'low' is invalid. Allowed choices are medium, high.", exit 1; every other option is known)
+// $FAKE_AI_WRITE=<absolute file>[<path.delimiter><absolute file>...] (codex): the panel's write mode ("Let Codex edit
+//   files") - the fake appends a line to each file (making it and its folders if need be) only when it runs in
+//   workspace-write with the panel's write settings and the file is inside a writable root (-C / cwd, --add-dir,
+//   writable_roots), as the real sandbox would; the log line says what it wrote (wrote: the first file or null,
+//   wroteAll: every file written). workspace-write anywhere else (a feature call, without approvals off / network
+//   off / no tmp) exits 97.
+// $FAKE_AI_HOLD=<absolute file> (codex): after logging the call, wait (at most 20 s) until that file exists before
+//   answering - so that a test can look at the app, and change files, while the run is going.
 // The output formats follow the CLI research (codex-cli 0.171.0, grok 1.0.92, agy 1.5.14); they are this project's
 // best reading of those CLIs and must be confirmed against a real run (ARCHITECTURE.md, "unverified") - except agy's
 // flag and --settings checks and the nested events of a plain turn, which were seen with the real agy 1.5.14.
@@ -34,9 +42,16 @@ const line = (o) => out(JSON.stringify(o) + '\n');
 // flags the app must never pass to any of these CLIs (exit 97 = a test failure the harness looks for)
 const FORBIDDEN = [/^--yolo$/, /^-y$/, /^--always-approve$/, /^--approve-for-me$/, /^--dangerously/, /^bypassPermissions$/, /^workspace-write$/,
   /^danger-full-access$/, /^--with-api-key$/, /^--with-access-token$/, /^yolo$/, /^auto_edit$/, /^--trust$/, /^--oauth$/];
+// codex: workspace-write only as the panel's write mode ("Let Codex edit files") - a chat call (no --ephemeral, the
+// shell tool not switched off) with approvals off, no network and no /tmp or $TMPDIR; anywhere else it is forbidden
+const CODEX_WRITE_SAFE = ['approval_policy="never"', 'sandbox_workspace_write.network_access=false', 'sandbox_workspace_write.exclude_slash_tmp=true', 'sandbox_workspace_write.exclude_tmpdir_env_var=true'];
+const codexWrite = () => P === 'codex' && a[0] === 'exec' && (a[a.indexOf('-s') + 1] === 'workspace-write' || a.includes('sandbox_mode="workspace-write"'));
+const codexWriteOk = () => codexWrite() && !has('--ephemeral') && !has('features.shell_tool=false') && !has('-i') && CODEX_WRITE_SAFE.every((k) => has(k))
+  && (a[1] === 'resume' ? !has('-s') && !has('--add-dir') : a.includes('-C')) && !a.some((x) => /network_access=true|danger-full-access|sandbox_mode="read-only"/.test(x));
 function refuseForbidden() {
   if (P === 'claude') return;
-  const bad = a.find((x) => FORBIDDEN.some((re) => re.test(x)));
+  const bad = a.find((x) => FORBIDDEN.some((re) => re.test(x)) && !(x === 'workspace-write' && codexWriteOk()))
+    || (codexWrite() && !codexWriteOk() ? 'workspace-write without the panel\'s write settings' : undefined);
   const login = (a[0] === 'login' && a[1] !== 'status') || a[0] === 'logout' || a[0] === 'auth';
   if (bad || login) { process.stderr.write(`fake ${P}: forbidden argument ${bad || a[0]}\n`); log({ forbidden: bad || a[0] }); process.exit(97); }
 }
@@ -154,7 +169,32 @@ async function codex() {
   if (a[0] !== 'exec') { log(); process.stderr.write('fake codex: only exec, login status and --version\n'); return 3; }
   if (a[a.length - 1] !== '-') { log(); process.stderr.write('fake codex: the prompt must come on stdin (-)\n'); return 98; }
   const stdin = await readStdin();
-  log({ stdin });
+  // $FAKE_AI_WRITE=<absolute file>: the panel asks for an edit. Like the real sandbox, the file is changed only in
+  // workspace-write and only inside a writable root: the -C folder (a new chat) or the cwd (resume), an --add-dir,
+  // or a sandbox_workspace_write.writable_roots entry. Otherwise the "command" fails and nothing is written.
+  let fileWrite = null;
+  const targets = String(process.env.FAKE_AI_WRITE || '').split(path.delimiter).filter(Boolean);
+  if (targets.length && a[0] === 'exec') {
+    const roots = [a.includes('-C') ? a[a.indexOf('-C') + 1] : process.cwd()];
+    a.forEach((x, i) => { if (x === '--add-dir') roots.push(a[i + 1]); });
+    const wr = a.find((x) => x.startsWith('sandbox_workspace_write.writable_roots='));
+    if (wr) { try { roots.push(...JSON.parse(wr.slice(wr.indexOf('=') + 1))); } catch { log({ forbidden: 'writable_roots is not a TOML array of basic strings: ' + wr }); return 97; } }
+    // (the realpath of the nearest folder that exists: a file in a folder still to be made)
+    // (Windows: the native realpath, which expands 8.3 short names such as RUNNER~1 as the app's does; compared
+    // without regard to case, as the file system does)
+    const rp = process.platform === 'win32' ? fs.realpathSync.native : fs.realpathSync;
+    const fold = (p) => (process.platform === 'win32' ? p.toLowerCase() : p);
+    const real = (p) => { let rest = ''; p = path.resolve(p); for (;;) { try { return fold(path.join(rp(p), rest)); } catch { const up = path.dirname(p); if (up === p) return fold(path.join(p, rest)); rest = path.join(path.basename(p), rest); p = up; } } };
+    const wrote = [];
+    for (const target of targets) {
+      const t = real(target);
+      const ok = codexWriteOk() && roots.some((r) => { const rr = real(r); return t === rr || t.startsWith(rr + path.sep); });
+      if (ok) { fs.mkdirSync(path.dirname(target), { recursive: true }); fs.appendFileSync(target, '% edited by fake codex\n'); wrote.push(target); }
+    }
+    fileWrite = { target: targets[0], ok: wrote.includes(targets[0]), roots, wrote };
+  }
+  log({ stdin, ...(fileWrite ? { wrote: fileWrite.ok ? fileWrite.target : null, wroteAll: fileWrite.wrote, roots: fileWrite.roots } : {}) });
+  if (process.env.FAKE_AI_HOLD) { const until = Date.now() + 20000; while (!fs.existsSync(process.env.FAKE_AI_HOLD) && Date.now() < until) await sleep(50); }
   if (STATE === 'slow') await sleep(60000);
   if (STATE === 'signedout') { process.stderr.write('Error: Not logged in. Run `codex login` to sign in.\n'); return 1; }
   if (STATE === 'badconfig' && a.some((x) => /model_reasoning_effort/.test(x))) { process.stderr.write('Error: unknown configuration key `model_reasoning_effort`\n'); return 2; }
@@ -166,6 +206,10 @@ async function codex() {
   line({ type: 'turn.started' });
   if (STATE === 'quota') { line({ type: 'turn.failed', error: { message: "You've hit your usage limit. Try again later." } }); return 1; }
   line({ type: 'item.completed', item: { id: 'item_0', type: 'reasoning', text: '**Thinking**' } });
+  if (fileWrite) {
+    line({ type: 'item.started', item: { id: 'item_w', type: 'file_change', changes: [{ path: fileWrite.target, kind: 'update' }] } });
+    line({ type: 'item.completed', item: { id: 'item_w', type: 'file_change', status: fileWrite.ok ? 'completed' : 'failed', changes: [{ path: fileWrite.target, kind: 'update' }] } });
+  }
   line({ type: 'item.completed', item: { id: 'item_1', type: 'agent_message', text: answerFor(stdin) } });
   line({ type: 'turn.completed', usage: { input_tokens: 120, cached_input_tokens: 30, output_tokens: 40 } });
   return 0;

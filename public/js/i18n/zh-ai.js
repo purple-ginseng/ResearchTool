@@ -24,10 +24,23 @@
     "First drafts are written from the text extracted from the PDF.": "初稿根据从 PDF 中提取的文本撰写。",
     "Questions about a picture in a note work.": "可以就笔记中的图片提问。",
     "Questions about a picture in a note are not possible with this provider.": "使用此提供方时无法就笔记中的图片提问。",
-    "Only Claude Code edits files and reads PDFs itself.": "只有 Claude Code 会编辑文件并自行读取 PDF。",
+    "Only Claude Code reads PDFs itself.": "只有 Claude Code 会自行读取 PDF。",
+    "Only Claude Code (and Codex, when you let it) edits files; only Claude Code reads PDFs itself.": "只有 Claude Code（以及你允许时的 Codex）会编辑文件；只有 Claude Code 会自行读取 PDF。",
+    "With this provider the AI panel edits files, because you let it (below).": "使用此提供方时 AI 面板会编辑文件，因为你已允许（见下方）。",
+    "With this provider the AI panel is read-only unless you let it edit files (below).": "使用此提供方时 AI 面板为只读，除非你允许它编辑文件（见下方）。",
+    "Let Codex edit files in the AI panel": "允许 Codex 在 AI 面板中编辑文件",
+    // the AI panel's checks (lib/projects.js aiRoot, lib/routes/claude.js)
+    "The folder of the project “{0}” cannot be given to the AI: it is not a folder.": "项目“{0}”的文件夹不能交给 AI：它不是文件夹。",
+    "The folder of the project “{0}” cannot be given to the AI: it is not in the projects folder of the workspace.": "项目“{0}”的文件夹不能交给 AI：它不在工作区的项目文件夹中。",
+    "The folder of the project “{0}” cannot be given to the AI: it is the home folder, a folder that holds it, or a whole disk.": "项目“{0}”的文件夹不能交给 AI：它是主文件夹、包含主文件夹的文件夹，或整个磁盘。",
+    "The folder of the project “{0}” cannot be given to the AI: it is the workspace, a folder inside it or a folder that holds it.": "项目“{0}”的文件夹不能交给 AI：它是工作区、工作区中的文件夹或包含工作区的文件夹。",
+    "The folder of the project “{0}” cannot be given to the AI: its entry in settings.json no longer matches the folder that was opened. Open the folder again (Write › Open folder on disk…).": "项目“{0}”的文件夹不能交给 AI：它在 settings.json 中的记录与当初打开的文件夹已不一致。请重新打开该文件夹（写作 › 打开磁盘上的文件夹…）。",
+    "ResearchTool undid what this run did to agent files, which later AI runs would load as instructions: {0}. A new one is in the workspace trash (trash/ai-agent-files).": "ResearchTool 撤销了本次运行对智能体文件所做的改动（之后的 AI 运行会把这些文件当作指令加载）：{0}。新建的文件已移到工作区的废纸篓（trash/ai-agent-files）。",
+    "It runs in Codex's workspace-write sandbox: it can change the files of the open project and your reading notes, nothing else of the workspace, with no network. Each change to a LaTeX project is recorded in the project history and can be restored. Off unless you tick it.":
+      "它在 Codex 的 workspace-write 沙箱中运行：只能修改当前打开项目的文件和你的阅读笔记，工作区中的其他内容都不能修改，且不能联网。对 LaTeX 项目的每次修改都会记录在项目历史中，并可恢复。除非勾选，否则不启用。",
     "Read-only:": "只读：",
     "Claude can read your library, notes and project files but cannot change them.": "Claude 可以读取你的文献库、笔记和项目文件，但不能修改它们。",
-    "To let the AI edit your files, choose Claude Code in Preferences › AI.": "如需让 AI 编辑你的文件，请在“偏好设置 › AI”中选择 Claude Code。",
+    "To let the AI edit your files, choose Claude Code in Preferences › AI, or tick “Let Codex edit files” there with Codex.": "如需让 AI 编辑你的文件，请在“偏好设置 › AI”中选择 Claude Code，或在使用 Codex 时勾选“允许 Codex 编辑文件”。",
     "▸ This conversation was with another AI provider, so a new one starts here.": "▸ 这段对话是与另一个 AI 提供方进行的，因此这里开始一段新对话。",
     "The AI provider chosen in Preferences › AI is not installed on this computer.": "“偏好设置 › AI”中选择的 AI 提供方未安装在本机上。",
     "Open a terminal and run:{0}": "打开终端并运行：{0}",
@@ -35,6 +48,7 @@
     "The sign-in could not be checked.": "无法检查登录状态。",
     "To sign in with your own account, run this in a terminal (ResearchTool never asks for a password or a key):": "要用你自己的账户登录，请在终端中运行以下命令（ResearchTool 从不索要密码或密钥）：",
     "With this provider the AI panel is read-only: it reads your files but does not change them. PDFs are sent as their extracted text.": "使用此提供方时 AI 面板为只读：它会读取你的文件，但不会修改。PDF 以提取出的文本发送。",
+    "With this provider the AI panel edits files, because you let it in Preferences › AI. PDFs are sent as their extracted text.": "使用此提供方时 AI 面板会编辑文件，因为你已在“偏好设置 › AI”中允许。PDF 以提取出的文本发送。",
     // the server's messages (lib/ai, lib/notes.js)
     "This AI provider cannot look at pictures in ResearchTool yet - select the caption or the text around the picture, or switch to Claude Code or Codex in Preferences › AI.":
       "此 AI 提供方目前还不能在 ResearchTool 中查看图片——请选择图注或图片周围的文字，或在“偏好设置 › AI”中改用 Claude Code 或 Codex。",

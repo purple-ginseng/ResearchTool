@@ -811,7 +811,7 @@
   "Backup":"备份",
   "Preferences › Library & files keeps a dated copy of the whole workspace once a day in the folder you choose there (best on another disk or in iCloud Drive); unchanged files take no extra space. “Show and restore backups…” lists the copies and puts one back - the workspace as it is now is kept as another backup first. Projects opened from a folder on this Mac are not part of the backup.":"偏好设置 › 文献库与文件会每天一次在你选择的文件夹中保存整个工作区的带日期副本（最好放在另一块磁盘或 iCloud 云盘上）；未改变的文件不占额外空间。“显示并恢复备份…”会列出副本并恢复其中之一——当前的工作区会先另存为一个备份。从这台 Mac 上的文件夹打开的项目不在备份范围内。",
   "The list of references":"参考文献列表",
-  "is copied before it changes, at most every 10 minutes (":"在改变之前会被复制，最多每 10 分钟一次（",
+  "is copied before it changes, at most every 10 minutes, and right before each Codex run with “Let Codex edit files” (":"在改变之前会被复制，最多每 10 分钟一次，并且在每次勾选“允许 Codex 编辑文件”的 Codex 运行之前也会复制（",
   "). “List of references only” in the backups window puts a copy back and leaves the PDFs, notes and everything else as they are. If":"）。备份窗口中的“仅参考文献列表”会恢复一个副本，PDF、笔记及其他内容保持不变。如果",
   "cannot be read - after a broken edit by hand, say - nothing is loaded and nothing is overwritten: the window opens by itself so that you can put the last good copy back.":"无法读取——例如手动编辑出错之后——则不会加载也不会覆盖任何内容：窗口会自动打开，以便你恢复最后一个完好的副本。",
   "To move to another Mac, copy the":"要迁移到另一台 Mac，请复制",
