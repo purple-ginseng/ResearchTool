@@ -242,7 +242,11 @@ function check(name, ok, detail) {
     if (havePdftotext || WANT_PDF) {
       const imp = await request(port, 'POST', '/api/import/pdf?name=smoke.pdf', { body: tinyPdf('Smoke Test Paper Title'), headers: { ...X, 'Content-Type': 'application/pdf' } });
       const it = imp.json && imp.json.item;
-      check('POST /api/import/pdf -> a library item with its text read by pdftotext', imp.status === 200 && it && it.pdf === true && it.pages === 1, imp.status + ' ' + imp.text.slice(0, 400));
+      // (without --pdf the step is optional: a pdftotext of the host that crashes - seen on GitHub's Windows runners,
+      // 0xC0000374 - is the host's poppler, not ours; the error must still name it as a crash. --pdf always requires it)
+      const hostCrash = !WANT_PDF && imp.status !== 200 && /pdftotext failed: it crashed \(Windows status/.test(imp.text);
+      if (hostCrash) console.log('skip  PDF import: the pdftotext of this computer crashed (' + imp.text.slice(0, 200) + ')');
+      else check('POST /api/import/pdf -> a library item with its text read by pdftotext', imp.status === 200 && it && it.pdf === true && it.pages === 1, imp.status + ' ' + imp.text.slice(0, 400));
       if (it) {
         const sen = await request(port, 'GET', `/api/items/${it.id}/sentences`);
         check('the sentences of the imported PDF', sen.status === 200 && /import works/.test(sen.text), sen.status + ' ' + sen.text.slice(0, 300));
