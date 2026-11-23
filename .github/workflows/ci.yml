@@ -30,7 +30,7 @@ jobs:
     steps:
       # a default checkout: on Windows git's core.autocrlf=true applies, and .gitattributes keeps the LF line ends
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
       # public/vendor is -text (kept byte for byte, one upstream file has CRLF), so it is left out of this check
@@ -61,7 +61,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Install poppler (Ubuntu)
