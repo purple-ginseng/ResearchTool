@@ -268,14 +268,14 @@ async function runPath(name) {
 
 (async () => {
   // the seeded text cache must be what the app would have extracted itself (only where poppler is installed)
-  if ((await core.run('pdftotext', ['-v'], { timeout: 8000 })).code !== -1) {
+  if ((await core.run('pdftotext', ['-v'], { timeout: 8000 })).code === 0) {
     await test('the seeded text of the fixture PDFs is exactly what pdftotext reads from them', async () => {
       assert.deepEqual(await textcache.pdfToPages(path.join(WS, 'pdfs', A + '.pdf')), PDF_TEXT(3));
       const f = path.join(TOP, 'long.pdf');
       fs.writeFileSync(f, tinyPdf(Array.from({ length: 14 }, (_, k) => PAGE(k + 1))));
       try { assert.deepEqual(await textcache.pdfToPages(f), PDF_TEXT(14)); } finally { fs.rmSync(f, { force: true }); }
     });
-  } else console.log('skip the seeded text of the fixture PDFs is exactly what pdftotext reads from them (no pdftotext)');
+  } else console.log('skip the seeded text of the fixture PDFs is exactly what pdftotext reads from them (no working pdftotext)');
   // ================= 1. Claude: the same calls as before lib/ai =================
   const claudeRuns = {};
   for (const name of Object.keys(PATHS)) claudeRuns[name] = await runPath(name);
