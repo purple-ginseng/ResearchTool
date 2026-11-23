@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Submit https://purple-ginseng.github.io/ResearchTool/sitemap.xml in Google Search Console and Bing Webmaster Tools:
+     a robots.txt can only point to it from purple-ginseng.github.io/robots.txt, which this repository does not serve. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://purple-ginseng.github.io/ResearchTool/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://purple-ginseng.github.io/ResearchTool/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://purple-ginseng.github.io/ResearchTool/zh/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://purple-ginseng.github.io/ResearchTool/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://purple-ginseng.github.io/ResearchTool/"/>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/social.jpg</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/01-overview.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/02-library.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/03-reader.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/08-lineage.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/10-editor.webp</image:loc></image:image>
+    <video:video>
+      <video:thumbnail_loc>https://purple-ginseng.github.io/ResearchTool/media/poster-en.jpg</video:thumbnail_loc>
+      <video:title>ResearchTool product demo (English)</video:title>
+      <video:description>A narrated walkthrough of ResearchTool recorded from the running app: library, PDF reader and notes, related papers and Lineage, and the LaTeX editor.</video:description>
+      <video:content_loc>https://purple-ginseng.github.io/ResearchTool/media/researchtool-demo-en.mp4</video:content_loc>
+      <video:duration>543</video:duration>
+      <video:publication_date>2026-11-22T22:30:50+08:00</video:publication_date>
+      <video:family_friendly>yes</video:family_friendly>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://purple-ginseng.github.io/ResearchTool/zh/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://purple-ginseng.github.io/ResearchTool/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://purple-ginseng.github.io/ResearchTool/zh/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://purple-ginseng.github.io/ResearchTool/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://purple-ginseng.github.io/ResearchTool/"/>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/social.jpg</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/01-overview.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/02-library.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/03-reader.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/08-lineage.webp</image:loc></image:image>
+    <image:image><image:loc>https://purple-ginseng.github.io/ResearchTool/img/shots/10-editor.webp</image:loc></image:image>
+    <video:video>
+      <video:thumbnail_loc>https://purple-ginseng.github.io/ResearchTool/media/poster-zh.jpg</video:thumbnail_loc>
+      <video:title>ResearchTool 产品演示（中文）</video:title>
+      <video:description>ResearchTool 的中文讲解演示，录制自真实运行的应用：文献库、PDF 阅读器与笔记、相关论文与发展脉络，以及 LaTeX 编辑器。</video:description>
+      <video:content_loc>https://purple-ginseng.github.io/ResearchTool/media/researchtool-demo-zh.mp4</video:content_loc>
+      <video:duration>660</video:duration>
+      <video:publication_date>2026-11-22T22:30:50+08:00</video:publication_date>
+      <video:family_friendly>yes</video:family_friendly>
+    </video:video>
+  </url>
+</urlset>

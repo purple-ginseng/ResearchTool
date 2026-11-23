@@ -1,14 +1,15 @@
-/* ResearchTool project page: language switch, hero loop, demo video + chapters, copy buttons, gallery lightbox, reveal. No cookies, no network calls. */
+/* ResearchTool project page: language links (one static page per language: / and zh/), hero loop, demo video + chapters, copy buttons, gallery lightbox, reveal. No cookies, no network calls. */
 (function () {
   'use strict';
   var root = document.documentElement;
   var LS_KEY = 'rt-site-lang';
+  var BASE = root.getAttribute('data-base') || '';   /* '../' on zh/index.html */
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ------------------------------------------------------------ demo data (real chapter marks of the two videos, ms) */
   var VIDEOS = {
     en: {
-      src: 'media/researchtool-demo-en.mp4', poster: 'media/poster-en.jpg', label: 'ResearchTool · Product demo · 9:03',
+      src: BASE + 'media/researchtool-demo-en.mp4', poster: BASE + 'media/poster-en.jpg', label: 'ResearchTool · Product demo · 9:03',
       chapters: [
         [4500, 'Introduction', 'What ResearchTool is'],
         [30665, '1 · Overview', 'Start the guided tour'],
@@ -39,7 +40,7 @@
       ]
     },
     zh: {
-      src: 'media/researchtool-demo-zh.mp4', poster: 'media/poster-zh.jpg', label: 'ResearchTool · 产品演示 · 11:00',
+      src: BASE + 'media/researchtool-demo-zh.mp4', poster: BASE + 'media/poster-zh.jpg', label: 'ResearchTool · 产品演示 · 11:00',
       chapters: [
         [4500, '简介', 'ResearchTool 是什么'],
         [40344, '第 1 章 · 概览', '开始导览'],
@@ -71,39 +72,15 @@
     }
   };
 
-  /* ------------------------------------------------------------ i18n */
-  var ATTRS = ['alt', 'aria-label', 'content', 'title'];
-  var translatable = Array.prototype.slice.call(document.querySelectorAll('[data-zh]'));
-  translatable.forEach(function (el) { el._en = el.innerHTML; });
-  var attrEls = [];
-  ATTRS.forEach(function (a) {
-    document.querySelectorAll('[data-zh-' + a + ']').forEach(function (el) {
-      attrEls.push([el, a, el.getAttribute(a), el.getAttribute('data-zh-' + a)]);
-    });
-  });
-  var titleEl = document.querySelector('title');
-
-  var pageLang = root.getAttribute('data-lang') === 'zh' ? 'zh' : 'en';
+  /* ------------------------------------------------------------ language: one static page per language (/, /zh/) */
+  var pageLang = root.lang === 'zh-CN' ? 'zh' : 'en';
   var videoLang = pageLang;
-
-  function applyLang(lang, save) {
-    pageLang = lang;
-    root.setAttribute('data-lang', lang);
-    root.lang = lang === 'zh' ? 'zh-CN' : 'en';
-    translatable.forEach(function (el) {
-      var html = lang === 'zh' ? el.getAttribute('data-zh') : el._en;
-      if (el === titleEl) document.title = lang === 'zh' ? el.getAttribute('data-zh') : el._en;
-      else if (el.innerHTML !== html) el.innerHTML = html;
+  document.querySelectorAll('a[data-set-lang]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      try { localStorage.setItem(LS_KEY, a.getAttribute('data-set-lang')); } catch (err) {}
+      if (a.getAttribute('aria-current') === 'page') { e.preventDefault(); return; }
+      if (location.hash) { e.preventDefault(); location.href = a.href.split('#')[0] + location.hash; }
     });
-    attrEls.forEach(function (r) { r[0].setAttribute(r[1], lang === 'zh' ? r[3] : r[2]); });
-    document.querySelectorAll('[data-set-lang]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set-lang') === lang)); });
-    if (save) { try { localStorage.setItem(LS_KEY, lang); } catch (e) {} }
-    setVideo(lang, false);
-    if (dlg && dlg.open) showItem(current);
-    syncHeroLabel();
-  }
-  document.querySelectorAll('[data-set-lang]').forEach(function (b) {
-    b.addEventListener('click', function () { applyLang(b.getAttribute('data-set-lang'), true); });
   });
 
   /* ------------------------------------------------------------ video + chapters */
@@ -264,7 +241,7 @@
     setTimeout(function () {
       btn.removeAttribute('data-done');
       if (use) use.setAttribute('href', prev);
-      if (label) label.innerHTML = pageLang === 'zh' ? label.getAttribute('data-zh') : label._en;
+      if (label) label.innerHTML = prevLabel;
       live.textContent = '';
     }, 1600);
   }
@@ -430,5 +407,5 @@
   }
 
   /* ------------------------------------------------------------ go */
-  applyLang(pageLang, false);
+  setVideo(pageLang, false);
 })();

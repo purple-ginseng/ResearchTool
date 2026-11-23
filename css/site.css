@@ -114,14 +114,16 @@ html[lang='zh-CN'] .kicker, html[lang='zh-CN'] .foot-title { letter-spacing: 0.1
 
 /* segmented language switch */
 .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-pill); background: var(--color-bg-muted); border: 1px solid var(--color-border); }
-.seg button {
+/* EN / 中文 are links (one page per language); the video switch stays buttons */
+.seg button, .seg a {
   min-height: 32px; min-width: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: transparent;
   font: 600 0.8125rem / 1 var(--font-body); color: var(--color-text-muted); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
-.seg button:hover { color: var(--color-text); }
-.seg button[aria-pressed='true'] { background: var(--color-surface); color: var(--color-primary-text); box-shadow: var(--shadow-sm); }
-@media (pointer: coarse) { .seg button { min-height: 38px; } }
+.seg button:hover, .seg a:hover { color: var(--color-text); }
+.seg button[aria-pressed='true'], .seg a[aria-current='page'] { background: var(--color-surface); color: var(--color-primary-text); box-shadow: var(--shadow-sm); }
+@media (pointer: coarse) { .seg button, .seg a { min-height: 38px; } }
 
 /* ------------------------------------------------------------ header */
 .header {
@@ -159,12 +161,12 @@ html[lang='zh-CN'] .kicker, html[lang='zh-CN'] .foot-title { letter-spacing: 0.1
   .mobile-nav a { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 var(--space-4); color: var(--color-text); font-weight: 600; text-decoration: none; }
   .mobile-nav a .icon { color: var(--color-text-subtle); }
 }
-.seg button { white-space: nowrap; }
+.seg button, .seg a { white-space: nowrap; }
 @media (max-width: 560px) {
   .actions .btn-gh { display: none; }
   .brand-name { font-size: 1.0625rem; }
   .bar { gap: var(--space-2); }
-  .actions .seg button { min-width: 40px; padding: 0 10px; }
+  .actions .seg button, .actions .seg a { min-width: 40px; padding: 0 10px; }
 }
 @media (max-width: 340px) { .brand-name { display: none; } }
 .mobile-nav .mnav-gh { color: var(--color-primary-text); }
