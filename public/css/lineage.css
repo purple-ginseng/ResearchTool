@@ -180,7 +180,7 @@ dialog.lg[open] { display: flex; flex-direction: column; }
 .lg-pchip .ic, .lg-pjbtn .ic { width: 13px; height: 13px; }
 .lg-act .lg-pj { color: var(--muted); min-width: 28px; }
 .lg-act .lg-pj.on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
-.lg-act .lg-pj.on .ic { fill: currentColor; }
+.lg-act .lg-pj.on .ic { fill: currentColor; --ic-on: 1; }
 .lg-why { font-size: 12px; line-height: 1.45; margin-top: 6px; padding: 6px 8px; border-radius: var(--radius-sm); background: var(--soft); }
 .lg-pdlg .dlg-msg label { display: inline-flex; align-items: center; gap: 5px; }
 .lg-pdlg input[type="number"] { width: 5em; padding: 2px 5px; }

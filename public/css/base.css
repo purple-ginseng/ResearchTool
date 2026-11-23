@@ -17,6 +17,9 @@
   --ok-soft: #ebf8f1; --bad-soft: #fdeeef; --warn-soft: #fdf8e8; --info-soft: #edf3fe;
   --selection: #d6c4f1; --crest-rim: #4a2a80;
   --star: #a07000; --on-status: #ffffff;
+  /* the second tone of the hand-drawn icons (js/icons-sketch.js; the ink is currentColor): the lavender wash, the one
+     gold mark, and for the 48 master the pigment pool, the hatching and the ghost pass */
+  --sk-wash: #d6c4f1; --sk-wash-o: .8; --sk-gold: #c9971a; --sk-pool: #bba0e6; --sk-pool-o: .45; --sk-hatch: #7b4cc2; --sk-hatch-o: .5; --sk-ghost-o: .34;
   /* focus rings opaque (WCAG 1.4.11: 3:1 against the panel and the selection); search matches on the yellow */
   --mark: color-mix(in srgb, var(--yellow) 45%, transparent);
   /* shadows: --shadow is a colour (modules use it in their own box-shadows), --shadow-1..4 whole shadows */
@@ -73,6 +76,7 @@
     --ok-soft: #11291f; --bad-soft: #33151b; --warn-soft: #2c2310; --info-soft: #14213b;
     --selection: #4a3570; --crest-rim: #fbf7ee;
     --star: #ecc957; --on-status: #1d1527;
+    --sk-wash: #7b4cc2; --sk-wash-o: .62; --sk-gold: #f0d27a; --sk-pool: #9b74d6; --sk-pool-o: .45; --sk-hatch: #bba0e6; --sk-hatch-o: .5; --sk-ghost-o: .34;
     --mark: color-mix(in srgb, var(--yellow) 28%, transparent);
     --shadow-color: 0 0 0; --shadow-color-rgba: rgba(0, 0, 0, .45);
     --shadow-xs: 0 1px 2px rgb(0 0 0 / .3);
@@ -96,6 +100,7 @@
   --ok-soft: #11291f; --bad-soft: #33151b; --warn-soft: #2c2310; --info-soft: #14213b;
   --selection: #4a3570; --crest-rim: #fbf7ee;
   --star: #ecc957; --on-status: #1d1527;
+  --sk-wash: #7b4cc2; --sk-wash-o: .62; --sk-gold: #f0d27a; --sk-pool: #9b74d6; --sk-pool-o: .45; --sk-hatch: #bba0e6; --sk-hatch-o: .5; --sk-ghost-o: .34;
   --mark: color-mix(in srgb, var(--yellow) 28%, transparent);
   --shadow-color: 0 0 0; --shadow-color-rgba: rgba(0, 0, 0, .45);
   --shadow-xs: 0 1px 2px rgb(0 0 0 / .3);
@@ -137,6 +142,18 @@ button .spin { margin: 0; }
 .seg button.ib { min-height: 0; padding: 4px 8px; }
 .ic { width: 16px; height: 16px; flex: none; display: inline-block; vertical-align: -3px; overflow: visible; }
 .ic-duo { fill: var(--icon-duo, currentColor); opacity: var(--icon-duo-opacity, .2); stroke: none; }
+/* the hand-drawn set (svg.ic.sk, js/icons-sketch.js): filled pen outlines in currentColor. Its second tone is the
+   off-register wash and the one gold mark (with the pool, the hatching and the ghost pass of the 48 master); the solid
+   body of the "on" state (star, bookmark) shows where a rule sets --ic-on: 1 on the icon. The tokens are per theme. */
+.ic.sk { fill: currentColor; stroke: none; }
+.ic-w { fill: var(--sk-wash); opacity: var(--sk-wash-o); }
+.ic-w2 { fill: var(--sk-pool); opacity: var(--sk-pool-o); }
+.ic-h, .ic-x { fill: var(--sk-hatch); opacity: var(--sk-hatch-o); }
+.ic-g { opacity: var(--sk-ghost-o); }
+.ic-au { fill: var(--sk-gold); }
+.ic-on { opacity: var(--ic-on, 0); }
+/* on a filled ground a lavender wash turns to mud: none there, and the gold of the dark band */
+button.primary, button.accent, button.danger:hover, button.danger:focus-visible { --sk-wash-o: 0; --sk-gold: #f0d27a; }
 .ic-spin { transform-origin: 50% 50%; animation: rt-spin 1s linear infinite; }
 @keyframes rt-spin { to { transform: rotate(360deg); } }
 @keyframes rt-pulse { 50% { opacity: .45; } }
@@ -208,8 +225,9 @@ header > .ib .ic { width: 18px; height: 18px; }
 .toast.bad, .toast.bad .toast-msg { white-space: normal; overflow-wrap: anywhere; }
 .toast.bad:not(.has-act):not(:empty), .toast.bad .toast-msg { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
 .toast.ok { color: var(--ok); }
-/* a message with a button (Undo): the text shortens, the button stays */
-.toast.has-act { display: inline-flex; align-items: center; gap: 8px; }
+/* a message with a button (Undo): the text shortens, the button stays (not once it has timed out and is empty: the
+   :empty rule above must still hide it) */
+.toast.has-act:not(:empty) { display: inline-flex; align-items: center; gap: 8px; }
 .toast-msg { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .toast-act { flex: none; color: var(--ink); min-height: 24px; padding: 3px 6px; }
 /* banners: thin notices under the header (RT.banner) */

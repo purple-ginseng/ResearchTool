@@ -53,7 +53,7 @@ window.RT = (() => {
       // the shown text may be the translation: "this toast is still up" is its sequence number
       t.lastChild.addEventListener('click', () => { if (seq === toastSeq) toast(''); action.run(); }, { once: true });
     }
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.textContent = ''), action ? 20000 : 9000);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.textContent = ''; t.classList.remove('has-act'); }, action ? 20000 : 9000);
   }
   // ---------------- errors: the last ones, for Help › Copy diagnostics (diagnostics.js) ----------------
   // A small ring buffer in memory (never stored, never sent): what window.onerror and unhandledrejection catch, and
@@ -223,10 +223,20 @@ window.RT = (() => {
     if (v && v.onDrop) v.onDrop(e);
   });
 
-  // ---------------- icons: RT.icon(name, {size, duo, cls}) ----------------
-  // The Ginseng line icons on a 24 grid (js/icons.js: RT_ICON_DEFS, loaded before this file). Old names of the former
-  // 16-grid set keep working through ICON_ALIAS; a name that starts with "M" is a raw SVG path on the old 16 grid
-  // (stroke 1.4), drawn as before, for an icon the set lacks.
+  // ---------------- icons: RT.icon(name, {size, duo, cls, title}) ----------------
+  // Two sets on a 24 grid, chosen in Preferences › General › Icon style (settings.json iconStyle; cached in
+  // localStorage rt.ui.icons and put on <html data-icons> by ui-boot.js, so the first paint already has it):
+  //   'sketch'  (the default) the hand-drawn set, js/icons-sketch.js (RT_ICON_SKETCH): filled pen outlines in
+  //             currentColor. At UI sizes it is ink only; the lavender wash and the one gold mark are drawn where the
+  //             caller asks for the two-tone drawing (duo) or for 20 px and more; from 32 px the 48 master is used
+  //             when the icon has one. A name this set does not draw comes from the classic set.
+  //   'classic' the Ginseng line icons, js/icons-classic.js (RT_ICON_DEFS): stroked outlines, an optional duotone layer.
+  // Options: size (px: width/height on the svg; the classic stroke and the sketch master follow it), duo (true: the
+  // second tone in both sets; 'sketch': only in the hand-drawn set), cls (extra classes), title (an accessible name:
+  // role="img" + <title>; without it the icon is decorative, aria-hidden), style ('sketch' | 'classic': this one icon
+  // always in that set, whatever the preference - the two samples in Preferences). A string instead of options is cls.
+  // Old names of the former 16-grid set keep working through ICON_ALIAS; a name that starts with "M" is a raw SVG path
+  // on the old 16 grid (stroke 1.4), drawn as before, for an icon neither set has.
   const ICON_ALIAS = {
     trash: 'delete', gear: 'settings', open: 'external-link', plus: 'add', pencil: 'edit', books: 'library', eyeOff: 'eye-off',
     pull: 'download', push: 'upload', arrowLeft: 'arrow-left', arrowRight: 'arrow-right', zip: 'archive', folderOpen: 'folder',
@@ -237,34 +247,92 @@ window.RT = (() => {
     allFiles: 'copy', tex: 'latex', bib: 'bibtex', papers: 'library', ref: 'citation', cite: 'citation', ul: 'list', ol: 'list-ordered',
     labelAdd: 'tag', layout: 'sidebar', panel: 'sidebar', newFolder: 'new-folder',
   };
-  const ICON_DEFS = window.RT_ICON_DEFS || {}, ICON_GEN_ALIAS = window.RT_ICON_ALIASES || {};
-  const resolveIcon = (name) => { let n = ICON_ALIAS[name] || name; n = ICON_GEN_ALIAS[n] || n; return ICON_DEFS[n] ? n : null; };
+  const ICON_DEFS = window.RT_ICON_DEFS || {}, ICON_GEN_ALIAS = window.RT_ICON_ALIASES || {}, ICON_SKETCH = window.RT_ICON_SKETCH || {};
+  const ICON_STYLES = ['sketch', 'classic'];
+  let iconStyle = document.documentElement.dataset.icons === 'classic' ? 'classic' : 'sketch';
+  const resolveIcon = (name) => { let n = ICON_ALIAS[name] || name; n = ICON_GEN_ALIAS[n] || n; return ICON_DEFS[n] || ICON_SKETCH[n] ? n : null; };
   const attrEsc = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
   const iconEls = (list, cls) => list.map(([tag, at]) => `<${tag}${cls ? ` class="${cls}"` : ''}${Object.entries(at).map(([k, v]) => ` ${k}="${attrEsc(v)}"`).join('')}/>`).join('');
   const iconCache = new Map(), iconWarned = new Set();
-  // stroke by size, as the design system does: 2 up to 17px, 1.75 up to 31px, 1.5 from 32px
+  // classic: stroke by size, as the design system does: 2 up to 17px, 1.75 up to 31px, 1.5 from 32px
   const strokeFor = (px) => (px <= 17 ? 2 : px < 32 ? 1.75 : 1.5);
+  // sketch: the layers in paint order (wash, pool, hatch, cross-hatch, ink, ghost pass, gold); the ink has no class
+  const SK_LAYERS = ['w', 'w2', 'h', 'x', 'k', 'g', 'au'];
+  const skPath = (cls, d) => (d ? `<path${cls ? ` class="ic-${cls}"` : ''} d="${d}"/>` : '');
+  function sketchParts(d, size, duo) {
+    if (size >= 32 && d.L) return { vb: 48, body: SK_LAYERS.map((k) => skPath(k === 'k' ? '' : k, d.L[k])).join('') };
+    const on = skPath('on', d.on); // the solid body of the "on" state: shown by CSS (--ic-on)
+    if ((duo || size >= 20) && (d.w || d.au)) return { vb: 24, body: skPath('w', d.w) + skPath('', d.k) + skPath('au', d.au) + on };
+    return { vb: 24, body: skPath('', d.u || (d.s && d.au ? d.k + d.au : d.k)) + on };
+  }
   function icon(name, opts = {}) {
     if (typeof opts === 'string') opts = { cls: opts };
-    const { size, duo = false, cls = '' } = opts || {};
-    const key = `${name}|${size || ''}|${duo ? 1 : 0}|${cls}`;
+    const { size, duo = false, cls = '', title = '', style = '' } = opts || {};
+    const set = ICON_STYLES.includes(style) ? style : iconStyle;
+    const key = `${set}${style ? '!' : ''}|${name}|${size || ''}|${duo === 'sketch' ? 2 : duo ? 1 : 0}|${cls}|${title}`;
     if (iconCache.has(key)) return iconCache.get(key);
     const dim = size ? ` width="${size}" height="${size}" style="width:${size}px;height:${size}px"` : '';
+    const a11y = title ? ` role="img" aria-label="${attrEsc(title)}" focusable="false"` : ' aria-hidden="true" focusable="false"';
+    const label = title ? `<title>${attrEsc(title)}</title>` : '';
     const klass = 'ic' + (cls ? ' ' + cls : '');
     let out;
     if (/^M/.test(String(name || ''))) {
-      out = `<svg class="${klass}" viewBox="0 0 16 16"${dim} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${attrEsc(name)}"/></svg>`;
+      out = `<svg class="${klass}" viewBox="0 0 16 16"${dim} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"${a11y}>${label}<path d="${attrEsc(name)}"/></svg>`;
     } else {
-      const n = resolveIcon(name), d = n && ICON_DEFS[n];
-      if (!d && name && !iconWarned.has(name)) { iconWarned.add(name); console.warn(`RT.icon: no icon named '${name}'`); }
-      out = `<svg class="${klass}" viewBox="0 0 24 24"${dim} fill="none" stroke="currentColor" stroke-width="${strokeFor(size || 16)}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d ? (duo && d.d ? iconEls(d.d, 'ic-duo') : '') + iconEls(d.o) : ''}</svg>`;
+      const n = resolveIcon(name), sk = set === 'sketch' && n ? ICON_SKETCH[n] : null, d = n && ICON_DEFS[n];
+      if (!n && name && !iconWarned.has(name)) { iconWarned.add(name); console.warn(`RT.icon: no icon named '${name}'`); }
+      // data-i (and data-duo) say how the icon was asked for, so a change of the icon style can redraw it in place
+      // (not on an icon of a fixed style: that one stays as it is)
+      const how = style ? '' : ` data-i="${attrEsc(name || '')}"${duo ? ` data-duo="${duo === 'sketch' ? 'sketch' : 1}"` : ''}`;
+      if (sk) {
+        const p = sketchParts(sk, size || 16, !!duo);
+        out = `<svg class="ic sk${cls ? ' ' + cls : ''}"${how} viewBox="0 0 ${p.vb} ${p.vb}"${dim} fill="currentColor"${a11y}>${label}${p.body}</svg>`;
+      } else {
+        out = `<svg class="${klass}"${how} viewBox="0 0 24 24"${dim} fill="none" stroke="currentColor" stroke-width="${strokeFor(size || 16)}" stroke-linecap="round" stroke-linejoin="round"${a11y}>${label}${d ? (duo && duo !== 'sketch' && d.d ? iconEls(d.d, 'ic-duo') : '') + iconEls(d.o) : ''}</svg>`;
+      }
     }
     iconCache.set(key, out);
     return out;
   }
   icon.has = (name) => /^M/.test(String(name || '')) || !!resolveIcon(name);
-  icon.names = () => Object.keys(ICON_DEFS);
+  icon.names = () => [...new Set([...Object.keys(ICON_DEFS), ...Object.keys(ICON_SKETCH)])];
   icon.aliases = () => ({ ...ICON_GEN_ALIAS, ...ICON_ALIAS });
+  icon.styles = ICON_STYLES;
+  icon.style = () => iconStyle;
+  // is this name drawn by hand now (the hand-drawn set is on and has it)?
+  icon.sketched = (name) => { const n = resolveIcon(name); return iconStyle === 'sketch' && !!(n && ICON_SKETCH[n]); };
+  // redraw one icon that is on the page in the set that is on now: the same element (references and listeners
+  // stay), its classes kept
+  const iconTpl = document.createElement('template');
+  function redrawIcon(el) {
+    const name = el.dataset.i;
+    if (!name || el.classList.contains('sk') === icon.sketched(name)) return;
+    const t = [...el.children].find((c) => c.tagName.toLowerCase() === 'title');
+    iconTpl.innerHTML = icon(name, { size: Number(el.getAttribute('width')) || undefined, duo: el.dataset.duo === 'sketch' ? 'sketch' : !!el.dataset.duo, title: t ? t.textContent : '' });
+    const n = iconTpl.content.firstElementChild;
+    for (const a of ['viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin']) { const v = n.getAttribute(a); if (v == null) el.removeAttribute(a); else el.setAttribute(a, v); }
+    el.classList.toggle('sk', n.classList.contains('sk'));
+    el.replaceChildren(...n.childNodes);
+  }
+  const redrawIcons = (root) => { if (root.matches && root.matches('svg.ic[data-i]')) redrawIcon(root); if (root.querySelectorAll) for (const el of root.querySelectorAll('svg.ic[data-i]')) redrawIcon(el); };
+  let iconWatch = null;
+  // RT.icon.setStyle('sketch' | 'classic'): every icon on the page is redrawn at once, without a reload. Emits
+  // 'icons:style' first (the Library list rebuilds its row sprite and its rows on it), then redraws what is on the
+  // page. Modules keep icon markup in strings they made earlier, so from the first change on, icons that arrive on
+  // the page later in the other set are redrawn as they arrive (before the next paint).
+  icon.setStyle = (style) => {
+    style = style === 'classic' ? 'classic' : 'sketch';
+    if (style === iconStyle) return style;
+    iconStyle = style;
+    document.documentElement.dataset.icons = style;
+    emit('icons:style', style);
+    redrawIcons(document.documentElement);
+    if (!iconWatch && window.MutationObserver) {
+      iconWatch = new MutationObserver((list) => { for (const m of list) for (const n of m.addedNodes) if (n.nodeType === 1) redrawIcons(n); });
+      iconWatch.observe(document.documentElement, { childList: true, subtree: true });
+    }
+    return style;
+  };
   // every icon on one sheet (a check, not used by the app): RT.icon.sheet(el, {duo, size})
   icon.sheet = (el, { duo = false, size = 24 } = {}) => {
     const added = new Set(window.RT_ICON_ADDED || []);

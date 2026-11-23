@@ -15,6 +15,7 @@
 .qz-form button { flex: none; }
 .qz-empty { height: auto; flex: 1; gap: 10px; align-content: center; line-height: 1.6; }
 .qz-empty .ic { width: 34px; height: 34px; opacity: .55; }
+.qz-empty .ic.sk, .rv-empty .ic.sk { opacity: .85; } /* a hand-drawn mark (the finer 48 master, with its wash) is faded less */
 
 .qz-scroll { flex: 1; min-height: 0; overflow: auto; padding: 14px 16px 40px; }
 .qz-body { max-width: 680px; margin: 0 auto; font-size: 14px; line-height: 1.55; }

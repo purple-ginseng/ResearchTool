@@ -158,6 +158,8 @@
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); box-shadow: var(--shadow-1); }
 #view-overview .ov-tour-ic { flex: none; display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent-fill); color: var(--accent-fill-ink); }
 #view-overview .ov-tour-ic .ic { width: 22px; height: 22px; }
+/* the hand-drawn tour sheet on the accent disc: its wash a faint lighter tone, its gold mark the gold of the dark band */
+#view-overview .ov-tour-ic { --sk-wash: #ffffff; --sk-wash-o: .2; --sk-gold: #f0d27a; }
 #view-overview .ov-tour-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 #view-overview .ov-tour-t b { font: 600 15px/1.3 var(--font-title); color: var(--ink); }
 #view-overview .ov-tour-t span { color: var(--muted); font-size: 13px; line-height: 1.45; }

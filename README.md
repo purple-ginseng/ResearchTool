@@ -43,6 +43,8 @@ LaTeX 编辑器。所有数据都保存在一个普通文件夹里，没有账�
 默认是 Claude Code（`claude`），也可以在偏好设置 › AI 中换成 OpenAI Codex、xAI Grok Build 或 Google Antigravity
 （`agy`，个人 Google 账号可用）。Claude Code 可以修改文件；Codex 在偏好设置 › AI 里勾选「Let Codex edit files」后也可以（默认关闭，只能改打开的 LaTeX 项目和阅读笔记，改动记入项目历史、可以恢复）；Grok Build 和 Antigravity 在面板里是只读的；Grok Build 不支持 Windows。界面支持英文和简体中文（偏好设置 › 通用 › 显示语言）。
 
+更新：在偏好设置 › 通用 里勾选「Keep ResearchTool up to date automatically」后，程序会自动从官方仓库拉取新版本（默认关闭，只做快进更新，不会动你的工作区），更新后按提示重启即可。图标默认是为本项目手绘的一套，可在同一页切换回经典线条图标。中文项目主页：https://purple-ginseng.github.io/ResearchTool/zh/
+
 快速开始：安装 Node 18 或更新版本，然后 `git clone https://github.com/purple-ginseng/ResearchTool.git`、
 `cd ResearchTool`、`node server.js`，再打开 http://localhost:4790 。项目主页（含中文演示视频）：
 https://purple-ginseng.github.io/ResearchTool/
@@ -203,6 +205,60 @@ $env:RT_WORKSPACE="$HOME\ResearchTool-data"; $env:PORT=4791; node server.js   # 
 `node server.js`.) The tools below add PDF import, compiling and the other features; how to install them on each
 system is in "macOS, Linux and Windows".
 
+### Updating
+
+ResearchTool is installed with `git clone https://github.com/purple-ginseng/ResearchTool`. A newer version is a
+`git pull` in that folder, followed by a restart (`Ctrl+C` in the terminal, then `node server.js` again). Your data
+- `workspace/` and the default backup folder `backups/` - is not part of the repository and an update never touches
+it.
+
+**Preferences › General › Updates** can do the pull for you:
+
+- **Keep ResearchTool up to date automatically** - off unless you tick it. When ticked, the app asks GitHub a
+  little after it starts, and then about once a day while it runs, whether there is a newer version; when there
+  is, it downloads and installs the new program code by itself, without asking each time. That is the whole
+  decision: with the box ticked, whatever is pushed to the `main` branch of the official repository runs on your
+  computer within a day - the new pages at the next reload, the new server code after the next restart. Leave the
+  box unticked if you would rather read what changed first.
+- **Check for updates now** works with the box unticked too. It asks once and installs nothing; when there is a
+  newer version it shows it and offers **Update now**, which downloads and installs it. Pressed within a minute
+  of the check, "Update now" installs exactly the version that was shown without asking GitHub again; later it
+  asks once more first.
+- After an update a notice under the header says "ResearchTool was updated to vX (abc1234). Restart it to finish:
+  stop it in the terminal (Ctrl+C) and run node server.js again." and stays until you do. Nothing restarts by
+  itself. Until the restart the pages are already the new ones while the server still runs the old code, so
+  restart soon. After the restart the notice goes by itself within half a minute; a tab that was open since
+  before the update then asks to be reloaded ("ResearchTool was restarted with another version. Reload this
+  page to use it.").
+
+An update is only ever a fast-forward of an untouched clone of the official repository. It is not tried - and the
+line under the checkbox says why, and what to do - when:
+
+- the folder is not a git clone (it was unpacked from a ZIP file), is a linked work tree or lies inside another
+  repository, or git is not installed;
+- `origin` is not `github.com/purple-ginseng/ResearchTool` (a fork or any other remote is never updated);
+- another branch than `main` is checked out, `main` does not follow `origin/main`, or no branch is (a detached HEAD);
+- a tracked file was changed, or a merge, rebase or another git command is under way in the folder;
+- the git settings inside the folder (`.git/config`) hold something a plain clone does not have and that would
+  make git run a program or go somewhere else: a filter, an include, `http.*` settings, a remote section named
+  like an address, a partial clone (`git clone --filter=...`); or `.git/info/attributes` or
+  `.git/objects/info/alternates` is in use. A second remote with an ordinary name, your name and e-mail, and what
+  editors write there are fine;
+- the copy has commits of its own (it is ahead of, or has diverged from, the official `main`);
+- your git settings send GitHub addresses somewhere else (`url.….insteadOf`);
+- the new version would put a file inside `workspace/` or `backups/`, contains a symbolic link, a submodule or a
+  file name that cannot exist on Windows or macOS, needs a newer Node.js (`engines` in its `package.json`), or is
+  marked as needing a step by hand (`updateEpoch` in `package.json`).
+
+It never merges, rebases, resets, stashes, cleans or deletes anything, never switches branches, runs no repository
+hooks and sends no credentials: the request is an anonymous https `git fetch` of the one address written in
+`lib/update.js`. No token header (`http.extraHeader`) or cookie from your git settings goes with it, and the
+certificate of github.com is always checked, whatever your git settings say about it; your proxy and your
+company's certificates are used as git uses them. Files that git does not track (your workspace, your backups, anything else you keep in the
+folder) are left exactly as they are; if the new version has a file where one of yours lies, the update is refused
+and names the file. The switch is saved per workspace (`settings.json`, `autoUpdate`), and a restored backup does
+not change it. Starting the app with `RT_NO_UPDATE=1` switches every check off, whatever the setting says.
+
 ## Requirements
 
 | Tool | Needed for |
@@ -346,9 +402,19 @@ Recently added, Recent notes, Research lines and top tags, Projects in the Edito
 Recently deleted, tools). Every row leads to its place in the Library, the reader or the Editor. It only reads.
 
 The look follows the Purple Ginseng design, in plain CSS / SVG: the crest in the header and the favicons
-(`public/brand/`, `public/favicon*`, `public/apple-touch-icon.png`), one line-icon set (`public/js/icons.js`, drawn
-by `RT.icon`), empty-state illustrations (`public/js/illustrations.js`) and the theme tokens in
-`public/css/base.css`. Fonts are vendored; nothing is fetched online.
+(`public/brand/`, `public/favicon*`, `public/apple-touch-icon.png`), the icons (drawn by `RT.icon`),
+empty-state illustrations (`public/js/illustrations.js`) and the theme tokens in `public/css/base.css`. Fonts are
+vendored; nothing is fetched online.
+
+There are two icon sets, and Preferences › General › "Icon style" chooses between them (for the whole workspace -
+it is kept in `settings.json` - at once, without a reload):
+
+- **Hand-drawn** (the default, `public/js/icons-sketch.js`): original drawings made for this app, in the same hand as
+  the project page - each stroke a fountain-pen line that swells and tapers, in the colour of the text around it. At
+  the small sizes of buttons and menus they are ink only; a lavender wash and one gold mark appear on the few large
+  ones (the Overview cards, the project cards, the empty states).
+- **Classic** (`public/js/icons-classic.js`): the Ginseng line icons the app had before, plain lines of one weight.
+  They also draw any icon the hand-drawn set does not have.
 
 ## Library tab
 
@@ -525,7 +591,7 @@ by `RT.icon`), empty-state illustrations (`public/js/illustrations.js`) and the 
   resize. A picture's width is kept in its address (`![alt](url#w=320)`), a video is a `<video>` tag.
 - **Ask Claude** (right-click in the note): explain a selected phrase, a paragraph, a table or a picture, its
   foundations, its meaning, an example, or your own question. The answer is appended below as a `> [!ai]` comment.
-- **Explain / translate in place** (the sparkle of a PDF selection, and beside a region right after a snapshot): the
+- **Explain / translate in place** (the Claude button of a PDF selection, and beside a region right after a snapshot): the
   same questions plus "Translate to 中文 / English", answered in a card over the PDF without touching the note;
   "Add to note" inserts the passage as a quote with its page link, marks it on the page, and adds the answer as a
   `> [!ai]` comment.
@@ -578,7 +644,7 @@ by `RT.icon`), empty-state illustrations (`public/js/illustrations.js`) and the 
   your references), and repeated words, a missing `~` before `\ref` / `\cite`, straight quotes, braces or
   environments that do not match and TODO notes are marked. Commands, math and cite / ref keys are skipped.
   Right-click a mark for corrections, F8 goes to the next one, the toolbar button switches each check off per project.
-- **Ask Claude about a selection**: right-click selected text in the editor (or the sparkle button of the toolbar) to
+- **Ask Claude about a selection**: right-click selected text in the editor (or the Claude button of the toolbar) to
   improve the wording, shorten it by about 20%, translate it into academic English or follow an instruction of your
   own. The proposal is shown under the passage as a word-by-word comparison; Accept puts it in place and records a
   "Claude" version in the history, Reject leaves the text alone. "Find weak claims" answers in the Claude panel.
@@ -653,6 +719,21 @@ compiled PDF are never pushed. Overleaf cannot list your projects through Git, s
 For testing without Overleaf, `RT_OVERLEAF_GIT_BASE=file:///some/dir` makes the app (and the login script) use
 local bare repositories named by a 24-character hex id.
 
+## What goes online
+
+The server listens on 127.0.0.1 only, and the app has no account, no telemetry and no analytics. A request leaves
+this computer only in these cases:
+
+| What | Where to | When | What is sent |
+| --- | --- | --- | --- |
+| AI features and the AI panel | the provider of the AI command-line tool you chose (Claude Code, Codex, Grok, Antigravity), by that tool, under your own account | when you use an AI feature | the prompt: the text of the paper, note or project file the feature works on |
+| Importing a paper | doi.org, arxiv.org, openreview.net, openalex.org | when you import by DOI, arXiv id or link, or drop a PDF | only the paper's id, DOI or title |
+| Related tab, "Check metadata", "Check venues", Lineage | the scholarly indexes: OpenAlex, Semantic Scholar, arXiv, Crossref, doi.org, DBLP, PMLR | only when you press their button | the paper's DOI or arXiv id; "Check venues" also its title |
+| Overleaf sync | git.overleaf.com, by git, with the token your credential store keeps | when you import, pull or push a linked project | the files of that project |
+| Updates of ResearchTool | github.com, by git over https | only when "Keep ResearchTool up to date automatically" is ticked (a little after the start, then about once a day), or when you press "Check for updates now" or "Update now" | an anonymous git request for the public repository: no account, no token, nothing about you, your library or your notes. GitHub sees your IP address and that a git client asked for this repository |
+
+The update check is off unless you tick its box in Preferences › General (see "Updating" above).
+
 ## Where things live
 
 Everything you create is in `workspace/` (or `RT_WORKSPACE`):
@@ -676,7 +757,7 @@ Everything you create is in `workspace/` (or `RT_WORKSPACE`):
 | `export/` | default target of "Export references", and of the reading packs (`<project> - reading pack/`) |
 | `trash/` | everything deleted or replaced in the app - nothing is hard-deleted. A deleted paper is `trash/library/<id>-<time>/` (`item.json` + its files); the bin button of the Library ("Recently deleted") puts it back or empties the trash |
 | `cache/` | preview PDFs, temporary files, the text read from each PDF (`text/<id>.json`, rebuilt when missing), the answers of the Related tab (`related/`, asked again after 30 days), the Lineage records (`lineage/`: `works.json` per paper and work, `contexts.json` the citing sentences, `sets/` per computed set with `index.json`), the log of AI calls (`ai-usage.jsonl`: tokens, cost, seconds) |
-| `settings.json` | export folder, backup folder, "Claude usage" mode, the teaching style ("How Claude explains"), opened external folders, per-project settings (compiler, limits, checks, dictionary, references scope, the papers of the project), Overleaf links, grouping settings |
+| `settings.json` | export folder, backup folder, "Claude usage" mode, the teaching style ("How Claude explains"), opened external folders, per-project settings (compiler, limits, checks, dictionary, references scope, the papers of the project), Overleaf links, grouping settings, `autoUpdate` (only when "Keep ResearchTool up to date automatically" is ticked) |
 | `CLAUDE.md` | explains this layout to Claude Code |
 
 ### Trash and backup
@@ -838,7 +919,8 @@ A workspace that had chosen Gemini CLI opens on Claude Code.
 - **Reporting a bug:** Help (the question-mark button) › **Copy diagnostics**, or ⌘K / Ctrl+K and "Copy diagnostics",
   copies a plain-text block to paste into the report: the app version and commit, the OS, Node and browser, the
   display language, the AI provider with its CLI's version and whether it is installed and signed in, which helper
-  programs were found (pdftotext, latexmk, git, unzip), and the last errors of the page and of the AI calls. It runs
+  programs were found (pdftotext, latexmk, git, unzip), the state of the updates (on or off, why this copy cannot
+  update itself, the last check, whether a restart is waiting), and the last errors of the page and of the AI calls. It runs
   no AI call and reads no paper, note or library file. Before it is copied, the workspace path is written
   `<workspace>`, an external LaTeX project `<project>`, the backup folder `<backup>`, home folders `~` / `<home>`,
   drives and shares `<volume>` / `<share>`, e-mail addresses `<email>`, the user name in a proxy address `<user>`,
@@ -868,6 +950,46 @@ A workspace that had chosen Gemini CLI opens on Claude Code.
   start, usually a broken install or a second, older poppler found first on PATH (`where pdftotext` lists them).
   Reinstall it (`scoop install poppler`, `choco install poppler` or conda) and remove the other copy from PATH.
 
+- **"This copy was not installed with git ... so it cannot update itself":** the folder came from a ZIP download, so
+  there is no history to fast-forward. Install with `git clone https://github.com/purple-ginseng/ResearchTool`,
+  stop the old copy, move your `workspace/` folder (and `backups/`, if you kept the default backup folder) into
+  the new one and start it there. Until then "Check for updates now" can only say the same.
+- **Updates say the copy is a fork, on another branch, changed, ahead or diverged:** ResearchTool only updates an
+  untouched clone of the official repository on `main` ("Updating" above lists every reason). `git status` in the
+  app folder shows what is different. To follow the official version again: `git switch main`, undo or commit your
+  changes elsewhere, and `git pull --ff-only`. A fork is never updated by the app - pull from your own remote.
+- **Updates say GitHub could not be reached:** no network, a sign-in page of a Wi-Fi network, a proxy or a
+  certificate problem. Nothing was changed; with the box ticked the check is tried again within the hour. If
+  `git pull` in the app folder works in a terminal but the app's check does not, the difference is usually an
+  environment variable: the app's git ignores every `GIT_*` variable except the certificate ones
+  (`GIT_SSL_CAINFO`, `GIT_SSL_CAPATH`) and reads the proxy from your git settings or `https_proxy`.
+- **"The update was interrupted, and the ResearchTool folder may be half updated":** the fast-forward stopped half
+  way (the disk was full, a file was locked by another program, the computer went to sleep): some program files
+  are already the new ones, others are not. Your workspace is not involved. To finish the update, stop
+  ResearchTool, make room on the disk or close the program that held the file, and in the app folder:
+  1. if the file `.git/index.lock` exists and no git is running, delete it;
+  2. run `git reset --hard origin/main`. This sets the program files git tracks to the version the update was
+     installing (the app downloaded it already, so this works offline); `workspace/`, `backups/` and every other
+     file git does not track stay as they are. (`git merge --ff-only origin/main` or `git pull` do not work
+     here: git refuses to write over the files it already wrote.) Do not run `git clean`;
+  3. `git status` should now say "nothing to commit" (untracked files aside). Start ResearchTool again.
+  To go back to the old version instead, run `git checkout -- .` in step 2 and delete the new files `git status`
+  lists as untracked, if they are the app's. Until one of the two is done the app keeps saying "interrupted"
+  and does not try again.
+- **Updates say the git settings inside the ResearchTool folder hold something a plain clone does not have:** the
+  word in brackets says what - `filter`, `include`, `http`, `remote`, `core.alternaterefscommand`,
+  `core.attributesfile`, `extensions.partialclone`, `extensions.worktreeconfig`, `info/attributes` or
+  `objects/info/alternates`. These are settings in `.git/config` (or files in `.git`) that make git run a program
+  or fetch from somewhere else, so the app does not run git over them by itself. If you did not put them there,
+  look at `.git/config` before running any git command in the folder. If they are yours (a partial clone, an
+  `http` proxy for this folder only), either move them to your global git settings (`git config --global ...`)
+  or keep updating with `git pull` yourself.
+- **A new version does not start, or you want the previous one back:** start with `RT_NO_UPDATE=1 node server.js`
+  (PowerShell: `$env:RT_NO_UPDATE=1; node server.js`) so that nothing is installed again, or untick the box in
+  Preferences › General. `git reflog -3` in the app folder shows the commit the update came from; `git reset --hard
+  HEAD@{1}` goes back to it (this only moves the program files git tracks - the workspace and backups are not
+  tracked). Then please report what broke.
+
 ## Environment variables
 
 | Variable | Default | What |
@@ -879,3 +1001,5 @@ A workspace that had chosen Gemini CLI opens on Claude Code.
 | `RT_OVERLEAF_NET_TIMEOUT_MS`, `RT_OVERLEAF_CLONE_TIMEOUT_MS` | 45000, 180000 | network timeouts of git |
 | `RT_CATEGORIZE_TIMEOUT_MS`, `RT_REGROUP_TIMEOUT_MS`, `RT_REGROUP_CHUNK`, `RT_BRIEF_BATCH` | see `lib/categorize.js` | limits of the grouping calls; papers per brief call (6) |
 | `RT_BACKUP_FIRST_MS` | 90000 | delay before the first automatic backup check after the start |
+| `RT_NO_UPDATE` | unset | `1` switches the app's own updates off completely - no check, no download, whatever Preferences says (it can only switch them off) |
+| `RT_UPDATE_FIRST_MS` | 75000 | delay before the first automatic update check after the start (only with "Keep ResearchTool up to date automatically" ticked) |

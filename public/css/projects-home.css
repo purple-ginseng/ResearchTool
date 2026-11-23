@@ -43,6 +43,8 @@
 .pj-papers { font-variant-numeric: tabular-nums; }
 .pj-card.missing .pj-name .nm, .pj-card.missing .pj-fi { color: var(--muted); }
 .pj-card.missing .pj-fi { background: var(--soft-2); }
+/* the hand-drawn icon of the tile is two-tone: on a missing project no wash, and the gold mark in the muted ink */
+.pj-card.missing .pj-fi { --sk-wash-o: 0; --sk-gold: currentColor; }
 .pj-src { cursor: help; }
 .pj-src-folder { color: var(--warn); background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
 .pj-acts { flex: none; display: inline-flex; align-items: center; gap: 4px; opacity: 0; transition: opacity var(--motion-fast, .12s) var(--ease-standard, ease); }

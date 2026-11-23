@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ResearchTool</title>
-<!-- the per-browser look (theme, hints) before the first paint: prefs.js -->
+<!-- the per-browser look (theme, hints, icon style) before the first paint: prefs.js -->
 <script src="js/ui-boot.js"></script>
 <!-- the crest (public/brand/, see brand/LICENSE-NOTE.txt) -->
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -102,7 +102,9 @@
 <!-- Vditor is loaded on demand: await RT.vendor.vditor() -->
 
 <!-- app scripts: core, then the modules in dependency order -->
-<script src="js/icons.js"></script>
+<!-- the two icon sets (plain data): the classic line icons, and the hand-drawn set RT.icon draws by default -->
+<script src="js/icons-classic.js"></script>
+<script src="js/icons-sketch.js"></script>
 <script src="js/core.js"></script>
 <script src="js/illustrations.js"></script>
 <!-- the display language (Preferences > General): the dictionary fragments of each area, the dictionary (it merges
@@ -147,6 +149,7 @@
 <script src="js/overview.js"></script>
 <script src="js/panes.js"></script>
 <script src="js/safety.js"></script>
+<script src="js/update.js"></script>
 <script src="js/redact.js"></script>
 <script src="js/diagnostics.js"></script>
 </body>

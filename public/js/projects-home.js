@@ -151,7 +151,7 @@ function render() {
     const tip = p.overleaf ? (p.overleaf.url || 'Linked to an Overleaf project') + (p.overleaf.lastSync ? ` — last synced ${relTime(p.overleaf.lastSync)}` : '') : p.path;
     const n = S.papers.has(p.id) ? S.papers.get(p.id) || 0 : null;
     return `<div class="card interactive pj-card${p.missing ? ' missing' : ''}" role="listitem" data-id="${esc(p.id)}" tabindex="0" aria-label="${esc(p.name)}">
-      <span class="pj-fi">${ic(p.overleaf ? 'cloud' : p.external ? 'folder' : 'tex')}</span>
+      <span class="pj-fi">${I(p.overleaf ? 'cloud' : p.external ? 'folder' : 'tex', { duo: 'sketch' })}</span>
       <div class="pj-info">
         <div class="pj-name"><span class="nm" data-i18n-skip title="${esc(p.name)}">${esc(p.name)}</span><span class="badge pj-src pj-src-${kind}${p.overleaf ? ' ok' : ''}" title="${esc(tip)}">${p.overleaf ? I('overleaf-sync') : ''}${esc(src)}</span>${p.missing ? '<span class="badge bad pj-missing">folder missing</span>' : ''}</div>
         ${p.overleaf ? '' : `<div class="pj-path" data-i18n-skip title="${esc(p.path)}">${esc(p.path || '')}</div>`}

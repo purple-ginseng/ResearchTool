@@ -332,7 +332,7 @@
       <div class="cmp-status" role="status">${status}</div>
       ${t.kind === 'ask' ? `<div class="cmp-question"><b>Question</b> ${esc(t.question)}</div>` : ''}
       ${t.summary && t.summary.text ? `<div class="cmp-summary">${summaryHtml(t)}</div>` : ''}
-      ${S.editCols ? `<div class="cmp-coledit"><label>Columns - one per line, with what you want there after a colon. A column you remove or rename loses its cells; new columns are empty until you press the sparkle.
+      ${S.editCols ? `<div class="cmp-coledit"><label>Columns - one per line, with what you want there after a colon. A column you remove or rename loses its cells; new columns are empty until you press the Claude button.
         <textarea id="cmp-cols2" rows="${Math.min(8, t.columns.length + 1)}" spellcheck="false">${esc(colsText(t.columns))}</textarea></label>
         <div class="dlg-actions">${ib('cols-cancel', 'Cancel', 'close')}${ib('cols-save', 'Save the columns', 'check', 'primary')}</div></div>` : ''}
       <div class="cmp-scroll"><table class="cmp-table${t.kind === 'ask' ? ' ask' : ''}"><thead><tr><th scope="col">Paper</th>${t.columns.map((c) => `<th scope="col"${c.hint ? ` title="${esc(c.hint)}"` : ''}>${esc(c.name)}</th>`).join('')}</tr></thead>
@@ -480,7 +480,7 @@
       const cols = parseCols($('#cmp-cols2').value);
       if (!cols.length) return toast('Name at least one column.', 'bad');
       S.editCols = false;
-      if (await put({ columns: cols })) { if (S.table.rows.some((r) => missing(S.table, r))) toast('The columns are saved. Press the sparkle to fill the new ones.', 'ok'); } else { S.editCols = true; render(); }
+      if (await put({ columns: cols })) { if (S.table.rows.some((r) => missing(S.table, r))) toast('The columns are saved. Press the Claude button to fill the new ones.', 'ok'); } else { S.editCols = true; render(); }
     } else if (act === 'export') exportMenu(b);
     else if (act === 'row') rowMenu(b);
     else if (act === 'delete') {
