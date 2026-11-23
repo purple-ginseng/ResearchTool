@@ -196,6 +196,13 @@
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-star4" viewBox="0 0 24 24"><path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M13.5 7l3 3"/></symbol>
+  <symbol id="i-window" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9h18M6 6.8h.01M8.5 6.8h.01"/></symbol>
+  <symbol id="j-collect" viewBox="0 0 24 24"><path d="M5.5 8.5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/><path d="M8.5 5h9a1 1 0 0 1 1 1v11.5"/><path d="M11.5 2.5h8a1 1 0 0 1 1 1V15"/><path d="M11 12v5M8.5 14.5h5"/></symbol>
+  <symbol id="j-read" viewBox="0 0 24 24"><path d="M5 2.5h9.5L19 7v14.5H5z"/><path d="M14.5 2.5V7H19"/><path d="M8 10.5h8M8 17.5h5"/><path d="M8 14h8" stroke-width="2.6"/><path d="M2.5 14h.01"/></symbol>
+  <symbol id="j-connect" viewBox="0 0 24 24"><circle cx="5.5" cy="18" r="2.5"/><circle cx="18.5" cy="18" r="2.5"/><circle cx="12" cy="5.5" r="2.5"/><path d="M6.8 15.8l4-8M13.2 7.8l4 8M8 18h6.5"/><path d="M12.8 15.8L15 18l-2.2 2.2"/></symbol>
+  <symbol id="j-write" viewBox="0 0 24 24"><path d="M7.5 3.5C5.5 3.5 5.5 4.5 5.5 7v2c0 1.5-.8 3-2.5 3 1.7 0 2.5 1.5 2.5 3v2c0 2.5 0 3.5 2 3.5"/><path d="M11 3.5h6.5L21 7v13.5H11z"/><path d="M17.5 3.5V7H21M14 11h4M14 14.5h4"/></symbol>
+  <symbol id="d-graph" viewBox="0 0 240 24"><path d="M2 12h88M150 12h88" stroke-width="1.5"/><path d="M100 12q20-14 40 0" stroke-width="1.5"/><circle cx="100" cy="12" r="3.5" fill="#fff" stroke-width="1.75"/><circle cx="120" cy="12" r="4.5" fill="#fdf8e8" stroke="#c9971a" stroke-width="1.75"/><circle cx="140" cy="12" r="3.5" fill="#fff" stroke-width="1.75"/></symbol>
 </svg>
 
 <a class="skip-link" href="#main">跳到正文</a>
@@ -254,8 +261,8 @@
         <h1 class="h1" id="hero-title"><span>论文、笔记与 LaTeX，</span><span class="grad-text">尽在一个本地工作区。</span></h1>
         <p class="lead">开源的文献管理、PDF 阅读与笔记、类似 Overleaf 的 LaTeX 编辑器集于一个应用，运行在你自己的电脑上，数据就是一个普通文件夹。AI 功能为可选，通过你自己的 Claude Code、Codex、Grok Build 或 Antigravity 命令行运行。</p>
         <div class="ctas">
-          <a class="btn btn-gradient btn-lg" href="#get-started"><span>开始使用</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn btn-secondary btn-lg" href="https://github.com/purple-ginseng/ResearchTool"><svg class="icon" aria-hidden="true"><use href="#i-github"/></svg><span>在 GitHub 上查看</span></a>
+          <a class="btn btn-gradient btn-lg" href="#get-started"><span>在本机运行</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-outline btn-lg" href="#demo"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg><span>看演示</span></a>
         </div>
         <ul class="reassure">
           <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>无需账号</span></li>
@@ -265,6 +272,42 @@
         </ul>
       </div>
       <div class="hero-art">
+        <!-- Lineage-style drawing (lanes on a time axis, ancestor bundles, forward citations) that flows into the window. Decorative. -->
+        <svg class="hero-graph" viewBox="0 0 640 300" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">
+          <defs><marker id="hg-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2l6 3-6 3" fill="none" stroke="#9b74d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <g class="hg-ax" fill="none" stroke="#d6c4f1" stroke-width="1.5" stroke-linecap="round"><path d="M20 22H620"/><path d="M120 22v6M240 22v6M360 22v6M480 22v6M600 22v6"/></g>
+          <g fill="none" stroke-width="1.5" stroke-linecap="round">
+            <path class="hg-lane" pathLength="1" d="M96 86H520C572 86 592 120 592 300" stroke="#7b4cc2" stroke-opacity=".35"/>
+            <path class="hg-lane" pathLength="1" d="M96 156H440C496 156 520 190 520 300" stroke="#9b74d6" stroke-opacity=".35"/>
+            <path class="hg-lane" pathLength="1" d="M96 226H360C410 226 440 250 446 300" stroke="#bba0e6" stroke-opacity=".55"/>
+          </g>
+          <g class="hg-rib" fill="none" stroke-linecap="round" stroke-opacity=".2">
+            <path pathLength="1" d="M43 76C86 76 90 86 124 86" stroke="#7b4cc2" stroke-width="9"/>
+            <path pathLength="1" d="M43 76C96 76 100 156 144 156" stroke="#7b4cc2" stroke-width="3"/>
+            <path pathLength="1" d="M43 128C90 128 92 86 124 86" stroke="#9b74d6" stroke-width="4"/>
+            <path pathLength="1" d="M43 128C96 128 100 156 144 156" stroke="#9b74d6" stroke-width="8"/>
+            <path pathLength="1" d="M43 180C96 180 100 156 144 156" stroke="#bba0e6" stroke-width="5"/>
+            <path pathLength="1" d="M43 180C80 180 86 226 114 226" stroke="#bba0e6" stroke-width="6"/>
+            <path pathLength="1" d="M43 232C80 232 86 226 114 226" stroke="#9b74d6" stroke-width="7"/>
+          </g>
+          <g class="hg-ar" fill="none" stroke="#9b74d6" stroke-width="1.5" stroke-linecap="round" marker-end="url(#hg-a)">
+            <path pathLength="1" d="M137 81Q170 64 203 81"/><path pathLength="1" d="M217 80Q300 46 383 80"/><path pathLength="1" d="M307 81Q385 54 462 81"/>
+            <path pathLength="1" d="M157 151Q195 134 233 151"/><path pathLength="1" d="M247 150Q325 122 403 150"/><path pathLength="1" d="M127 221Q160 204 193 221"/>
+            <path pathLength="1" d="M125 220C160 190 200 166 233 159"/><path pathLength="1" d="M155 150C200 116 250 96 293 89"/>
+            <path pathLength="1" d="M296 221C340 196 375 170 403 160"/><path pathLength="1" d="M336 151C380 120 420 100 462 90"/>
+          </g>
+          <g class="hg-anc" fill="#fdf8e8" stroke="#c9971a" stroke-width="2">
+            <circle class="hg-n" style="--i:0" cx="34" cy="76" r="9"/><circle class="hg-n" style="--i:1" cx="34" cy="128" r="9"/><circle class="hg-n" style="--i:2" cx="34" cy="180" r="9"/><circle class="hg-n" style="--i:3" cx="34" cy="232" r="9"/>
+            <circle cx="34" cy="128" r="14.5" fill="none" stroke-width="1.5" stroke-dasharray="3 3.2"/>
+          </g>
+          <g fill="#fff" stroke-width="2">
+            <g stroke="#7b4cc2"><circle class="hg-n" style="--i:4" cx="130" cy="86" r="6"/><circle class="hg-n" style="--i:6" cx="210" cy="86" r="6"/><circle class="hg-n" style="--i:8" cx="300" cy="86" r="6.5"/><circle class="hg-n" style="--i:10" cx="390" cy="86" r="6"/></g>
+            <g stroke="#9b74d6"><circle class="hg-n" style="--i:5" cx="150" cy="156" r="6"/><circle class="hg-n" style="--i:7" cx="240" cy="156" r="6.5"/><circle class="hg-n" style="--i:9" cx="330" cy="156" r="6"/><circle class="hg-n" style="--i:11" cx="410" cy="156" r="6"/></g>
+            <g stroke="#bba0e6"><circle class="hg-n" style="--i:4" cx="120" cy="226" r="6"/><circle class="hg-n" style="--i:6" cx="200" cy="226" r="6"/><circle class="hg-n" style="--i:9" cx="290" cy="226" r="6.5"/></g>
+          </g>
+          <circle class="hg-pulse" cx="470" cy="86" r="7" fill="none" stroke="#d1477f" stroke-width="2"/>
+          <circle class="hg-n" style="--i:12" cx="470" cy="86" r="7" fill="#d1477f" stroke="#fff" stroke-width="2.5"/>
+        </svg>
         <svg class="sparkle s2" aria-hidden="true"><use href="#i-star4"/></svg>
         <div class="window">
           <div class="window-bar" aria-hidden="true"><i></i><i></i><i></i><span class="window-url" translate="no">localhost:4790</span></div>
@@ -276,18 +319,17 @@
           </div>
         </div>
         <div class="float-chip chip-a" aria-hidden="true"><span class="dot"><svg class="icon icon-sm"><use href="#i-lock"/></svg></span><span><span>只在本机运行</span><small translate="no">127.0.0.1</small></span></div>
-        <div class="float-chip chip-b" aria-hidden="true"><span class="dot"><svg class="icon icon-sm"><use href="#i-tag"/></svg></span><span><span>开源</span><small translate="no">MIT</small></span></div>
         <svg class="sparkle s1" aria-hidden="true"><use href="#i-star4"/></svg>
       </div>
     </div>
   </section>
 
   <!-- ============================================================ demo -->
-  <section class="section" id="demo" aria-labelledby="demo-title" style="padding-top: clamp(2rem, 5vw, 3.5rem)">
+  <section class="section band-dark band-demo" id="demo" aria-labelledby="demo-title">
     <div class="container">
       <div class="centered" data-reveal>
         <p class="kicker">演示</p>
-        <h2 class="h2" id="demo-title">从概览到编辑器，完整走一遍</h2>
+        <h2 class="h2" id="demo-title"><span>从概览到编辑器，</span><span class="mark">完整走一遍</span></h2>
         <p class="section-lead">一段带讲解的完整演示：找论文、阅读、记笔记、探索相关工作，再到写 LaTeX。有英文版（9 分钟）和中文版（11 分钟）。</p>
       </div>
       <div class="demo-card" data-reveal>
@@ -309,28 +351,448 @@
           <span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-laptop"/></svg><span>录制自真实运行的应用，界面为对应语言。</span></span>
         </p>
         <div class="chapters">
-          <h3 class="chapters-title"><span>章节</span><small>点击跳转</small></h3>
+          <h3 class="chapters-title"><span>八个章节，与应用内的导览一致</span><small>点击跳转</small></h3>
+          <div class="timeline-scroll">
+            <ol class="timeline" id="timeline">
+              <li><button type="button" class="stop" data-group="1" style="--dot:var(--step-none)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">1</span><span class="stop-name">概览</span></button></li>
+              <li><button type="button" class="stop" data-group="2" style="--dot:var(--step-none)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">2</span><span class="stop-name">顶栏</span></button></li>
+              <li><button type="button" class="stop" data-group="3" style="--dot:var(--step-collect)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">3</span><span class="stop-name">文献库</span></button></li>
+              <li><button type="button" class="stop" data-group="4" style="--dot:var(--step-read)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">4</span><span class="stop-name">阅读器</span></button></li>
+              <li><button type="button" class="stop" data-group="5" style="--dot:var(--step-read)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">5</span><span class="stop-name">笔记</span></button></li>
+              <li><button type="button" class="stop" data-group="6" style="--dot:var(--step-none)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">6</span><span class="stop-name">Claude 面板</span></button></li>
+              <li><button type="button" class="stop" data-group="7" style="--dot:var(--step-connect)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">7</span><span class="stop-name">探索</span></button></li>
+              <li><button type="button" class="stop" data-group="8" style="--dot:var(--step-write)"><span class="stop-dot" aria-hidden="true"></span><span class="stop-n" aria-hidden="true">8</span><span class="stop-name">编辑器</span></button></li>
+            </ol>
+          </div>
+          <p class="timeline-key" aria-hidden="true"><span style="--dot:var(--step-collect)">收集</span><span style="--dot:var(--step-read)">阅读</span><span style="--dot:var(--step-connect)">关联</span><span style="--dot:var(--step-write)">写作</span></p>
+          <details class="all-chapters">
+            <summary><span>全部小节与时间点</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
           <div class="chapter-groups" id="chapters"><div class="chapter-group"><h4>简介</h4><ol><li><button type="button" class="chapter" data-t="4500" aria-label="跳到 0:04, 简介 — ResearchTool 是什么"><time datetime="PT4S">0:04</time><span>ResearchTool 是什么</span></button></li></ol></div><div class="chapter-group"><h4>第 1 章 · 概览</h4><ol><li><button type="button" class="chapter" data-t="40344" aria-label="跳到 0:40, 第 1 章 · 概览 — 开始导览"><time datetime="PT40S">0:40</time><span>开始导览</span></button></li><li><button type="button" class="chapter" data-t="67030" aria-label="跳到 1:07, 第 1 章 · 概览 — 今天有什么要做"><time datetime="PT67S">1:07</time><span>今天有什么要做</span></button></li><li><button type="button" class="chapter" data-t="93823" aria-label="跳到 1:33, 第 1 章 · 概览 — 完整导览：逐章浏览"><time datetime="PT93S">1:33</time><span>完整导览：逐章浏览</span></button></li><li><button type="button" class="chapter" data-t="133235" aria-label="跳到 2:13, 第 1 章 · 概览 — 把概览设为启动页"><time datetime="PT133S">2:13</time><span>把概览设为启动页</span></button></li></ol></div><div class="chapter-group"><h4>第 2 章 · 顶栏</h4><ol><li><button type="button" class="chapter" data-t="151950" aria-label="跳到 2:31, 第 2 章 · 顶栏 — ⌘K 查找论文和操作"><time datetime="PT151S">2:31</time><span>⌘K 查找论文和操作</span></button></li><li><button type="button" class="chapter" data-t="172698" aria-label="跳到 2:52, 第 2 章 · 顶栏 — 帮助、更多和 Claude 按钮"><time datetime="PT172S">2:52</time><span>帮助、更多和 Claude 按钮</span></button></li></ol></div><div class="chapter-group"><h4>第 3 章 · 文献库</h4><ol><li><button type="button" class="chapter" data-t="191903" aria-label="跳到 3:11, 第 3 章 · 文献库 — 在文献库里找论文"><time datetime="PT191S">3:11</time><span>在文献库里找论文</span></button></li><li><button type="button" class="chapter" data-t="219555" aria-label="跳到 3:39, 第 3 章 · 文献库 — 筛选、分组与研究方向"><time datetime="PT219S">3:39</time><span>筛选、分组与研究方向</span></button></li><li><button type="button" class="chapter" data-t="245734" aria-label="跳到 4:05, 第 3 章 · 文献库 — 添加论文"><time datetime="PT245S">4:05</time><span>添加论文</span></button></li></ol></div><div class="chapter-group"><h4>第 4 章 · 阅读器</h4><ol><li><button type="button" class="chapter" data-t="269948" aria-label="跳到 4:29, 第 4 章 · 阅读器 — 打开论文"><time datetime="PT269S">4:29</time><span>打开论文</span></button></li><li><button type="button" class="chapter" data-t="292170" aria-label="跳到 4:52, 第 4 章 · 阅读器 — 在 PDF 里定位"><time datetime="PT292S">4:52</time><span>在 PDF 里定位</span></button></li><li><button type="button" class="chapter" data-t="317919" aria-label="跳到 5:17, 第 4 章 · 阅读器 — 高亮、截图与目录"><time datetime="PT317S">5:17</time><span>高亮、截图与目录</span></button></li></ol></div><div class="chapter-group"><h4>第 5 章 · 笔记</h4><ol><li><button type="button" class="chapter" data-t="351613" aria-label="跳到 5:51, 第 5 章 · 笔记 — 阅读笔记"><time datetime="PT351S">5:51</time><span>阅读笔记</span></button></li><li><button type="button" class="chapter" data-t="380730" aria-label="跳到 6:20, 第 5 章 · 笔记 — 要点与详情"><time datetime="PT380S">6:20</time><span>要点与详情</span></button></li></ol></div><div class="chapter-group"><h4>第 6 章 · Claude 面板</h4><ol><li><button type="button" class="chapter" data-t="400456" aria-label="跳到 6:40, 第 6 章 · Claude 面板 — Claude，用你自己的账号"><time datetime="PT400S">6:40</time><span>Claude，用你自己的账号</span></button></li></ol></div><div class="chapter-group"><h4>第 7 章 · 探索</h4><ol><li><button type="button" class="chapter" data-t="424594" aria-label="跳到 7:04, 第 7 章 · 探索 — 方法图解"><time datetime="PT424S">7:04</time><span>方法图解</span></button></li><li><button type="button" class="chapter" data-t="446978" aria-label="跳到 7:26, 第 7 章 · 探索 — 练习与每日复习"><time datetime="PT446S">7:26</time><span>练习与每日复习</span></button></li><li><button type="button" class="chapter" data-t="464497" aria-label="跳到 7:44, 第 7 章 · 探索 — 相关论文与发展脉络"><time datetime="PT464S">7:44</time><span>相关论文与发展脉络</span></button></li><li><button type="button" class="chapter" data-t="489737" aria-label="跳到 8:09, 第 7 章 · 探索 — 对比论文"><time datetime="PT489S">8:09</time><span>对比论文</span></button></li></ol></div><div class="chapter-group"><h4>第 8 章 · 编辑器</h4><ol><li><button type="button" class="chapter" data-t="516047" aria-label="跳到 8:36, 第 8 章 · 编辑器 — 编辑器：你的项目"><time datetime="PT516S">8:36</time><span>编辑器：你的项目</span></button></li><li><button type="button" class="chapter" data-t="541060" aria-label="跳到 9:01, 第 8 章 · 编辑器 — 写作并引用文献库"><time datetime="PT541S">9:01</time><span>写作并引用文献库</span></button></li><li><button type="button" class="chapter" data-t="568713" aria-label="跳到 9:28, 第 8 章 · 编辑器 — 编译与预览"><time datetime="PT568S">9:28</time><span>编译与预览</span></button></li><li><button type="button" class="chapter" data-t="588736" aria-label="跳到 9:48, 第 8 章 · 编辑器 — 历史保留每个版本"><time datetime="PT588S">9:48</time><span>历史保留每个版本</span></button></li><li><button type="button" class="chapter" data-t="605612" aria-label="跳到 10:05, 第 8 章 · 编辑器 — 从示例项目开始"><time datetime="PT605S">10:05</time><span>从示例项目开始</span></button></li></ol></div><div class="chapter-group"><h4>结语</h4><ol><li><button type="button" class="chapter" data-t="626623" aria-label="跳到 10:26, 结语 — 接下来"><time datetime="PT626S">10:26</time><span>接下来</span></button></li></ol></div></div>
+          </details>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============================================================ features -->
-  <section class="section section-alt" id="features" aria-labelledby="features-title">
+  <!-- ============================================================ features: one research journey in four chapters -->
+  <section class="section" id="features" aria-labelledby="features-title">
     <div class="container">
       <div class="centered" data-reveal>
         <p class="kicker">功能</p>
-        <h2 class="h2" id="features-title">文献库、PDF 阅读、笔记与 LaTeX，一处完成</h2>
-        <p class="section-lead">和应用里一样分成几个部分。点任意截图可以放大。</p>
+        <h2 class="h2" id="features-title"><span>从一堆 PDF，到一篇</span><span class="mark">论文</span></h2>
+        <p class="section-lead">文献库、PDF 阅读、笔记与 LaTeX 在同一个工作区里，按研究的四个步骤排列。每一步先用一张图讲清原理，再给出真实界面；点任意截图可以放大。</p>
       </div>
 
-      <div class="feature-grid">
+      <ol class="journey" data-reveal>
+        <li class="jstop" style="--step:var(--step-collect)"><a href="#collect">
+          <span class="jtile"><svg class="jglyph" aria-hidden="true"><use href="#j-collect"/></svg></span>
+          <span class="jtext"><span class="jnum" translate="no">01</span><span class="jtitle">收集</span><span class="jcap">PDF、.bib 文件、arXiv ID 和 DOI</span></span></a></li>
+        <li class="jstop" style="--step:var(--step-read)"><a href="#read">
+          <span class="jtile"><svg class="jglyph" aria-hidden="true"><use href="#j-read"/></svg></span>
+          <span class="jtext"><span class="jnum" translate="no">02</span><span class="jtitle">阅读</span><span class="jcap">要点和笔记都链接到页码</span></span></a></li>
+        <li class="jstop" style="--step:var(--step-connect)"><a href="#connect">
+          <span class="jtile"><svg class="jglyph" aria-hidden="true"><use href="#j-connect"/></svg></span>
+          <span class="jtext"><span class="jnum" translate="no">03</span><span class="jtitle">关联</span><span class="jcap">一条研究方向从哪里来</span></span></a></li>
+        <li class="jstop" style="--step:var(--step-write)"><a href="#write">
+          <span class="jtile"><svg class="jglyph" aria-hidden="true"><use href="#j-write"/></svg></span>
+          <span class="jtext"><span class="jnum" translate="no">04</span><span class="jtitle">写作</span><span class="jcap">引用、编译、来回跳转</span></span></a></li>
+      </ol>
+
+      <!-- ---------------------------------------------------------- 01 Collect -->
+      <article class="chapter-row" id="collect" aria-labelledby="collect-title" style="--step:var(--step-collect)">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">01</span> · <span>收集</span></p>
+          <h3 class="chapter-title" id="collect-title"><span>把手头</span><span class="mark">整堆论文</span><span>都带进来</span></h3>
+          <p class="ch-copy">拖入 PDF、整个文件夹，或从 Zotero、Mendeley、JabRef 导出的 .bib 文件，也可以粘贴 arXiv ID、DOI、OpenReview 或出版社链接；重复的条目会被标出。论文按研究方向整理，一个方向有 4 篇或更多论文时可以分出子方向，颜色取该方向的不同深浅；装好 AI 命令行工具后，新论文会在后台自动归类（默认开启，可以关闭）。</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>导入 PDF、文件夹和 .bib（BibTeX）文件，或粘贴 arXiv ID、DOI、OpenReview 链接</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>全文搜索 PDF、笔记和要点（支持中文）</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>⌘K / Ctrl+K「前往任何地方」；用 Crossref、DBLP 等核实发表出处</span></li>
+          </ul>
+          <a class="btn btn-outline" href="#get-started"><span>导入你的文献库</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <div class="ill-box" style="aspect-ratio:560/340">
+            <svg class="ill ill-collect" viewBox="0 0 560 340" aria-hidden="true" focusable="false">
+              <g fill="#fff" stroke="#e3dfec" stroke-width="1.5"><rect x="14" y="28" width="150" height="44" rx="12"/><rect x="14" y="104" width="150" height="44" rx="12"/><rect x="14" y="180" width="150" height="44" rx="12"/><rect x="14" y="256" width="150" height="44" rx="12"/></g>
+              <g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M30 39h12l6 6v16H30zM42 39v6h6" stroke="#d1477f"/>
+                <path d="M36 114c-3 0-4 1.5-4 4v2c0 2-1 4-3.5 4 2.5 0 3.5 2 3.5 4v2c0 2.5 1 4 4 4M42 114c3 0 4 1.5 4 4v2c0 2 1 4 3.5 4-2.5 0-3.5 2-3.5 4v2c0 2.5-1 4-4 4" stroke="#7b4cc2"/>
+                <rect x="26" y="197" width="15" height="10" rx="5" stroke="#c9971a"/><rect x="36" y="197" width="15" height="10" rx="5" stroke="#c9971a"/>
+                <path d="M34 268l-2.5 20M42 268l-2.5 20M28.5 274.5h16M27 281.5h16" stroke="#9b74d6"/>
+              </g>
+              <g fill="none" stroke="#bba0e6" stroke-width="2" stroke-linecap="round">
+                <path class="draw" pathLength="1" d="M164 50C214 50 200 146 236 150"/><path class="draw" pathLength="1" d="M164 126C204 126 206 148 236 152"/>
+                <path class="draw" pathLength="1" d="M164 202C204 202 206 158 236 155"/><path class="draw" pathLength="1" d="M164 278C214 278 200 162 236 157"/>
+                <path class="draw d2" pathLength="1" d="M272 153C300 153 294 91 320 91" stroke="#7b4cc2" stroke-width="2.5"/>
+              </g>
+              <circle cx="254" cy="153" r="18" fill="#fff" stroke="#7b4cc2" stroke-width="2"/>
+              <path d="M246 153.5l5 5 9.5-10" fill="none" stroke="#138057" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="320" y="74" width="226" height="34" rx="10" fill="#7b4cc2"/>
+              <rect x="338" y="118" width="208" height="26" rx="8" fill="#9b74d6"/>
+              <rect x="338" y="220" width="208" height="26" rx="8" fill="#bba0e6"/>
+              <g fill="#fff" fill-opacity=".24"><rect x="506" y="82" width="32" height="18" rx="9"/><rect x="508" y="123" width="28" height="16" rx="8"/><rect x="508" y="225" width="28" height="16" rx="8"/></g>
+              <path d="M330 89l4 4 4-4M347 129l3.5 3.5 3.5-3.5M347 231l3.5 3.5 3.5-3.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M346 206H540M346 308H540" stroke="#e3dfec" stroke-width="2" stroke-linecap="round"/>
+              <g class="spines">
+                <rect style="--i:0" x="352" y="156" width="16" height="50" rx="3" fill="#9b74d6"/><rect style="--i:1" x="372" y="162" width="16" height="44" rx="3" fill="#b79be2"/><rect style="--i:2" x="392" y="152" width="16" height="54" rx="3" fill="#8a63cc"/><rect style="--i:3" x="412" y="166" width="16" height="40" rx="3" fill="#c6aeea"/><rect style="--i:5" x="432" y="158" width="16" height="48" rx="3" fill="#d1477f"/>
+                <rect style="--i:1" x="352" y="262" width="16" height="46" rx="3" fill="#bba0e6"/><rect style="--i:2" x="372" y="256" width="16" height="52" rx="3" fill="#cbb6ee"/><rect style="--i:3" x="392" y="268" width="16" height="40" rx="3" fill="#ab8fe0"/><rect style="--i:4" x="412" y="260" width="16" height="48" rx="3" fill="#d6c4f1"/>
+              </g>
+            </svg>
+            <span class="lbl" style="left:10.71%;top:14.71%" translate="no">PDF</span>
+            <span class="lbl" style="left:10.71%;top:37.06%" translate="no">.bib</span>
+            <span class="lbl" style="left:10.71%;top:59.41%" translate="no">DOI</span>
+            <span class="lbl" style="left:10.71%;top:81.76%">arXiv ID</span>
+            <span class="lbl c chip" style="left:45.36%;top:57.5%">重复会被标出</span>
+            <span class="lbl on" style="left:61.6%;top:26.76%">研究方向</span>
+            <span class="lbl c on n" style="left:93.21%;top:26.76%" translate="no">9</span>
+            <span class="lbl on sm" style="left:64.5%;top:38.53%">子方向</span>
+            <span class="lbl c on n" style="left:93.21%;top:38.53%" translate="no">5</span>
+            <span class="lbl on sm" style="left:64.5%;top:68.53%">子方向</span>
+            <span class="lbl c on n" style="left:93.21%;top:68.53%" translate="no">4</span>
+          </div>
+          <figure class="frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="frame-shot">
+              <button type="button" class="frame-art" data-zoom="../img/cards/library.webp" aria-label="放大：文献库"><img src="../img/cards/library-600.webp" srcset="../img/cards/library-600.webp 600w, ../img/cards/library.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 520px" width="1200" height="750" loading="lazy" decoding="async" alt="文献库：左侧是嵌套在研究方向下的类别，论文列表带简介和标签，右侧是打开的 PDF"></button>
+              <span class="pin" style="left:8.5%;top:16.3%" aria-hidden="true">1</span>
+              <span class="pin" style="left:36%;top:24.3%" aria-hidden="true">2</span>
+              <span class="pin" style="left:45%;top:8.8%" aria-hidden="true">3</span>
+            </div>
+            <figcaption><strong>能搜到 PDF 正文的文献库</strong> <span>导入后自动识别重复，按研究方向、标签和阅读状态整理。</span></figcaption>
+          </figure>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span>导入文件，或按 ID 添加论文</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span>研究方向及其子方向，都可折叠、都显示篇数</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span>打开「全文」开关，同时搜索 PDF、笔记和要点的正文</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <!-- ---------------------------------------------------------- 02 Read -->
+      <article class="chapter-row flip" id="read" aria-labelledby="read-title" style="--step:var(--step-read)">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">02</span> · <span>阅读</span></p>
+          <h3 class="chapter-title" id="read-title"><span>读过的每一句，都带着</span><span class="mark">页码</span></h3>
+          <p class="ch-copy">要点是撑起整篇论文的那些句子，每条都链接到 PDF 对应页，旁边可以写下自己的批注。在 PDF 上选中文字，「引用到笔记」会把它作为引用放进 Markdown 笔记并带上页码链接，所以每条引用都能跳回出处。</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>PDF 搜索、目录、可点击的内部链接、彩色高亮</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>Markdown 笔记：公式、图片、视频、版本历史</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>句子级要点；本地找出论文里的图表；导出 .md（可在 Obsidian、Typora 或 VS Code 中打开）或论文包 .zip</span></li>
+          </ul>
+          <a class="btn btn-outline" href="#demo" data-tour="4"><span>看阅读器演示</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-play"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <div class="ill-box" style="aspect-ratio:560/340">
+            <svg class="ill ill-read" viewBox="0 0 560 340" aria-hidden="true" focusable="false">
+              <g transform="rotate(-3 130 170)">
+                <rect x="36" y="30" width="200" height="290" rx="12" fill="#ebe1f8"/>
+                <rect x="30" y="24" width="200" height="290" rx="12" fill="#fff" stroke="#e3dfec" stroke-width="1.5"/>
+                <rect x="54" y="46" width="120" height="8" rx="4" fill="#bba0e6"/><rect x="54" y="60" width="80" height="6" rx="3" fill="#e3dfec"/>
+                <rect class="hl" x="49" y="138" width="160" height="17" rx="4" fill="#fbd5e4"/>
+                <g fill="#e3dfec"><rect x="54" y="86" width="150" height="6" rx="3"/><rect x="54" y="100" width="142" height="6" rx="3"/><rect x="54" y="114" width="150" height="6" rx="3"/><rect x="54" y="128" width="128" height="6" rx="3"/><rect x="54" y="160" width="136" height="6" rx="3"/><rect x="54" y="174" width="150" height="6" rx="3"/><rect x="54" y="188" width="96" height="6" rx="3"/><rect x="54" y="212" width="150" height="6" rx="3"/><rect x="54" y="226" width="140" height="6" rx="3"/><rect x="54" y="240" width="150" height="6" rx="3"/><rect x="54" y="254" width="110" height="6" rx="3"/><rect x="120" y="290" width="20" height="6" rx="3"/></g>
+                <rect x="54" y="143" width="150" height="6" rx="3" fill="#e7a9c2"/>
+                <path class="draw" pathLength="1" d="M54 153H204" fill="none" stroke="#d1477f" stroke-width="2" stroke-linecap="round"/>
+              </g>
+              <path class="draw d2" pathLength="1" d="M214 142H250Q262 142 262 130V104Q262 92 274 92H300" fill="none" stroke="#7b4cc2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="214" cy="142" r="3.5" fill="#d1477f"/>
+              <path class="fade d3" d="M462 276C410 318 300 300 274 244C262 218 240 172 220 148" fill="none" stroke="#d1477f" stroke-width="1.5" stroke-dasharray="4 5" stroke-linecap="round" stroke-opacity=".85"/>
+              <rect x="300" y="40" width="236" height="104" rx="14" fill="#fff" stroke="#e3dfec" stroke-width="1.5"/>
+              <path d="M307 48v88" stroke="#7b4cc2" stroke-width="4" stroke-linecap="round"/>
+              <rect x="320" y="74" width="190" height="7" rx="3.5" fill="#d6c4f1"/><rect x="320" y="90" width="160" height="7" rx="3.5" fill="#d6c4f1"/><rect x="320" y="114" width="120" height="6" rx="3" fill="#f0d27a"/>
+              <rect x="318" y="190" width="218" height="124" rx="14" fill="#f5f0fc" stroke="#d6c4f1" stroke-width="1.5"/>
+              <path d="M339 205l-2 15M346 205l-2 15M334 209.5h14M333 215.5h14" fill="none" stroke="#7b4cc2" stroke-width="1.8" stroke-linecap="round"/>
+              <rect x="336" y="234" width="4" height="40" rx="2" fill="#d1477f"/>
+              <g fill="#d6c4f1"><rect x="348" y="236" width="160" height="6" rx="3"/><rect x="348" y="250" width="150" height="6" rx="3"/><rect x="348" y="264" width="104" height="6" rx="3"/></g>
+              <rect x="336" y="292" width="120" height="6" rx="3" fill="#e3dfec"/>
+              <rect x="462" y="260" width="50" height="22" rx="11" fill="#fff" stroke="#d1477f" stroke-width="1.5"/>
+            </svg>
+            <span class="lbl caps" style="left:57.14%;top:16.76%">要点</span>
+            <span class="lbl c chip pg" style="left:92.14%;top:11.76%" translate="no">p. 5</span>
+            <span class="lbl sm muted" style="left:80%;top:34.41%">你的批注</span>
+            <span class="lbl c chip" style="left:48.57%;top:70%">引用到笔记</span>
+            <span class="lbl caps" style="left:63.9%;top:62.35%">Markdown 笔记</span>
+            <span class="lbl c pg-in" style="left:86.96%;top:79.71%" translate="no">p. 5</span>
+          </div>
+          <div class="frame-stack">
+            <figure class="frame">
+              <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="frame-shot">
+                <button type="button" class="frame-art" data-zoom="../img/cards/reader.webp" aria-label="放大：阅读器与笔记"><img src="../img/cards/reader-600.webp" srcset="../img/cards/reader-600.webp 600w, ../img/cards/reader.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 520px" width="1200" height="750" loading="lazy" decoding="async" alt="阅读器中的论文，PDF 旁是 Markdown 笔记：插图、标题、公式和表格"></button>
+                <span class="pin" style="left:26%;top:56.5%" aria-hidden="true">1</span>
+                <span class="pin" style="left:67%;top:64.8%" aria-hidden="true">2</span>
+              </div>
+              <figcaption><strong>细读，同时做笔记</strong> <span>PDF 在左，笔记在右；引用和截图都带着页码链接。</span></figcaption>
+            </figure>
+            <div class="zoom-inset" aria-hidden="true">
+              <div class="zoom-crop"><img src="../img/shots/04-keypoints-800.webp" srcset="../img/shots/04-keypoints-800.webp 800w, ../img/shots/04-keypoints.webp 1600w" sizes="700px" width="1600" height="1000" loading="lazy" decoding="async" alt=""></div>
+              <span class="pin" style="left:9%;top:16%">3</span>
+              <span class="pin" style="left:76%;top:52%">4</span>
+            </div>
+          </div>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span>彩色高亮留在页面上，PDF 文件本身不会被修改</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span>笔记里的引用和截图带着页码链接，点一下 PDF 就跳到那一页</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span>每条要点都有页码标签</span></li>
+            <li><span class="pin-n" aria-hidden="true">4</span><span>旁边是你自己的批注</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <!-- ---------------------------------------------------------- 03 Connect -->
+      <article class="chapter-row" id="connect" aria-labelledby="connect-title" style="--step:var(--step-connect)">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">03</span> · <span>关联</span></p>
+          <h3 class="chapter-title" id="connect-title"><span>看清</span><span class="mark">思路</span><span>从哪里来</span></h3>
+          <p class="ch-copy">发展脉络展示一个研究方向所依托的前人工作，以及你的论文如何引用它们，数据来自 OpenAlex 和 Semantic Scholar，可以看时间轴上的「历史线」，也可以看「祖先」。「相关」标签页列出一篇论文的参考文献和引用它的论文；查询时只发送论文的 DOI 或 arXiv ID。</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>可手动编辑的方法图解；练习题、抽认卡和每日间隔复习</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>参考文献、被引论文与发展脉络引用图（OpenAlex、Semantic Scholar）</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>最多 15 篇论文的对比表，每个单元格都标出页码</span></li>
+          </ul>
+          <a class="btn btn-outline" href="#demo" data-tour="7"><span>看发展脉络演示</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-play"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <figure class="frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="frame-shot">
+              <button type="button" class="frame-art" data-zoom="../img/cards/lineage.webp" aria-label="放大：探索"><img src="../img/cards/lineage-600.webp" srcset="../img/cards/lineage-600.webp 600w, ../img/cards/lineage.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 580px" width="1200" height="750" loading="lazy" decoding="async" alt="发展脉络窗口：左侧是一个研究方向的论文，中间是它们所依托的前人工作在时间轴上的图，右侧是选中工作的详情"></button>
+              <span class="pin" style="left:28%;top:15.2%" aria-hidden="true">1</span>
+              <span class="pin" style="left:50%;top:22.7%" aria-hidden="true">2</span>
+              <span class="pin" style="left:20%;top:48.8%" aria-hidden="true">3</span>
+              <span class="pin" style="left:19.6%;top:94.4%" aria-hidden="true">4</span>
+              <span class="pin" style="left:79.5%;top:48.6%" aria-hidden="true">5</span>
+            </div>
+            <figcaption><strong>看清论文之间的联系</strong> <span>从一篇论文的方法，到一整条研究方向的来龙去脉。</span></figcaption>
+          </figure>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span>同一组论文的两种视图：历史线和祖先</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span>这组论文依托最多的 8 项工作</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span>每个研究方向或子方向一条泳道</span></li>
+            <li><span class="pin-n" aria-hidden="true">4</span><span>虚线圈：多数引用者来自最近 12 个月</span></li>
+            <li><span class="pin-n" aria-hidden="true">5</span><span>你的论文如何引用它，附引用原句</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <div class="lineage-fig" data-view="history" data-reveal>
+        <div class="lin-head">
+          <p class="lin-title">发展脉络的两种视图，以及「相关」标签页</p>
+          <div class="seg lin-toggle" role="group" aria-label="突出一种脉络视图">
+            <button type="button" data-view-btn="history" aria-pressed="true">历史线</button>
+            <button type="button" data-view-btn="ancestry" aria-pressed="false">祖先</button>
+          </div>
+        </div>
+        <div class="lin-panels">
+          <figure class="lin-panel" data-panel="history">
+            <div class="ill-box" style="aspect-ratio:320/220">
+              <svg class="ill" viewBox="0 0 320 220" aria-hidden="true" focusable="false">
+                <defs><marker id="ca-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2l6 3-6 3" fill="none" stroke="#9b74d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+                <path d="M90 16H312M110 16v5M160 16v5M210 16v5M260 16v5M310 16v5" fill="none" stroke="#d6c4f1" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M100 62H300M100 122H300M100 182H300" fill="none" stroke="#f5f0fc" stroke-width="26" stroke-linecap="round"/>
+                <path d="M88 62H312M88 122H312M88 182H312" fill="none" stroke="#ebe1f8" stroke-width="1.5"/>
+                <g class="arrows" fill="none" stroke="#9b74d6" stroke-width="1.4" stroke-linecap="round" marker-end="url(#ca-a)">
+                  <path class="draw" pathLength="1" d="M111 58Q132 46 153 58"/><path class="draw" pathLength="1" d="M167 57Q223 30 279 57"/><path class="draw" pathLength="1" d="M127 118Q155 104 183 118"/><path class="draw" pathLength="1" d="M257 118Q275 108 293 118"/><path class="draw" pathLength="1" d="M103 178Q123 166 143 178"/><path class="draw" pathLength="1" d="M157 177Q210 150 263 177"/>
+                  <path class="draw" pathLength="1" d="M109 67C130 95 160 115 183 120"/><path class="draw" pathLength="1" d="M126 116C155 90 190 70 216 65"/><path class="draw" pathLength="1" d="M156 176C190 150 220 132 244 126"/><path class="draw" pathLength="1" d="M196 126C220 150 245 168 264 176"/><path class="draw" pathLength="1" d="M100 172C106 150 110 138 115 129"/>
+                </g>
+                <g class="pop" fill="#fff" stroke-width="2.2">
+                  <g stroke="#7b4cc2"><circle style="--i:1" cx="104" cy="62" r="6.5"/><circle style="--i:3" cx="160" cy="62" r="6.5"/><circle style="--i:5" cx="222" cy="62" r="6.5"/><circle style="--i:7" cx="286" cy="62" r="6.5"/></g>
+                  <g stroke="#9b74d6"><circle style="--i:2" cx="120" cy="122" r="6.5"/><circle style="--i:4" cx="190" cy="122" r="6.5"/><circle style="--i:6" cx="250" cy="122" r="6.5"/><circle style="--i:8" cx="300" cy="122" r="6.5"/></g>
+                  <g stroke="#bba0e6"><circle style="--i:0" cx="96" cy="182" r="6.5"/><circle style="--i:3" cx="150" cy="182" r="6.5"/><circle style="--i:5" cx="212" cy="182" r="6.5"/><circle style="--i:7" cx="270" cy="182" r="6.5"/></g>
+                </g>
+              </svg>
+              <span class="lbl xs" style="left:1.5%;top:28.18%">方向 A</span>
+              <span class="lbl xs" style="left:1.5%;top:55.45%">A / 子方向</span>
+              <span class="lbl xs" style="left:1.5%;top:82.73%">方向 B</span>
+            </div>
+            <figcaption><strong>历史线</strong> <span>论文排在时间轴上，每个研究方向或子方向一条泳道；箭头从每篇论文指向之后引用它的、你自己的论文。</span></figcaption>
+          </figure>
+          <figure class="lin-panel" data-panel="ancestry">
+            <div class="ill-box" style="aspect-ratio:320/220">
+              <svg class="ill" viewBox="0 0 320 220" aria-hidden="true" focusable="false">
+                <path d="M128 50H312M128 110H312M128 170H312" fill="none" stroke="#ebe1f8" stroke-width="1.5"/>
+                <g class="bundles" fill="none" stroke-linecap="round" stroke-opacity=".38">
+                  <path class="draw" pathLength="1" d="M30 22C80 22 80 50 128 50" stroke="#7b4cc2" stroke-width="8"/><path class="draw" pathLength="1" d="M30 22C80 22 80 110 128 110" stroke="#7b4cc2" stroke-width="2"/>
+                  <path class="draw" pathLength="1" d="M30 46C80 46 80 50 128 50" stroke="#d1477f" stroke-width="4"/><path class="draw" pathLength="1" d="M30 46C80 46 80 170 128 170" stroke="#d1477f" stroke-width="2"/>
+                  <path class="draw" pathLength="1" d="M30 70C80 70 80 110 128 110" stroke="#bba0e6" stroke-width="6"/>
+                  <path class="draw" pathLength="1" d="M30 94C80 94 80 110 128 110" stroke="#c9971a" stroke-width="5"/><path class="draw" pathLength="1" d="M30 94C80 94 80 50 128 50" stroke="#c9971a" stroke-width="2"/>
+                  <path class="draw" pathLength="1" d="M30 118C80 118 80 170 128 170" stroke="#9b74d6" stroke-width="7"/>
+                  <path class="draw" pathLength="1" d="M30 142C80 142 80 50 128 50" stroke="#e98fb3" stroke-width="3"/><path class="draw" pathLength="1" d="M30 142C80 142 80 170 128 170" stroke="#e98fb3" stroke-width="3"/>
+                  <path class="draw" pathLength="1" d="M30 166C80 166 80 170 128 170" stroke="#573194" stroke-width="5"/><path class="draw" pathLength="1" d="M30 166C80 166 80 110 128 110" stroke="#573194" stroke-width="2"/>
+                  <path class="draw" pathLength="1" d="M30 190C80 190 80 110 128 110" stroke="#d6c4f1" stroke-width="3"/>
+                </g>
+                <g class="pop" stroke="#c9971a" stroke-width="2">
+                  <circle style="--i:0" cx="22" cy="22" r="7" fill="#7b4cc2"/><circle style="--i:1" cx="22" cy="46" r="7" fill="#d1477f"/><circle style="--i:2" cx="22" cy="70" r="7" fill="#bba0e6"/><circle style="--i:3" cx="22" cy="94" r="7" fill="#f0d27a"/><circle style="--i:4" cx="22" cy="118" r="7" fill="#9b74d6"/><circle style="--i:5" cx="22" cy="142" r="7" fill="#e98fb3"/><circle style="--i:6" cx="22" cy="166" r="7" fill="#573194"/><circle style="--i:7" cx="22" cy="190" r="7" fill="#d6c4f1"/>
+                </g>
+                <circle cx="22" cy="70" r="11.5" fill="none" stroke="#c9971a" stroke-width="1.5" stroke-dasharray="2.5 3"/>
+                <g class="pop" stroke="#fff" stroke-width="2">
+                  <circle style="--i:8" cx="150" cy="50" r="6" fill="#7b4cc2"/><circle style="--i:9" cx="195" cy="50" r="6" fill="#7b4cc2"/><circle style="--i:10" cx="240" cy="50" r="6" fill="#d1477f"/><circle style="--i:11" cx="285" cy="50" r="6" fill="#7b4cc2"/>
+                  <circle style="--i:8" cx="160" cy="110" r="6" fill="#bba0e6"/><circle style="--i:9" cx="210" cy="110" r="6" fill="#e0b84a"/><circle style="--i:10" cx="255" cy="110" r="6" fill="#bba0e6"/><circle style="--i:11" cx="300" cy="110" r="6" fill="#573194"/>
+                  <circle style="--i:8" cx="145" cy="170" r="6" fill="#9b74d6"/><circle style="--i:9" cx="195" cy="170" r="6" fill="#573194"/><circle style="--i:10" cx="245" cy="170" r="6" fill="#9b74d6"/><circle style="--i:11" cx="295" cy="170" r="6" fill="#e98fb3"/>
+                </g>
+              </svg>
+              <span class="lbl xs r" style="left:98%;top:16.4%">方向 A</span>
+              <span class="lbl xs r" style="left:98%;top:43.6%">A / 子方向</span>
+              <span class="lbl xs r" style="left:98%;top:70.9%">方向 B</span>
+            </div>
+            <figcaption><strong>祖先</strong> <span>左边一列是这组论文依托最多的 8 项工作，流向每条泳道的线束有多宽，就有多少篇论文引用它；论文取其主要祖先的颜色，虚线圈表示多数引用者来自最近 12 个月。</span></figcaption>
+          </figure>
+          <figure class="lin-panel lin-related">
+            <div class="ill-box" style="aspect-ratio:240/140">
+              <svg class="ill" viewBox="0 0 240 140" aria-hidden="true" focusable="false">
+                <defs><marker id="rl-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2l6 3-6 3" fill="none" stroke="#9b74d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+                <g fill="none" stroke="#bba0e6" stroke-width="1.4" stroke-linecap="round" marker-end="url(#rl-a)">
+                  <path class="draw" pathLength="1" d="M32 20C70 20 80 62 108 64"/><path class="draw" pathLength="1" d="M32 50C70 50 84 63 108 65"/><path class="draw" pathLength="1" d="M32 80C70 80 84 67 108 66"/><path class="draw" pathLength="1" d="M32 110C70 110 80 68 108 67"/>
+                  <path class="draw d2" pathLength="1" d="M131 64C160 62 170 20 206 20"/><path class="draw d2" pathLength="1" d="M131 65C160 64 176 50 206 50"/><path class="draw d2" pathLength="1" d="M131 66C160 66 176 80 206 80"/><path class="draw d2" pathLength="1" d="M131 67C160 68 170 110 206 110"/>
+                </g>
+                <g class="pop" fill="#fff" stroke-width="2"><g stroke="#9b74d6"><circle style="--i:0" cx="26" cy="20" r="6"/><circle style="--i:1" cx="26" cy="50" r="6"/><circle style="--i:2" cx="26" cy="80" r="6"/><circle style="--i:3" cx="26" cy="110" r="6"/></g><g stroke="#7b4cc2"><circle style="--i:5" cx="214" cy="20" r="6"/><circle style="--i:6" cx="214" cy="50" r="6"/><circle style="--i:7" cx="214" cy="80" r="6"/><circle style="--i:8" cx="214" cy="110" r="6"/></g></g>
+                <circle class="pop" style="--i:4" cx="120" cy="65" r="10" fill="#d1477f" stroke="#fff" stroke-width="2.5"/>
+              </svg>
+              <span class="lbl xs c" style="left:50%;top:30%">这篇论文</span>
+              <span class="lbl xs" style="left:0%;top:95%">参考文献</span>
+              <span class="lbl xs r" style="left:100%;top:95%">引用它的论文</span>
+            </div>
+            <figcaption><strong>「相关」标签页</strong> <span>一篇论文的参考文献和引用它的论文，一键加入文献库。</span></figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <svg class="divider" viewBox="0 0 240 24" aria-hidden="true" focusable="false"><use href="#d-graph"/></svg>
+
+      <!-- ---------------------------------------------------------- 04 Write -->
+      <article class="chapter-row flip" id="write" aria-labelledby="write-title" style="--step:var(--step-write)">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">04</span> · <span>写作</span></p>
+          <h3 class="chapter-title" id="write-title"><span>从笔记到 <code>\cite</code>，再到 </span><span class="mark" translate="no">PDF</span></h3>
+          <p class="ch-copy">用 <code>\cite</code> 选择器和自动补全从文献库引用；<code>references.bib</code> 由文献库重新生成，只包含项目实际引用的条目。<code>latexmk</code> 在你的电脑上编译出实时 PDF 预览，并支持双向 SyncTeX。</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>latexmk 实时预览、可点击的日志、双向 SyncTeX</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>从文献库引用；references.bib 只包含实际引用的条目</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>每次保存都是一个版本；可选通过 Overleaf 的 Git 集成同步</span></li>
+          </ul>
+          <a class="btn btn-outline" href="#demo" data-tour="8"><span>看编辑器演示</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-play"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <div class="ill-box" style="aspect-ratio:560/360">
+            <svg class="ill ill-write" viewBox="0 0 560 360" aria-hidden="true" focusable="false">
+              <defs>
+                <marker id="wr-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2l6 3-6 3" fill="none" stroke="#7b4cc2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+                <marker id="wr-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2l6 3-6 3" fill="none" stroke="#bba0e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+              </defs>
+              <ellipse cx="280" cy="180" rx="196" ry="128" fill="none" stroke="#f5f0fc" stroke-width="18"/>
+              <ellipse cx="280" cy="180" rx="196" ry="128" fill="none" stroke="#ebe1f8" stroke-width="1.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+              <path class="travel" pathLength="1" d="M84 180A196 128 0 0 1 476 180A196 128 0 0 1 84 180" fill="none" stroke="#7b4cc2" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 1"/>
+              <g fill="none" stroke="#7b4cc2" stroke-width="1.75" stroke-linecap="round" marker-end="url(#wr-a)">
+                <path class="draw" pathLength="1" d="M96 128C118 88 170 60 216 56"/>
+                <path class="draw d2" pathLength="1" d="M344 56C390 60 442 88 464 128"/>
+                <path class="draw d3" pathLength="1" d="M470 232C452 280 400 304 344 308"/>
+                <path class="draw d3" pathLength="1" d="M428 228C414 254 384 272 348 276" marker-start="url(#wr-a)" stroke="#d1477f"/>
+              </g>
+              <path class="fade d4" d="M216 308C160 304 110 280 92 232" fill="none" stroke="#bba0e6" stroke-width="1.6" stroke-dasharray="4 5" stroke-linecap="round" marker-end="url(#wr-b)"/>
+              <g stroke-width="1.5">
+                <rect x="33" y="139" width="112" height="92" rx="16" fill="#ebe1f8"/><rect x="28" y="134" width="112" height="92" rx="16" fill="#fff" stroke="#e3dfec"/>
+                <rect x="229" y="13" width="112" height="92" rx="16" fill="#ebe1f8"/><rect x="224" y="8" width="112" height="92" rx="16" fill="#f5f0fc" stroke="#d6c4f1"/>
+                <rect x="425" y="139" width="112" height="92" rx="16" fill="#ebe1f8"/><rect x="420" y="134" width="112" height="92" rx="16" fill="#fff" stroke="#e3dfec"/>
+                <rect x="229" y="267" width="112" height="92" rx="16" fill="#ebe1f8"/><rect x="224" y="262" width="112" height="92" rx="16" fill="#fff" stroke="#e3dfec"/>
+              </g>
+              <g fill="#e3dfec"><rect x="44" y="150" width="60" height="5" rx="2.5"/><rect x="44" y="161" width="78" height="5" rx="2.5"/><rect x="44" y="190" width="80" height="5" rx="2.5"/><rect x="44" y="201" width="66" height="5" rx="2.5"/><rect x="44" y="212" width="48" height="5" rx="2.5"/></g>
+              <rect x="40" y="170" width="84" height="13" rx="4" fill="#fbd5e4"/><rect x="44" y="174" width="74" height="5" rx="2.5" fill="#e7a9c2"/>
+              <path d="M245 22l-2 14M252 22l-2 14M240 26h14M239 32h14" fill="none" stroke="#7b4cc2" stroke-width="1.8" stroke-linecap="round"/>
+              <rect x="262" y="25" width="58" height="7" rx="3.5" fill="#bba0e6"/><rect x="240" y="48" width="4" height="30" rx="2" fill="#d1477f"/>
+              <g fill="#d6c4f1"><rect x="252" y="50" width="70" height="5" rx="2.5"/><rect x="252" y="61" width="64" height="5" rx="2.5"/><rect x="252" y="72" width="46" height="5" rx="2.5"/></g>
+              <path d="M440 150c-4 0-5 2-5 5v6c0 3-1 5-4 5 3 0 4 2 4 5v6c0 3 1 5 5 5" fill="none" stroke="#7b4cc2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <g fill="#e3dfec"><rect x="452" y="150" width="56" height="5" rx="2.5"/><rect x="460" y="161" width="60" height="5" rx="2.5"/><rect x="460" y="184" width="52" height="5" rx="2.5"/><rect x="452" y="196" width="40" height="5" rx="2.5"/><rect x="440" y="210" width="70" height="5" rx="2.5"/></g>
+              <rect x="460" y="172" width="46" height="6" rx="3" fill="#9b74d6"/>
+              <rect x="246" y="276" width="68" height="7" rx="3.5" fill="#9b74d6"/><rect x="262" y="288" width="36" height="4" rx="2" fill="#d6c4f1"/>
+              <g fill="#e3dfec"><rect x="240" y="300" width="36" height="4" rx="2"/><rect x="240" y="308" width="36" height="4" rx="2"/><rect x="240" y="316" width="36" height="4" rx="2"/><rect x="240" y="324" width="36" height="4" rx="2"/><rect x="240" y="332" width="28" height="4" rx="2"/><rect x="284" y="300" width="36" height="4" rx="2"/><rect x="284" y="308" width="36" height="4" rx="2"/><rect x="284" y="316" width="36" height="16" rx="2"/><rect x="284" y="336" width="30" height="4" rx="2"/></g>
+            </svg>
+            <span class="lbl c chip pg" style="left:26.25%;top:21.67%" translate="no">p. 5</span>
+            <span class="lbl c chip pg" style="left:73.75%;top:21.67%" translate="no">\cite</span>
+            <span class="lbl c chip pg" style="left:75.18%;top:79.72%" translate="no">latexmk</span>
+            <span class="lbl c chip pk" style="left:69.3%;top:68.6%" translate="no">SyncTeX ↔</span>
+            <span class="lbl c chip faint" style="left:25%;top:79.72%" translate="no">references.bib</span>
+            <span class="lbl c caps" style="left:31.43%;top:50%" translate="no">PDF</span>
+            <span class="lbl c caps" style="left:50%;top:33.33%">笔记 .md</span>
+            <span class="lbl c caps" style="left:68.93%;top:50%" translate="no">main.tex</span>
+            <span class="lbl c caps" style="left:50%;top:66.5%">PDF 预览</span>
+          </div>
+          <figure class="frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="frame-shot">
+              <button type="button" class="frame-art" data-zoom="../img/cards/editor.webp" aria-label="放大：编辑器"><img src="../img/cards/editor-600.webp" srcset="../img/cards/editor-600.webp 600w, ../img/cards/editor.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 520px" width="1200" height="750" loading="lazy" decoding="async" alt="LaTeX 编辑器：文献库、源码和编译后的 PDF 预览并排"></button>
+              <span class="pin" style="left:14%;top:20.3%" aria-hidden="true">1</span>
+              <span class="pin" style="left:43%;top:28%" aria-hidden="true">2</span>
+              <span class="pin" style="left:79%;top:21%" aria-hidden="true">3</span>
+            </div>
+            <figcaption><strong>类似 Overleaf 的 LaTeX 编辑器</strong> <span>本地项目、磁盘上的文件夹或 Overleaf 克隆，都在这里写。</span></figcaption>
+          </figure>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span>源码旁边就是文献库，本项目的论文排在前面</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span><code>\cite</code> 的键在输入时就会检查</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span>在本机用 latexmk 编译出的实时 PDF 预览</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <!-- ---------------------------------------------------------- AI (optional) -->
+      <aside class="ai-aside" id="ai" aria-labelledby="ai-title" data-reveal>
+        <div class="ai-text">
+          <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg></span><span class="badge badge-opt">可选</span></div>
+          <h3 class="chapter-title ai-title" id="ai-title">AI，用你自己的命令行工具和账号</h3>
+          <p class="ch-copy">AI 功能调用你本机登录了自己账号的一个命令行工具：默认 Claude Code，也可换成 OpenAI Codex、xAI Grok Build 或 Google Antigravity。应用本身不直接调用任何 AI API，也从不保存 API key；不用 AI 时，文献库、阅读器、笔记和编辑器照样完整可用。</p>
+          <p class="small-note">能做什么：带页码引用的讲解和翻译、笔记初稿、改写选中文字、方法图解、练习题和对比表。</p>
+          <button type="button" class="ai-shot" data-zoom="../img/claude.webp" aria-label="放大：AI 面板"><img src="../img/claude-600.webp" srcset="../img/claude-600.webp 600w, ../img/claude.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 420px" width="1200" height="646" loading="lazy" decoding="async" alt="Claude 面板在论文和阅读笔记旁打开（这个文献库的笔记用中文撰写，界面为英文）"></button>
+        </div>
+        <div class="ai-visual">
+          <div class="ill-box ai-slots" style="aspect-ratio:300/250">
+            <svg class="ill" viewBox="0 0 300 250" aria-hidden="true" focusable="false">
+              <g fill="none" stroke-linecap="round">
+                <path class="draw" pathLength="1" d="M122 31C160 31 156 112 188 112" stroke="#7b4cc2" stroke-width="2.2"/>
+                <path d="M122 75C156 75 158 120 188 120M122 119C150 119 160 128 188 128M122 163C158 163 156 136 188 136" stroke="#d6c4f1" stroke-width="1.5" stroke-dasharray="3 4"/>
+              </g>
+              <rect x="12" y="14" width="110" height="34" rx="10" fill="#7b4cc2"/>
+              <g fill="#fff" stroke="#bba0e6" stroke-width="1.5"><rect x="12" y="58" width="110" height="34" rx="10"/><rect x="12" y="102" width="110" height="34" rx="10"/><rect x="12" y="146" width="110" height="34" rx="10"/></g>
+              <rect x="12" y="196" width="110" height="34" rx="10" fill="none" stroke="#bba0e6" stroke-width="1.5" stroke-dasharray="4 4"/>
+              <path d="M26 25v12M34 25v12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <path d="M26 69v12M34 69v12M26 113v12M34 113v12M26 157v12M34 157v12" stroke="#9b74d6" stroke-width="2" stroke-linecap="round"/>
+              <path d="M26 207v12M34 207v12" stroke="#d6c4f1" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3"/>
+              <rect x="188" y="86" width="100" height="78" rx="16" fill="#f5f0fc" stroke="#7b4cc2" stroke-width="1.75"/>
+              <use class="ill-icon" href="#i-sparkle" x="224" y="96" width="28" height="28"/>
+            </svg>
+            <span class="lbl slot on" style="left:15.33%;top:12.4%" translate="no">claude</span>
+            <span class="lbl slot" style="left:15.33%;top:30%" translate="no">codex</span>
+            <span class="lbl slot" style="left:15.33%;top:47.6%" translate="no">grok</span>
+            <span class="lbl slot" style="left:15.33%;top:65.2%" translate="no">agy</span>
+            <span class="lbl slot muted" style="left:15.33%;top:85.2%">不装</span>
+            <span class="lbl c sm" style="left:79.33%;top:59.6%">AI 面板</span>
+            <span class="lbl sm muted ghost-note" style="left:44%;top:85.2%">文献库、阅读器、笔记和编辑器照样可用</span>
+          </div>
+          <div class="table-scroll">
+            <table class="ai-table">
+              <caption class="visually-hidden">各个 AI 命令行工具在 AI 面板中能否修改文件，以及能否在 Windows 上使用</caption>
+              <thead><tr><th scope="col">命令行工具</th><th scope="col">在面板中修改文件</th><th scope="col" translate="no">Windows</th></tr></thead>
+              <tbody>
+                <tr><th scope="row"><span>Claude Code（默认）</span> <code>claude</code></th><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-pencil"/></svg><span>可以</span></span></td><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>可以</span></span></td></tr>
+                <tr><th scope="row"><span translate="no">OpenAI Codex</span> <code>codex</code></th><td><span class="maybe"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-pencil"/></svg><span>只有勾选「允许 Codex 编辑文件」后（默认关闭）</span></span></td><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>可以</span></span></td></tr>
+                <tr><th scope="row"><span translate="no">xAI Grok Build</span> <code>grok</code></th><td><span class="no"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"/></svg><span>不能，只读</span></span></td><td><span class="no"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-x"/></svg><span>不支持</span></span></td></tr>
+                <tr><th scope="row"><span translate="no">Google Antigravity</span> <code>agy</code> <span translate="no">1.5.13+</span></th><td><span class="no"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"/></svg><span>不能，只读</span></span></td><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>可以</span></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small-note">不提供 Gemini CLI。AI 功能本身（图解、对比表、初稿）只读不写。</p>
+        </div>
+      </aside>
+
+      <!-- ---------------------------------------------------------- around the app -->
+      <div class="trio-head" data-reveal>
+        <h3 class="trio-title">应用里还有</h3>
+      </div>
+      <div class="trio">
         <article class="card" data-reveal>
           <button type="button" class="card-art" data-zoom="../img/cards/overview.webp" aria-label="放大：概览"><img src="../img/cards/overview-600.webp" srcset="../img/cards/overview-600.webp 600w, ../img/cards/overview.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="概览页：继续阅读、待复习的题目、阅读统计和最近添加的论文"></button>
           <div class="card-body">
             <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><span class="badge">概览</span></div>
-            <h3 class="h3">今天有什么要做，一眼看清</h3>
+            <h4 class="h3">今天有什么要做，一眼看清</h4>
             <p class="muted">启动页上有统计和快捷操作，每一项都能直接跳到对应位置。</p>
             <ul class="points">
               <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>继续阅读、阅读统计、最近添加的论文和笔记</span></li>
@@ -339,93 +801,19 @@
             </ul>
           </div>
         </article>
-
         <article class="card" data-reveal>
-          <button type="button" class="card-art" data-zoom="../img/cards/library.webp" aria-label="放大：文献库"><img src="../img/cards/library-600.webp" srcset="../img/cards/library-600.webp 600w, ../img/cards/library.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="文献库：左侧是嵌套在研究方向下的类别，论文列表带简介和标签，右侧是打开的 PDF"></button>
-          <div class="card-body">
-            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-library"/></svg></span><span class="badge">文献库</span></div>
-            <h3 class="h3">能搜到 PDF 正文的文献库</h3>
-            <p class="muted">导入后自动识别重复，按研究方向、标签和阅读状态整理。</p>
-            <ul class="points">
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>导入 PDF、文件夹和 .bib（BibTeX）文件，或粘贴 arXiv ID、DOI、OpenReview 链接</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>全文搜索 PDF、笔记和要点（支持中文）</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>⌘K / Ctrl+K「前往任何地方」；用 Crossref、DBLP 等核实发表出处</span></li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="card" data-reveal>
-          <button type="button" class="card-art" data-zoom="../img/cards/reader.webp" aria-label="放大：阅读器与笔记"><img src="../img/cards/reader-600.webp" srcset="../img/cards/reader-600.webp 600w, ../img/cards/reader.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="阅读器中的论文，PDF 旁是 Markdown 笔记：插图、标题、公式和表格"></button>
-          <div class="card-body">
-            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg></span><span class="badge">阅读器与笔记</span></div>
-            <h3 class="h3">细读，同时做笔记</h3>
-            <p class="muted">PDF 在左，笔记在右；引用和截图都带着页码链接。</p>
-            <ul class="points">
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>PDF 搜索、目录、可点击的内部链接、彩色高亮</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>Markdown 笔记：公式、图片、视频、版本历史</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>句子级要点；本地找出论文里的图表；导出 .md（可在 Obsidian、Typora 或 VS Code 中打开）或论文包 .zip</span></li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="card" data-reveal>
-          <button type="button" class="card-art" data-zoom="../img/claude.webp" aria-label="放大：AI 面板"><img src="../img/claude-600.webp" srcset="../img/claude-600.webp 600w, ../img/claude.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="646" loading="lazy" decoding="async" alt="Claude 面板在论文和阅读笔记旁打开（这个文献库的笔记用中文撰写，界面为英文）"></button>
-          <div class="card-body">
-            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg></span><span class="badge badge-opt">可选</span></div>
-            <h3 class="h3">AI，用你自己的命令行工具和账号</h3>
-            <p class="muted">AI 功能调用你本机登录了自己账号的一个命令行工具：默认 Claude Code，也可换成 OpenAI Codex、xAI Grok Build 或 Google Antigravity。</p>
-            <ul class="points">
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>应用本身不直接调用任何 AI API，也从不保存 API key</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>带页码引用的讲解和翻译、笔记初稿、改写选中文字</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>Claude Code 可修改文件，Codex 需你允许；Grok Build 和 Antigravity 只读</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>不用 AI 时，文献库、阅读器、笔记和编辑器照样完整可用</span></li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="card" data-reveal>
-          <button type="button" class="card-art" data-zoom="../img/cards/lineage.webp" aria-label="放大：探索"><img src="../img/cards/lineage-600.webp" srcset="../img/cards/lineage-600.webp 600w, ../img/cards/lineage.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="发展脉络窗口：左侧是一个研究方向的论文，中间是它们所依托的前人工作在时间轴上的图，右侧是选中工作的详情"></button>
-          <div class="card-body">
-            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-compass"/></svg></span><span class="badge">探索</span></div>
-            <h3 class="h3">看清论文之间的联系</h3>
-            <p class="muted">从一篇论文的方法，到一整条研究方向的来龙去脉。</p>
-            <ul class="points">
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>可手动编辑的方法图解；练习题、抽认卡和每日间隔复习</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>参考文献、被引论文与发展脉络引用图（OpenAlex、Semantic Scholar）</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>最多 15 篇论文的对比表，每个单元格都标出页码</span></li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="card" data-reveal>
-          <button type="button" class="card-art" data-zoom="../img/cards/editor.webp" aria-label="放大：编辑器"><img src="../img/cards/editor-600.webp" srcset="../img/cards/editor-600.webp 600w, ../img/cards/editor.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="LaTeX 编辑器：文献库、源码和编译后的 PDF 预览并排"></button>
-          <div class="card-body">
-            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg></span><span class="badge">编辑器</span></div>
-            <h3 class="h3">类似 Overleaf 的 LaTeX 编辑器</h3>
-            <p class="muted">本地项目、磁盘上的文件夹或 Overleaf 克隆，都在这里写。</p>
-            <ul class="points">
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>latexmk 实时预览、可点击的日志、双向 SyncTeX</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>从文献库引用；references.bib 只包含实际引用的条目</span></li>
-              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>每次保存都是一个版本；可选通过 Overleaf 的 Git 集成同步</span></li>
-            </ul>
-          </div>
-        </article>
-      </div>
-
-      <div class="duo">
-        <article class="card card-row" data-reveal>
           <button type="button" class="card-art" data-zoom="../img/cards/tour.webp" aria-label="放大：导览"><img src="../img/cards/tour-600.webp" srcset="../img/cards/tour-600.webp 600w, ../img/cards/tour.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="导览中的一步：卡片讲解打开的论文的方法图"></button>
           <div class="card-body">
             <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-map"/></svg></span></div>
-            <h3 class="h3">8 章导览</h3>
+            <h4 class="h3">8 章导览</h4>
             <p class="muted">帮助 › 开始导览：从概览一路走到编辑器，每一步都指着真实的按钮。也可以只看当前页面的导览。</p>
           </div>
         </article>
-        <article class="card card-row" data-reveal>
+        <article class="card" data-reveal>
           <button type="button" class="card-art" data-zoom="../img/cards/zh.webp" aria-label="放大：中文界面"><img src="../img/cards/zh-600.webp" srcset="../img/cards/zh-600.webp 600w, ../img/cards/zh.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="中文界面下的文献库和阅读笔记"></button>
           <div class="card-body">
             <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-lang"/></svg></span></div>
-            <h3 class="h3">English 和<span lang="zh-CN">中文</span>界面</h3>
+            <h4 class="h3">English 和<span lang="zh-CN">中文</span>界面</h4>
             <p class="muted">偏好设置 › 通用 › 显示语言。切换只改界面，不会翻译你的论文、笔记或 AI 的回答。</p>
           </div>
         </article>
@@ -436,59 +824,66 @@
           <h3 class="h2" id="shots-title">截图</h3>
           <p class="muted">十五个界面，点任意一张可以放大，用左右方向键翻看。</p>
           <p class="small-note shot-note">截图使用作者文献库的演示副本。</p>
+          <div class="shot-filter" role="group" aria-label="只看某一步的截图">
+            <button type="button" data-step-filter="all" aria-pressed="true">全部</button>
+            <button type="button" data-step-filter="collect" aria-pressed="false" style="--dot:var(--step-collect)"><i aria-hidden="true"></i><span>收集</span></button>
+            <button type="button" data-step-filter="read" aria-pressed="false" style="--dot:var(--step-read)"><i aria-hidden="true"></i><span>阅读</span></button>
+            <button type="button" data-step-filter="connect" aria-pressed="false" style="--dot:var(--step-connect)"><i aria-hidden="true"></i><span>关联</span></button>
+            <button type="button" data-step-filter="write" aria-pressed="false" style="--dot:var(--step-write)"><i aria-hidden="true"></i><span>写作</span></button>
+          </div>
         </div>
-        <ul class="shots" data-reveal>
+        <ul class="shots collapsed" id="shots" data-reveal>
             <li class="shot">
               <button type="button" class="shot-art" data-zoom="../img/shots/01-overview.webp" data-gallery aria-label="放大：研究进展一目了然"><img src="../img/shots/01-overview-800.webp" srcset="../img/shots/01-overview-800.webp 800w, ../img/shots/01-overview.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="ResearchTool 概览首页：继续阅读、今日待复习的题目、阅读统计和最近的论文"></button>
               <h4 class="shot-title">研究进展一目了然</h4>
               <p class="shot-cap">继续阅读、今日待复习的题目和阅读统计，都在同一个首页上。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="collect">
               <button type="button" class="shot-art" data-zoom="../img/shots/02-library.webp" data-gallery aria-label="放大：按研究方向整理的文献库"><img src="../img/shots/02-library-800.webp" srcset="../img/shots/02-library-800.webp 800w, ../img/shots/02-library.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="ResearchTool 文献库：侧栏里嵌套的研究方向、阅读状态筛选和论文列表，旁边打开着一篇 PDF"></button>
               <h4 class="shot-title">按研究方向整理的文献库</h4>
               <p class="shot-cap">类别可嵌套成研究方向，按阅读状态一键筛选，可按标题、作者或标签搜索。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="read">
               <button type="button" class="shot-art" data-zoom="../img/shots/03-reader.webp" data-gallery aria-label="放大：边读论文边做笔记"><img src="../img/shots/03-reader-800.webp" srcset="../img/shots/03-reader-800.webp 800w, ../img/shots/03-reader.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="阅读器中的 PDF，旁边是带提示框、公式和插图的 Markdown 阅读笔记"></button>
               <h4 class="shot-title">边读论文边做笔记</h4>
               <p class="shot-cap">PDF 与 Markdown 笔记并排显示，支持提示框、公式、插图，也能直接在 PDF 上高亮。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="read">
               <button type="button" class="shot-art" data-zoom="../img/shots/04-keypoints.webp" data-gallery aria-label="放大：带页码的要点"><img src="../img/shots/04-keypoints-800.webp" srcset="../img/shots/04-keypoints-800.webp 800w, ../img/shots/04-keypoints.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="论文要点：每个关键句都链接到 PDF 对应页，旁边是批注"></button>
               <h4 class="shot-title">带页码的要点</h4>
               <p class="shot-cap">自动摘出论文的关键句，每条都能跳到 PDF 对应页，并可写下自己的批注。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="read">
               <button type="button" class="shot-art" data-zoom="../img/shots/05-figures.webp" data-gallery aria-label="放大：从 PDF 中裁出每一张图"><img src="../img/shots/05-figures-800.webp" srcset="../img/shots/05-figures-800.webp 800w, ../img/shots/05-figures.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="从 PDF 中裁出的图和表，可直接插入笔记"></button>
               <h4 class="shot-title">从 PDF 中裁出每一张图</h4>
               <p class="shot-cap">根据 PDF 版面找出图和表，无需 AI；点一下即可插入笔记。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="connect">
               <button type="button" class="shot-art" data-zoom="../img/shots/06-diagram.webp" data-gallery aria-label="放大：把方法画成图"><img src="../img/shots/06-diagram-800.webp" srcset="../img/shots/06-diagram-800.webp 800w, ../img/shots/06-diagram.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="论文方法的流程图，带页码引用"></button>
               <h4 class="shot-title">把方法画成图</h4>
               <p class="shot-cap">Claude 把论文画成流程图，鼠标指向任意方框即可看到解释和页码。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="read">
               <button type="button" class="shot-art" data-zoom="../img/shots/07-practice.webp" data-gallery aria-label="放大：检验你是否真的读懂"><img src="../img/shots/07-practice-800.webp" srcset="../img/shots/07-practice-800.webp 800w, ../img/shots/07-practice.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="一道练习题，解释每个选项为什么对或错"></button>
               <h4 class="shot-title">检验你是否真的读懂</h4>
               <p class="shot-cap">练习题会解释每个选项为什么对、为什么错；答过的题会按计划回来复习。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="connect">
               <button type="button" class="shot-art" data-zoom="../img/shots/08-lineage.webp" data-gallery aria-label="放大：追溯思想的来龙去脉"><img src="../img/shots/08-lineage-800.webp" srcset="../img/shots/08-lineage-800.webp 800w, ../img/shots/08-lineage.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="发展脉络图：一个研究方向所依托的前人工作，排在时间轴上"></button>
               <h4 class="shot-title">追溯思想的来龙去脉</h4>
               <p class="shot-cap">脉络视图展示一个研究方向所依托的前人工作，以及你的论文如何引用它们，数据来自 OpenAlex 和 Semantic Scholar。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="connect">
               <button type="button" class="shot-art" data-zoom="../img/shots/09-compare.webp" data-gallery aria-label="放大：跨论文提问"><img src="../img/shots/09-compare-800.webp" srcset="../img/shots/09-compare-800.webp 800w, ../img/shots/09-compare.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="跨论文提问窗口：选中的论文和对比表的列名，并显示 token 估算"></button>
               <h4 class="shot-title">跨论文提问</h4>
               <p class="shot-cap">选几篇论文、写好列名，让 Claude 填一张对比表，或者向它们一起提一个问题。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="write">
               <button type="button" class="shot-art" data-zoom="../img/shots/10-editor.webp" data-gallery aria-label="放大：实时预览的 LaTeX 编辑器"><img src="../img/shots/10-editor-800.webp" srcset="../img/shots/10-editor-800.webp 800w, ../img/shots/10-editor.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="LaTeX 编辑器：源码旁边是编译后的 PDF 预览"></button>
               <h4 class="shot-title">实时预览的 LaTeX 编辑器</h4>
               <p class="shot-cap">不离开编辑器即可从文献库插入引用，本地编译，源码旁边就是 PDF 预览。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="write">
               <button type="button" class="shot-art" data-zoom="../img/shots/11-history.webp" data-gallery aria-label="放大：每个版本、每处修改"><img src="../img/shots/11-history-800.webp" srcset="../img/shots/11-history-800.webp 800w, ../img/shots/11-history.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="一个 LaTeX 文件的版本历史和逐行差异对比"></button>
               <h4 class="shot-title">每个版本、每处修改</h4>
               <p class="shot-cap">每个文件都有保存和自动保存的版本，可逐行对比差异并恢复。</p>
@@ -498,7 +893,7 @@
               <h4 class="shot-title">手把手的功能导览</h4>
               <p class="shot-cap">八个章节带你走一遍整个应用，直接在界面上指出每个按钮的位置。</p>
             </li>
-            <li class="shot">
+            <li class="shot" data-step="collect">
               <button type="button" class="shot-art" data-zoom="../img/shots/13-palette.webp" data-gallery aria-label="放大：一个快捷键直达一切"><img src="../img/shots/13-palette-800.webp" srcset="../img/shots/13-palette-800.webp 800w, ../img/shots/13-palette.webp 1600w" sizes="(max-width: 640px) 82vw, (max-width: 1023px) 46vw, 370px" width="1600" height="1000" loading="lazy" decoding="async" alt="⌘K 命令面板，列出论文、视图和操作"></button>
               <h4 class="shot-title">一个快捷键直达一切</h4>
               <p class="shot-cap">按 ⌘K（Windows 和 Linux 上为 Ctrl+K）即可查找任意论文、视图或操作，并显示对应的快捷键。</p>
@@ -514,63 +909,140 @@
               <p class="shot-cap">深色主题适合夜间阅读，PDF 依然保持白纸显示。</p>
             </li>
         </ul>
+        <p class="show-all-row"><button type="button" class="btn btn-outline show-all" aria-controls="shots" aria-expanded="false"><span>显示全部 15 张截图</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron"/></svg></button></p>
       </div>
     </div>
   </section>
 
-  <!-- ============================================================ privacy -->
-  <section class="section" id="privacy" aria-labelledby="privacy-title">
+  <!-- ============================================================ privacy: the second dark band -->
+  <section class="section band-dark band-privacy" id="privacy" aria-labelledby="privacy-title">
     <div class="container">
       <div class="centered" data-reveal>
         <p class="kicker">本地优先</p>
-        <h2 class="h2" id="privacy-title">你的研究，留在你的电脑上</h2>
+        <h2 class="h2" id="privacy-title"><span>你的研究，留在</span><span class="mark">你的电脑上</span></h2>
         <p class="section-lead">没有账号，没有云端。下面写清楚什么留在本地、什么会联网。</p>
       </div>
-      <div class="privacy-grid">
-        <div class="panel" data-reveal>
+
+      <div class="lf" data-reveal>
+        <p class="visually-hidden" id="lf-desc">示意图：你的电脑在 127.0.0.1 上运行 ResearchTool，工作区文件夹里是 PDF、笔记、LaTeX 项目和 library.json。只有两样东西会离开它：你主动发起的查询，只发送论文的 ID、DOI、链接或标题；以及你选择使用的、用你自己账号登录的 AI 命令行工具。来自其他电脑和网站的请求会被拒绝。</p>
+        <div class="ill-box lf-box" role="img" aria-labelledby="lf-desc" style="aspect-ratio:720/380">
+          <svg class="ill ill-lf" viewBox="0 0 720 380" aria-hidden="true" focusable="false">
+            <defs>
+              <marker id="lf-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2l6 3-6 3" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+              <marker id="lf-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2l6 3-6 3" fill="none" stroke="#a59cbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+            </defs>
+            <rect class="lf-bound" x="16" y="34" width="452" height="322" rx="30" fill="#fff" fill-opacity=".04" stroke="currentColor" stroke-opacity=".6" stroke-width="2" stroke-dasharray="8 7"/>
+            <rect x="40" y="57" width="34" height="22" rx="3" fill="none" stroke="#d6c4f1" stroke-width="1.8"/><path d="M34 83h46" stroke="#d6c4f1" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M40 124v-14a8 8 0 0 1 8-8h62l14 14" fill="none" stroke="#d6c4f1" stroke-width="1.5" stroke-linejoin="round"/>
+            <rect x="40" y="114" width="404" height="220" rx="18" fill="#fff" fill-opacity=".05" stroke="#d6c4f1" stroke-width="1.5"/>
+            <g class="pop">
+              <rect style="--i:0" x="58" y="152" width="172" height="72" rx="14" fill="#ebe1f8"/>
+              <rect style="--i:1" x="254" y="152" width="172" height="72" rx="14" fill="#fdf0f5"/>
+              <rect style="--i:2" x="58" y="240" width="172" height="72" rx="14" fill="#fdf8e8"/>
+              <rect style="--i:3" x="254" y="240" width="172" height="72" rx="14" fill="#d6c4f1" fill-opacity=".85"/>
+            </g>
+            <g fill="none" stroke="#573194" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M72 175h12l6 6v16H72zM84 175v6h6"/>
+              <path d="M273 178l-2 15M280 178l-2 15M268 182.5h14M267 188.5h14"/>
+              <path d="M82 264c-3 0-4 1.5-4 4v2c0 2-1 4-3.5 4 2.5 0 3.5 2 3.5 4v2c0 2.5 1 4 4 4"/><path d="M84 270h4M84 276h6"/>
+              <path d="M274 264c-3 0-4 1.5-4 4v2c0 2-1 4-3.5 4 2.5 0 3.5 2 3.5 4v2c0 2.5 1 4 4 4M280 264c3 0 4 1.5 4 4v2c0 2 1 4 3.5 4-2.5 0-3.5 2-3.5 4v2c0 2.5-1 4-4 4"/>
+            </g>
+            <path class="draw" pathLength="1" d="M444 150H596" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" marker-end="url(#lf-a)"/>
+            <path class="lf-dot" pathLength="1" d="M444 150H596" fill="none" stroke="#f0d27a" stroke-width="7" stroke-linecap="round" stroke-dasharray="0 1"/>
+            <g class="pop" stroke="#d6c4f1" stroke-width="1.5"><rect style="--i:4" x="616" y="118" width="80" height="44" rx="9" fill="#3d2468"/><rect style="--i:5" x="608" y="126" width="80" height="44" rx="9" fill="#46297a"/><rect style="--i:6" x="600" y="134" width="80" height="44" rx="9" fill="#573194"/></g>
+            <path d="M614 150h40M614 160h28" stroke="#d6c4f1" stroke-width="1.8" stroke-linecap="round"/>
+            <path class="fade d2" d="M444 306H600" fill="none" stroke="currentColor" stroke-opacity=".85" stroke-width="1.75" stroke-dasharray="6 6" stroke-linecap="round" marker-end="url(#lf-a)"/>
+            <rect x="514" y="292" width="30" height="28" rx="8" fill="#2f1a52" stroke="#d6c4f1" stroke-width="1.5"/><path d="M523 300v7M535 300v7" stroke="#d6c4f1" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="636" cy="296" r="9" fill="none" stroke="#d6c4f1" stroke-width="1.8"/><path d="M619 324c3-12 31-12 34 0" fill="none" stroke="#d6c4f1" stroke-width="1.8" stroke-linecap="round"/>
+            <path class="fade d3" d="M708 240H494" fill="none" stroke="#a59cbc" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" marker-end="url(#lf-g)"/>
+            <path d="M473 233l12 12M485 233l-12 12" stroke="#f4a3c0" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="468" cy="92" r="15" fill="#2f1a52" stroke="currentColor" stroke-opacity=".6" stroke-width="1.5"/>
+            <use class="lf-lock" href="#i-lock" x="458" y="82" width="20" height="20"/>
+          </svg>
+          <span class="lbl c chip gold" style="left:33.61%;top:8.95%" translate="no">127.0.0.1</span>
+          <span class="lbl sm lf-meta" style="left:11.67%;top:17.9%">你的电脑</span>
+          <span class="lbl sm lf-mono" style="left:8%;top:33.4%" translate="no">workspace/</span>
+          <span class="lbl dark" style="left:13.6%;top:49.47%">PDF 文件</span>
+          <span class="lbl dark" style="left:40.8%;top:49.47%">笔记 <code>.md</code></span>
+          <span class="lbl dark" style="left:13.6%;top:72.63%">LaTeX 项目</span>
+          <span class="lbl dark" style="left:40.8%;top:72.63%" translate="no">library.json</span>
+          <span class="lbl c lf-exit wide" style="left:73.9%;top:30.5%"><strong>你主动发起的查询</strong><small>只发送 ID、DOI、链接或标题</small></span>
+          <span class="lbl c sm lf-meta wide" style="left:90.4%;top:51.6%">元数据服务</span>
+          <span class="lbl c sm lf-refused wide" style="left:82%;top:57.9%">其他电脑和网站：被拒绝</span>
+          <span class="lbl c lf-exit wide" style="left:77.8%;top:91%"><strong>可选：你的 AI 命令行工具</strong><small>用你自己的账号登录</small></span>
+        </div>
+        <ul class="lf-legend" aria-hidden="true">
+          <li><i class="k-solid"></i><span>你主动发起的查询：只发送论文的 ID、DOI、链接或标题</span></li>
+          <li><i class="k-dash"></i><span>可选：你的 AI 命令行工具，用你自己的账号登录</span></li>
+          <li><i class="k-x"></i><span>其他电脑和网站的请求被拒绝（Host / Origin 检查）</span></li>
+        </ul>
+      </div>
+
+      <div class="lf-captions">
+        <div class="lf-cap" data-reveal>
           <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-laptop"/></svg></span>
           <h3 class="h3">留在本地</h3>
-          <ul class="points">
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>PDF、笔记、高亮、要点和 LaTeX 项目都在一个普通文件夹（<code>workspace/</code>）里</span></li>
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>服务器只监听 <strong>127.0.0.1</strong>，其他电脑和网站都访问不到</span></li>
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>字体和脚本随应用打包，不从 CDN 加载；没有统计和追踪</span></li>
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>回收站可撤销，每天自动给整个工作区做快照</span></li>
-          </ul>
+          <p>PDF、笔记、高亮、要点和 LaTeX 项目都在一个普通文件夹里。服务器只监听 127.0.0.1，拒绝 Host 或 Origin 不是本机地址的请求。</p>
         </div>
-        <div class="panel" data-reveal>
+        <div class="lf-cap" data-reveal>
           <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-globe"/></svg></span>
           <h3 class="h3">只在查询和使用 AI 时联网</h3>
-          <p class="muted">按 ID 添加论文、相关论文、发展脉络、核对元数据和发表出处时，只发送论文的 arXiv ID、DOI、链接或标题（核对发表出处时还会把第一作者的姓发给 Crossref），发往：</p>
-          <ul class="chips" aria-label="元数据服务" translate="no">
-            <li>arxiv.org</li><li>doi.org</li><li>api.crossref.org</li><li>api.openalex.org</li><li>api.semanticscholar.org</li><li>dblp.org</li><li>openreview.net</li><li>proceedings.mlr.press</li>
-          </ul>
-          <p class="small-note">添加论文时，PDF 从 arXiv、OpenReview，或 OpenAlex 指出的出版社 / 资料库上的开放获取副本下载。查询结果缓存在 <code>workspace/cache</code>，发表出处的核对结果存在 <code>workspace/venues.json</code>。「查找链接」会询问 arXiv 和 huggingface.co（只发送 arXiv ID），并访问论文给出的项目页和代码链接；Overleaf 同步通过你自己的 <code>git</code> 连接 git.overleaf.com。</p>
+          <p>只有在你使用需要联网的功能时才会查询，而且只发送论文的 ID、DOI、链接或标题。会访问的每个主机都列在下面。</p>
         </div>
-        <div class="panel" data-reveal>
+        <div class="lf-cap" data-reveal>
           <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-sparkle"/></svg></span>
           <h3 class="h3">AI（可选）</h3>
-          <ul class="points">
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>ResearchTool 不直接调用任何 AI API，也不保存 API key 或密码</span></li>
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>AI 功能运行你本机的命令行工具（<code>claude</code>、<code>codex</code>、<code>grok</code> 或 <code>agy</code>）；它发给 Anthropic、OpenAI、xAI 或 Google 的内容受你自己在该服务的账号条款约束</span></li>
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>对比表只发送与各列匹配的段落，而不是整篇 PDF，开始前会显示 token 估算；生成笔记初稿时 Claude 会读取 PDF 页面，其他命令行工具得到的是提取出的正文</span></li>
-            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>新导入论文的自动归类和简介默认开启：会在后台把标题、标签和最多 350 个字符的正文发给你选用的 AI 命令行工具；可在「用 Claude 分组」里关闭</span></li>
-          </ul>
+          <p>ResearchTool 不直接调用任何 AI API，也不保存 API key 或密码。你的命令行工具发给服务商的内容，受你自己在该服务的账号条款约束。</p>
         </div>
       </div>
+
+      <details class="lf-details" data-reveal>
+        <summary><span>具体哪些留在本地、会联系哪些主机</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <div class="privacy-grid">
+          <div class="panel">
+            <h3 class="h3">留在本地</h3>
+            <ul class="points">
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>PDF、笔记、高亮、要点和 LaTeX 项目都在一个普通文件夹（<code>workspace/</code>）里</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>服务器只监听 <strong>127.0.0.1</strong>，其他电脑和网站都访问不到</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>字体和脚本随应用打包，不从 CDN 加载；没有统计和追踪</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>回收站可撤销，每天自动给整个工作区做快照</span></li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3 class="h3">只在查询和使用 AI 时联网</h3>
+            <p class="muted">按 ID 添加论文、相关论文、发展脉络、核对元数据和发表出处时，只发送论文的 arXiv ID、DOI、链接或标题（核对发表出处时还会把第一作者的姓发给 Crossref），发往：</p>
+            <ul class="chips" aria-label="元数据服务" translate="no">
+              <li>arxiv.org</li><li>doi.org</li><li>api.crossref.org</li><li>api.openalex.org</li><li>api.semanticscholar.org</li><li>dblp.org</li><li>openreview.net</li><li>proceedings.mlr.press</li>
+            </ul>
+            <p class="small-note">添加论文时，PDF 从 arXiv、OpenReview，或 OpenAlex 指出的出版社 / 资料库上的开放获取副本下载。查询结果缓存在 <code>workspace/cache</code>，发表出处的核对结果存在 <code>workspace/venues.json</code>。「查找链接」会询问 arXiv 和 huggingface.co（只发送 arXiv ID），并访问论文给出的项目页和代码链接；Overleaf 同步通过你自己的 <code>git</code> 连接 git.overleaf.com。</p>
+          </div>
+          <div class="panel">
+            <h3 class="h3">AI（可选）</h3>
+            <ul class="points">
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>ResearchTool 不直接调用任何 AI API，也不保存 API key 或密码</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>AI 功能运行你本机的命令行工具（<code>claude</code>、<code>codex</code>、<code>grok</code> 或 <code>agy</code>）；它发给 Anthropic、OpenAI、xAI 或 Google 的内容受你自己在该服务的账号条款约束</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>对比表只发送与各列匹配的段落，而不是整篇 PDF，开始前会显示 token 估算；生成笔记初稿时 Claude 会读取 PDF 页面，其他命令行工具得到的是提取出的正文</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>新导入论文的自动归类和简介默认开启：会在后台把标题、标签和最多 350 个字符的正文发给你选用的 AI 命令行工具；可在「用 Claude 分组」里关闭</span></li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
       <ul class="privacy-foot">
         <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>无需账号</span></li>
         <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>无统计</span></li>
         <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span>离线可用（联网查询和 AI 功能除外）</span></li>
       </ul>
+      <p class="band-cta"><a class="btn btn-outline-white" href="https://github.com/purple-ginseng/ResearchTool#privacy"><span>阅读隐私说明</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
     </div>
   </section>
 
   <!-- ============================================================ get started -->
-  <section class="section section-alt" id="get-started" aria-labelledby="start-title">
+  <section class="section" id="get-started" aria-labelledby="start-title">
     <div class="container">
       <div class="centered" data-reveal>
         <p class="kicker">开始使用</p>
-        <h2 class="h2" id="start-title">在本机运行：三条命令，没有安装步骤</h2>
+        <h2 class="h2" id="start-title"><span>在</span><span class="mark">本机</span><span>运行：三条命令，没有安装步骤</span></h2>
         <p class="section-lead">服务器只用 Node 标准库，浏览器端的库也已打包，所以不需要 <code>npm install</code>，也不需要构建。可在 macOS、Linux（Ubuntu）和 Windows 10 / 11 上运行，命令都一样。</p>
       </div>
       <div class="start-grid">
@@ -612,6 +1084,25 @@
         <aside class="req" aria-labelledby="req-title" data-reveal>
           <h3 id="req-title">环境要求</h3>
           <p class="muted" style="font-size:var(--text-sm)">缺少某个工具只会关闭它对应的功能；概览页的「工作区健康」会列出找到了哪些工具。</p>
+          <div class="ill-box deps" style="aspect-ratio:440/290" aria-hidden="true">
+            <svg class="ill" viewBox="0 0 440 290" focusable="false">
+              <g class="fade" fill="none" stroke="#9b74d6" stroke-width="1.75" stroke-dasharray="3 5" stroke-linecap="round"><path d="M175 119L90 71M265 119L350 71M175 171L90 219M265 171L350 219"/></g>
+              <circle cx="220" cy="145" r="52" fill="none" stroke="#d6c4f1" stroke-width="2"/>
+              <circle class="pop" cx="220" cy="145" r="45" fill="#7b4cc2"/>
+              <g class="pop" fill="#fff" stroke="#bba0e6" stroke-width="2"><circle style="--i:1" cx="64" cy="56" r="27"/><circle style="--i:2" cx="376" cy="56" r="27"/><circle style="--i:3" cx="64" cy="234" r="27"/><circle style="--i:4" cx="376" cy="234" r="27"/></g>
+              <g fill="none" stroke="#7b4cc2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M56 44h11l6 6v18H56zM67 44v6h6"/>
+                <path d="M370 45c-3 0-4 1.5-4 4v3c0 2-1 4-3 4 2 0 3 2 3 4v3c0 2.5 1 4 4 4M382 45c3 0 4 1.5 4 4v3c0 2 1 4 3 4-2 0-3 2-3 4v3c0 2.5-1 4-4 4"/>
+                <circle cx="58" cy="224" r="3"/><circle cx="58" cy="244" r="3"/><circle cx="71" cy="230" r="3"/><path d="M58 227v14M71 233c0 5-5 7-11 8"/>
+                <path d="M366 228l5 5-5 5M374 239h10"/>
+              </g>
+            </svg>
+            <span class="lbl c hub" style="left:50%;top:50%"><strong translate="no">Node.js 18+</strong><small>必需</small></span>
+            <span class="lbl c sat" style="left:14.55%;top:37.9%"><strong translate="no">poppler</strong><small>导入 PDF、找出图表</small></span>
+            <span class="lbl c sat" style="left:85.45%;top:37.9%"><strong>TeX + latexmk</strong><small>编译、SyncTeX</small></span>
+            <span class="lbl c sat" style="left:14.55%;top:62.1%"><strong translate="no">git</strong><small>Overleaf 同步</small></span>
+            <span class="lbl c sat" style="left:85.45%;top:62.1%"><strong>AI 命令行工具</strong><small>AI 面板和各项 AI 功能</small></span>
+          </div>
           <ul class="req-list">
             <li><strong translate="no">Node 18+</strong><span class="badge badge-ok">必需</span><span class="desc">运行服务器（CI 测试 Node 18、20 和 24）。</span></li>
             <li><strong translate="no">poppler</strong><span class="badge">推荐</span><span class="desc"><code>pdftotext</code>、<code>pdfinfo</code>、<code>pdftoppm</code>：导入 PDF、提取句子、找出图表。</span></li>
@@ -626,7 +1117,7 @@
         <p class="muted os-lead">ResearchTool 可在 macOS、Linux（Ubuntu）和 Windows 10 / 11 上运行，每次推送到 main 和每个 Pull Request 都会在这三个系统上跑测试。服务器直接启动每个工具，从不经过 shell。</p>
         <div class="os-grid">
           <div class="panel os-card">
-            <h4 class="os-name" translate="no">macOS</h4>
+            <h4 class="os-name"><span class="os-glyph" aria-hidden="true"><svg class="icon"><use href="#i-laptop"/></svg></span><span translate="no">macOS</span></h4>
             <ul class="os-list">
               <li>poppler：<code>brew install poppler</code></li>
               <li>TeX：MacTeX（或 BasicTeX 加 <code>latexmk</code>）</li>
@@ -635,7 +1126,7 @@
             </ul>
           </div>
           <div class="panel os-card">
-            <h4 class="os-name">Ubuntu / Debian</h4>
+            <h4 class="os-name"><span class="os-glyph" aria-hidden="true"><svg class="icon"><use href="#i-terminal"/></svg></span><span translate="no">Ubuntu / Debian</span></h4>
             <ul class="os-list">
               <li><code>sudo apt install poppler-utils latexmk texlive-latex-extra unzip git</code></li>
               <li>拼写检查还需要词表：<code>sudo apt install wamerican</code></li>
@@ -644,7 +1135,7 @@
             </ul>
           </div>
           <div class="panel os-card">
-            <h4 class="os-name" translate="no">Windows 10 / 11</h4>
+            <h4 class="os-name"><span class="os-glyph" aria-hidden="true"><svg class="icon"><use href="#i-window"/></svg></span><span translate="no">Windows 10 / 11</span></h4>
             <ul class="os-list">
               <li>poppler：<code>scoop install poppler</code>、<code>choco install poppler</code> 或 conda-forge 都可以</li>
               <li>TeX：TeX Live，或 MiKTeX 加一个 Perl（例如 Strawberry Perl），并把 MiKTeX 的「自动安装缺失的宏包」设为「是」或「否」，不要设为「询问」</li>
@@ -661,14 +1152,23 @@
   <!-- ============================================================ open source -->
   <section class="section" id="open-source" aria-labelledby="oss-title">
     <div class="container">
+      <ul class="facts" data-reveal>
+        <li class="fact f-purple"><svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg><span class="fact-text"><span>MIT 许可，免费</span> <a class="fact-tag" href="https://github.com/purple-ginseng/ResearchTool/releases/tag/v0.1.2" translate="no">v0.1.2</a></span></li>
+        <li class="fact f-pink"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg><span class="fact-text">无需账号，只在 <code>127.0.0.1</code> 上运行</span></li>
+        <li class="fact f-yellow"><svg class="icon" aria-hidden="true"><use href="#i-library"/></svg><span class="fact-text">你的数据就是一个普通文件夹</span></li>
+        <li class="fact f-green"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg><span class="fact-text">AI 可选，用你自己的命令行工具</span></li>
+      </ul>
       <div class="oss" data-reveal>
+        <img class="oss-watermark" src="../brand/crest-mark-inverse.svg" alt="" width="360" height="360" loading="lazy" decoding="async" aria-hidden="true">
         <img class="crest" src="../brand/crest-mark-inverse.svg" alt="" width="56" height="56">
+        <p class="oss-motto" aria-hidden="true"><svg class="orn" viewBox="0 0 90 12" focusable="false"><path d="M0 4.5H70M10 7.5H70" stroke="#e2bd55" stroke-width="1" stroke-linecap="round"/><use href="#i-star4" x="76" y="0" width="12" height="12" color="#f0d27a"/></svg><span lang="la">Lux et Scientia</span><svg class="orn flip" viewBox="0 0 90 12" focusable="false"><path d="M0 4.5H70M10 7.5H70" stroke="#e2bd55" stroke-width="1" stroke-linecap="round"/><use href="#i-star4" x="76" y="0" width="12" height="12" color="#f0d27a"/></svg></p>
         <p class="kicker">开源 · MIT 许可</p>
-        <h2 id="oss-title">由研究者打造，为研究者服务</h2>
+        <h2 id="oss-title"><span>由研究者打造，</span><span class="mark">为研究者服务</span></h2>
         <p>ResearchTool 免费且开源。随意使用、修改、分享；如果有什么能让你的研究更顺手，欢迎告诉我。</p>
+        <div class="cmd-chip"><code>git clone https://github.com/purple-ginseng/ResearchTool.git</code><button type="button" class="copy" aria-label="复制命令"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-copy"/></svg></button></div>
         <div class="oss-row">
-          <a class="btn btn-white btn-lg" href="https://github.com/purple-ginseng/ResearchTool"><svg class="icon" aria-hidden="true"><use href="#i-github"/></svg><span>查看仓库</span></a>
-          <a class="btn btn-glass btn-lg" href="https://github.com/purple-ginseng/ResearchTool/issues"><span>提一个 issue</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-white btn-lg" href="https://github.com/purple-ginseng/ResearchTool"><svg class="icon" aria-hidden="true"><use href="#i-star4"/></svg><span>在 GitHub 上加星标</span></a>
+          <a class="btn btn-glass btn-lg" href="https://github.com/purple-ginseng/ResearchTool/tree/HEAD"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg><span>阅读源码</span></a>
         </div>
         <p class="oss-ci">
           <a class="ci-badge" href="https://github.com/purple-ginseng/ResearchTool/actions/workflows/ci.yml"><img src="https://github.com/purple-ginseng/ResearchTool/actions/workflows/ci.yml/badge.svg" alt="CI 状态" height="20" loading="lazy" decoding="async" referrerpolicy="no-referrer"></a>
@@ -699,11 +1199,12 @@
   </section>
 
   <!-- ============================================================ FAQ -->
-  <section class="section section-alt" id="faq" aria-labelledby="faq-title">
+  <section class="section" id="faq" aria-labelledby="faq-title">
     <div class="container">
+      <svg class="divider" viewBox="0 0 240 24" aria-hidden="true" focusable="false"><use href="#d-graph"/></svg>
       <div class="centered" data-reveal>
         <p class="kicker">常见问题</p>
-        <h2 class="h2" id="faq-title">坦诚回答几个常见问题</h2>
+        <h2 class="h2" id="faq-title"><span>几个常见问题，</span><span class="mark">坦诚</span><span>回答</span></h2>
       </div>
       <div class="faq">
         <details data-reveal>
@@ -759,6 +1260,7 @@
 </main>
 
 <footer class="footer">
+  <div class="foot-strip" aria-hidden="true"></div>
   <div class="container">
     <div class="foot-grid">
       <div class="foot-brand">

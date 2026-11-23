@@ -146,7 +146,21 @@
     chapterButtons.forEach(function (b, i) { if (+b.getAttribute('data-t') <= t + 250) cur = i; });
     if (!video.currentTime) cur = -1;
     chapterButtons.forEach(function (b, i) { if (i === cur) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+    var g = cur < 0 ? 0 : groupOf(VIDEOS[videoLang].chapters[cur][1]);
+    stops.forEach(function (s) { if (+s.getAttribute('data-group') === g) s.setAttribute('aria-current', 'true'); else s.removeAttribute('aria-current'); });
   }
+  /* The 8 tour chapters ("3 · Library", "第 3 章 · 文献库"); Introduction and Wrap-up have none. */
+  function groupOf(name) { var m = /^(?:第 )?(\d+)/.exec(name); return m ? +m[1] : 0; }
+  function seekGroup(n) {
+    var list = VIDEOS[videoLang].chapters;
+    for (var i = 0; i < list.length; i++) if (groupOf(list[i][1]) === n) { seek(list[i][0] / 1000); return; }
+  }
+  var stops = Array.prototype.slice.call(document.querySelectorAll('#timeline .stop'));
+  stops.forEach(function (s) { s.addEventListener('click', function () { seekGroup(+s.getAttribute('data-group')); }); });
+  /* "See the reader" and the other chapter links: go to the demo and start that chapter */
+  document.querySelectorAll('a[data-tour]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); seekGroup(+a.getAttribute('data-tour')); });
+  });
   /* The <source> in the HTML is picked once by the browser; with preload="none" that downloads nothing.
      An explicit load() does start buffering in Chromium, so it is only called once the visitor has started
      the video (or picks a chapter). A switch before that is applied on the first play. */
@@ -245,7 +259,7 @@
       live.textContent = '';
     }, 1600);
   }
-  document.querySelectorAll('.cmd .copy').forEach(function (btn) {
+  document.querySelectorAll('.cmd .copy, .cmd-chip .copy').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var code = btn.parentNode.querySelector('code');
       copyText(code.textContent).then(function () { done(btn); }, function () { failed(btn, [code]); });
@@ -340,7 +354,10 @@
   function step(d) {
     var gi = galleryItems.indexOf(current);
     if (gi < 0) return;
-    showItem(galleryItems[(gi + d + galleryItems.length) % galleryItems.length]);
+    for (var k = 1; k <= galleryItems.length; k++) {
+      var next = galleryItems[(gi + d * k + galleryItems.length * k) % galleryItems.length];
+      if (!next.closest('li').hidden) { showItem(next); return; }
+    }
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-zoom]');
@@ -392,6 +409,49 @@
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
     ['demo', 'features', 'screenshots', 'privacy', 'get-started', 'open-source', 'faq'].forEach(function (id) { var s = document.getElementById(id); if (s) secIO.observe(s); });
+  }
+
+  /* ------------------------------------------------------------ Lineage figure: emphasise History line or Ancestry */
+  var linFig = document.querySelector('.lineage-fig');
+  if (linFig) {
+    var linBtns = Array.prototype.slice.call(linFig.querySelectorAll('[data-view-btn]'));
+    linBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var v = b.getAttribute('data-view-btn');
+        linFig.setAttribute('data-view', v);
+        linBtns.forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+        var box = linFig.querySelector('.lin-panels'), panel = linFig.querySelector('[data-panel="' + v + '"]');
+        if (box && panel && box.scrollWidth > box.clientWidth + 1) {
+          box.scrollTo({ left: panel.getBoundingClientRect().left - box.getBoundingClientRect().left + box.scrollLeft, behavior: reduceMotion ? 'auto' : 'smooth' });
+        }
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------ screenshots: filter by step; on tablets the first six, then "Show all" */
+  var shotList = document.getElementById('shots');
+  var showAll = document.querySelector('.show-all');
+  var filterBtns = Array.prototype.slice.call(document.querySelectorAll('[data-step-filter]'));
+  function expandShots() {
+    shotList.classList.remove('collapsed');
+    if (showAll) showAll.setAttribute('aria-expanded', 'true');
+  }
+  if (shotList) {
+    filterBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var step = b.getAttribute('data-step-filter');
+        filterBtns.forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+        if (step !== 'all') expandShots();
+        Array.prototype.forEach.call(shotList.children, function (li) {
+          li.hidden = step !== 'all' && li.getAttribute('data-step') !== step;
+        });
+      });
+    });
+    if (showAll) showAll.addEventListener('click', function () {
+      expandShots();
+      var first = shotList.children[6] && shotList.children[6].querySelector('button');
+      if (first) first.focus();
+    });
   }
 
   /* ------------------------------------------------------------ reveal on scroll (only below the fold; never with reduced motion) */
