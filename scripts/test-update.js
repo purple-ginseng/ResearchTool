@@ -927,7 +927,7 @@ function plantHook(app, name, marker) {
   }, 'config');
   await refuses('.git/info/attributes switches a filter of the user\'s own settings on: "config", and it is never run', (fx) => {
     const marker = path.join(fx.dir, 'filter-ran');
-    const quoted = '"' + marks(marker).replace(/"/g, '\\"') + '"'; // (in a settings file a bare ";" starts a comment)
+    const quoted = '"' + marks(marker).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"'; // (in a settings file a bare ";" starts a comment)
     const env = homeWith(fx, `[filter "x"]\n\tclean = ${quoted}\n\tsmudge = ${quoted}\n`);
     if (!IS_WIN) { // the control: with this HOME an ordinary git status does run the filter once the attribute is set
       const r = spawnSync('git', ['config', '--get', 'filter.x.clean'], { cwd: fx.app, env, encoding: 'utf8' });
