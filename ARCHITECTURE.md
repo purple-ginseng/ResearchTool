@@ -98,6 +98,8 @@ lib/routes/*.js           one route module per feature; ALL are auto-loaded in f
                           (lib/update.js; it also starts the daily check, which does nothing unless settings.json
                           autoUpdate is true). The switch is saved with PUT /api/settings {autoUpdate}. See "Updates of
                           the app itself" below
+  voice.js                GET /api/voice/status, POST /api/voice/install|cancel|speak, DELETE /api/voice  the voice that
+                          reads aloud (lib/voice/; UI: public/js/speech.js and Preferences › General › Speech)
   projects.js             /api/fs/pick|list|tools /api/projects[?lite=1|/open|import-zip] /api/projects/:id[/file|raw|files|
                           upload|rename|rename-project|compile|synctex|search|labels|refs|wordcount|spelling|download|pdf|
                           settings|papers|reading-pack|annotated|history[/:vid[/diff|restore]]], GET /api/spell/words,
@@ -344,6 +346,15 @@ lib/update.js             the app's own updates: createUpdater({root, ...}) -> {
 scripts/i18n-extract.js   finds the UI strings in public/js/*.js and public/index.html and reports those without a
                           Chinese translation (must stay at 100 %; see docs/preferences.md)
 scripts/test-*.js         the tests: plain Node scripts, each with a temporary workspace (scripts/fixtures: their input files)
+lib/voice/                the voice that reads aloud: Qwen3-TTS 0.6B (ONNX) on onnxruntime-node. Neither ships with the
+                          app; both are fetched on the user's click. See "The voice" below. Tests: node scripts/test-voice.js
+  install.js              where the files live (one folder per user, outside the app and the workspace), the pinned list
+                          (URL at a fixed version, size, checksum), download with continuation, unpacking of the two
+                          package tarballs (only dist/ and the build of this computer), remove
+  index.js                create() -> {status, install, cancelInstall, remove, speak, stop}: the service of the server
+  worker.js               the process that holds engine and model (forked on the first sentence, ended after 5 idle minutes)
+  synth.js                the generation loop (talker, code predictor, codec decoder) and the streaming of audio
+  tokenizer.js            the model's byte-level BPE tokenizer in plain JavaScript
 scripts/overleaf-login.sh one-time helper that lets git store the Overleaf Git token with its credential helper (macOS
                           Keychain, Windows Credential Manager - run it in Git Bash - or libsecret on Linux)
 scripts/run-tests.js      runs every scripts/test-*.js (summary, exit code); scripts/smoke-server.js starts the real server
@@ -1182,6 +1193,34 @@ whose `OFFICIAL_URL` / `OFFICIAL_RE` name the new address, and give it time to r
 defence against a taken-over account), checking the syntax of the changed server files before the merge, and
 applying a fetched update at the next start instead of while running (which would remove the window in which the
 pages and the server are of two versions).
+
+### The voice (lib/voice)
+
+Reading aloud is done by a neural model on this computer; the system's voices are not used. Nothing of it is in the
+repository (the app stays without npm dependencies): `install.js` lists every file with a URL at a fixed version
+(an npm version, a Hugging Face commit), its size and its checksum (sha512 for the two npm tarballs, sha256 for the
+model files), fetches them over https only, continues an interrupted file, and throws a file away whose checksum
+differs. The files go to `~/Library/Application Support/ResearchTool/voice` (macOS), `%LOCALAPPDATA%\ResearchTool\voice`
+(Windows) or `$XDG_DATA_HOME/researchtool/voice` (Linux); `RT_VOICE_DIR` names another place (the files go into `researchtool-voice` inside it, so install and remove only touch a folder the app made). `installed.json` is
+written last (and deleted last), so a half-finished download is never taken for an installation; what such a download
+left is reported as `partial` and can be deleted from Preferences. `RT_VOICE_MIRROR` (an http address of
+this computer, for trying the installer without the internet) changes where the files come from, never the checksums.
+
+The model runs in a process of its own (`worker.js`, `child_process.fork` with "advanced" serialization, so audio
+crosses as Buffers): a crash of the native engine cannot take the server down, and its memory (about 1 GB) is freed
+when the process ends after five idle minutes. `synth.js` follows the recipe of the export's README: the prompt
+(role tokens, a codec prefix with language and speaker, the text, codec BOS) through the 28-layer talker on the
+WebGPU backend; per 80 ms frame, code 0 sampled from the talker and codes 1-15 from the 5-layer code predictor (CPU);
+the codec decoder (WebGPU) turns frames into 24 kHz audio in pieces of about two seconds while the next frames are
+made, the two newest frames held back until what follows them is known. On an M2 Pro a frame takes about 70 ms, so
+sound is made about as fast as it is heard; the page therefore collects 1.2 s before it starts a sentence.
+
+`POST /api/voice/speak {text, lang, voice}` answers with the samples as they are made (`audio/L16`, 16-bit mono,
+24 kHz); closing the request cancels the sentence. Sentences are spoken one after the other (one process, one
+queue). The page (`public/js/speech.js`) cuts text into pieces of at most 220 characters of one language, asks for
+them in turn, never more than 12 s ahead of what is heard, and schedules the samples on an AudioContext. Errors are
+codes (`missing`, `gpu`, `engine`, `offline`, `hash`, `disk`); the sentences are in the page, so they are translated.
+Not done: other platforms than macOS on Apple Silicon were not tried; the reading speed cannot be changed.
 
 ### Static files and the security gate
 

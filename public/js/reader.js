@@ -166,7 +166,8 @@
   // Returns {value(), set(md), insert(md), wrap(a, b), focus(), disable(bool), destroy(), vd}.
   async function createEditor(host, opts) {
     const Vditor = await RT.vendor.vditor();
-    host.innerHTML = '<div class="rd-ed-main"></div><div class="rd-preview vditor-reset" hidden></div>';
+    host.innerHTML = '<div class="rd-ed-main"></div><div class="rd-preview vditor-reset" hidden></div>'
+      + `<div class="rd-dictate" role="status" hidden><span class="rd-dictate-dot" aria-hidden="true"></span><span class="rd-dictate-l">Listening…</span><span class="rd-dictate-t" data-i18n-skip></span><button type="button" class="ib" title="Stop dictation" aria-label="Stop dictation">${RT.icon('stop')}</button></div>`;
     const main = $('.rd-ed-main', host), preview = $('.rd-preview', host);
     let vd, lastRange = null, destroyed = false, split = false, foundTimer = null;
     const contentEl = () => vd.vditor[vd.getCurrentMode()].element;
@@ -190,6 +191,8 @@
       // Insert Markdown at the caret. Vditor's insertValue() takes HTML, so Markdown goes through insertMD (Lute
       // renders it for the current mode) and plain strings are HTML-escaped first.
       insert(md) { api_.restoreCaret(); vd.insertMD(String(md)); changed(); },
+      // Put words in at the caret the way typing does (dictation): the editor treats them as typed text.
+      type(text) { api_.restoreCaret(); if (!document.execCommand('insertText', false, String(text))) vd.insertValue(esc(String(text))); changed(); },
       // Insert a block (callout, formula, table, image, quote) as its own block right after the block that holds
       // the caret, so it never ends up inside a heading, a list item or another callout.
       insertBlock(md) {
@@ -250,6 +253,7 @@
         renderPreview();
       },
       destroy() {
+        if (offSpeech) { offSpeech(); RT.speech.stopListening(); RT.speech.stop('note'); }
         destroyed = true; mo.disconnect(); moPreview.disconnect(); document.removeEventListener('selectionchange', onSel); clearTimeout(rsTimer);
         if (window.CSS && CSS.highlights) { CSS.highlights.delete('rt-pcite'); CSS.highlights.delete('rt-found'); }
         clearTimeout(foundTimer);
@@ -591,6 +595,46 @@
       icon: TI('callout', 'co co-' + type),
       click: block(`> [!${type}] ${CALLOUTS[type].icon}\n> ${CALLOUTS[type].label}…`),
     });
+    // Speech (speech.js), for the reading note only: dictate into the note at the caret (it is saved when the
+    // dictation ends) and read the selection or the whole note aloud. Only what this browser can do is shown.
+    const S = opts.speech && RT.speech ? RT.speech : null;
+    const dictEl = $('.rd-dictate', host);
+    const showDict = (interim = '') => { dictEl.hidden = false; $('.rd-dictate-t', dictEl).textContent = interim.length > 70 ? '…' + interim.slice(-70) : interim; };
+    async function toggleDictate(e) {
+      if (S.listening()) return S.stopListening();
+      const noteLang = opts.speech.lang ? opts.speech.lang() : 'en';
+      if (e && e.shiftKey) { // the language that is dictated, kept for this browser
+        const next = S.dictationLang(noteLang) === 'zh-CN' ? 'en-US' : 'zh-CN';
+        S.setDictationLang(next);
+        return toast(next === 'zh-CN' ? 'Dictation language: 中文' : 'Dictation language: English', 'ok');
+      }
+      const lang = S.dictationLang(noteLang);
+      let got = false;
+      const ok = await S.listen({
+        lang,
+        onText: (t) => { if (destroyed) return; got = true; api_.type(S.escapeMd(t) + (lang === 'zh-CN' ? '' : ' ')); },
+        onInterim: (t) => { if (!destroyed) showDict(t); },
+        onEnd: () => { dictEl.hidden = true; if (!destroyed && got && opts.speech.done) opts.speech.done(); },
+      });
+      if (destroyed) { if (ok) S.stopListening(); return; } // the note was closed while the browser was asked
+      if (ok && S.listening()) showDict('');
+    }
+    function toggleRead() {
+      if (S.speaking() === 'note') return S.stop('note');
+      const sel = window.getSelection();
+      const picked = sel.rangeCount && !sel.isCollapsed && inEditor(sel.getRangeAt(0).commonAncestorContainer) ? sel.toString().trim() : '';
+      S.speak(S.plain(picked || vd.getValue()), { key: 'note' });
+    }
+    const speechBtns = !S ? [] : [
+      ...(S.supported.stt ? [{ name: 'rt-dictate', tipPosition: 'n', tip: 'Dictate: speak, and your words go into the note at the cursor. Saved when you stop. Shift-click changes the language', icon: TI('mic'), click: (e) => { toggleDictate(e).catch(fail); } }] : []),
+      ...(S.supported.tts ? [{ name: 'rt-read', tipPosition: 'n', tip: 'Read aloud: the selected text, or the whole note. Click again to stop', icon: TI('speaker'), click: () => toggleRead() }] : [])];
+    if (S) dictEl.addEventListener('click', (e) => { if (e.target.closest('button')) S.stopListening(); });
+    const markBtn = (name, on) => {
+      const el = vd && vd.vditor.toolbar.elements[name]; if (!el) return;
+      el.classList.toggle('rt-speech-on', !!on);
+      const b = el.querySelector('button, [aria-label]'); if (b) b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    };
+    const offSpeech = S ? S.onState((s) => { markBtn('rt-dictate', s.listening); markBtn('rt-read', s.speaking === 'note'); if (!s.listening) dictEl.hidden = true; }) : null;
     // groups (Vditor's '|'): text · lists · code and links · callouts · highlights · math and tables · media and history · view
     // (the rarely used ones sit in Vditor's own "more" menu, so the bar keeps to one row on a wide pane)
     const toolbar = ['headings', 'bold', 'italic', '|', 'quote', 'list', 'ordered-list', 'check', '|', 'link', 'inline-code', 'code', '|',
@@ -601,6 +645,7 @@
       { name: 'rt-formula', tipPosition: 'n', tip: 'Display formula ($$ … $$)', icon: TI('formula'), click: block('$$\na = b\n$$') },
       'table',
       { name: 'rt-qty', tipPosition: 'n', tip: 'Physical-quantity table', icon: TI('table', 'qty'), click: block('| **物理量** | **物理含义** |\n| :---: | --- |\n| $x$ | • 含义 |\n| $y$ | • 含义 |') },
+      ...(speechBtns.length ? ['|', ...speechBtns] : []),
       '|', ...(opts.upload ? ['upload'] : []), 'undo', 'redo', '|', 'edit-mode',
       { name: 'rt-split', tipPosition: 'nw', tip: 'Split view: editor + rendered preview', icon: TI('split-view'), click: () => api_.toggleSplit() },
       { name: 'more', tipPosition: 'nw', toolbar: ['strike', 'outline', 'fullscreen', 'export'] }];
@@ -695,6 +740,7 @@
         <div class="tgroup rd-ovf rd-ovf-2" role="group" aria-label="Annotate">
           ${RT.highlights.control('pdf')}
           <button id="pdf-snap" class="ib" title="Snapshot: drag a rectangle on a page to insert that region into the note as an image" aria-label="Snapshot">${RT.icon('figure')}</button>
+          ${RT.speech && RT.speech.supported.tts ? `<button id="pdf-read" class="ib" title="Read aloud: the selected text, or the paper from this page on. Click again to stop" aria-label="Read aloud" aria-pressed="false">${RT.icon('speaker')}</button>` : ''}
         </div>
         <div class="tgroup rd-ovf rd-ovf-1" role="group" aria-label="Navigate">${RT.pdfnav.controls.nav('pdf')}</div>
         <div class="tgroup rd-ovf rd-ovf-1" role="group" aria-label="Window">
@@ -710,6 +756,7 @@
         <button data-act="quote" class="ib" title="Quote in notes: insert the selection as a quote with its page number at the cursor of the note, and highlight it on the page" aria-label="Quote in notes">${RT.icon('quote')}</button>
         <button data-act="kp" class="ib" title="Add as key point, and highlight it on the page" aria-label="Add as key point">${RT.icon('star')}</button>
         <button data-act="copy" class="ib" title="Copy the selection" aria-label="Copy">${RT.icon('copy')}</button>
+        ${RT.speech && RT.speech.supported.tts ? `<button data-act="read" class="ib" title="Read the selection aloud" aria-label="Read the selection aloud">${RT.icon('speaker')}</button>` : ''}
         <span class="rd-sep"></span>
         <button data-act="ai" class="ib" title="Ask Claude: explain or translate the selection, right here over the PDF" aria-label="Ask Claude about the selection" aria-haspopup="menu">${RT.icon('sparkle')}</button>
       </div>
@@ -946,6 +993,7 @@
       hidePop();
       try {
         if (act === 'copy') { await navigator.clipboard.writeText(selText); toast('Copied', 'ok'); return; }
+        if (act === 'read') { RT.speech.speak(selText, { key: 'pdf' }); return; }
         // a highlight keeps the passage marked on the page; a quote and a key point leave one too, linked to them.
         // The place of the selection is read first: inserting into the note takes the selection away.
         const text = selText, rects = hl.selection();
@@ -1147,7 +1195,32 @@
     // a narrow pane hides the Navigate and Window groups, a very narrow one also Annotate (reader.css): their buttons are in
     // the "more" menu. Highlights stays in the bar at the default layout, so the tour and the ⌘K palette (which list only
     // controls on screen) keep it
-    const ICON_OF = { 'pdf-hl': 'highlight', 'pdf-snap': 'figure', 'pdf-outline': 'sidebar', 'pdf-back': 'arrow-left', 'pdf-open': 'external-link', 'rd-max-pdf': 'maximize' };
+    const ICON_OF = { 'pdf-hl': 'highlight', 'pdf-snap': 'figure', 'pdf-read': 'speaker', 'pdf-outline': 'sidebar', 'pdf-back': 'arrow-left', 'pdf-open': 'external-link', 'rd-max-pdf': 'maximize' };
+    // Read aloud (speech.js): the selection, else the paper from the page in view on, page after page (the view
+    // follows the page that is being read). A page without text (a scan) is passed over.
+    let readRun = 0; // each press of the button is a run of its own: a stopped one no longer turns pages
+    function readPdf() {
+      const S = RT.speech, run = ++readRun;
+      if (S.speaking() === 'pdf') return S.stop('pdf');
+      const sel = window.getSelection();
+      // the selection as it is now (the popover's copy is only as fresh as the last mouse-up on a page)
+      const picked = sel.rangeCount && !sel.isCollapsed && pagesEl.contains(sel.getRangeAt(0).commonAncestorContainer) ? sel.toString().replace(/-\n(?=[a-z])/g, '').replace(/\s+/g, ' ').trim() : '';
+      if (picked) return S.speak(picked, { key: 'pdf' });
+      let n = currentPage() - 1, moved = false;
+      const live = () => !destroyed && run === readRun && S.speaking() === 'pdf';
+      const more = async () => {
+        while (live() && ++n <= pdf.numPages) {
+          let text = '';
+          try { text = S.pdfText(await (await pdf.getPage(n)).getTextContent()); } catch (e) { console.error(e); }
+          if (!live()) return null;
+          if (text) { if (moved) goPage(n); moved = true; return text; }
+          moved = true;
+        }
+        return null;
+      };
+      return S.speak({ text: '', more }, { key: 'pdf' });
+    }
+    const offSpeech = RT.speech ? RT.speech.onState((s) => { const b = $('#pdf-read', host); if (b) { b.classList.toggle('on', s.speaking === 'pdf'); b.setAttribute('aria-pressed', s.speaking === 'pdf' ? 'true' : 'false'); } }) : null;
     function moreMenu(btn) {
       const items = [];
       for (const g of $$('.rd-pdfbar .rd-ovf', host)) {
@@ -1163,6 +1236,7 @@
       const more = e.target.closest('#rd-pdf-more');
       if (more) return moreMenu(more);
       const t = e.target.closest('button'); if (!t || !pdf) return;
+      if (t.id === 'pdf-read') return readPdf();
       if (t.id === 'rd-pdf-prev') { const n = topPage(), s = slots[n - 1]; goPage(s && scroller.scrollTop > s.el.offsetTop + 2 ? n : n - 1); }
       else if (t.id === 'rd-pdf-next') goPage(topPage() + 1);
       else if (t.id === 'rd-pdf-zoom-in') rescale(scale * 1.2);
@@ -1197,6 +1271,7 @@
       atEnd: () => !!slots.length && !start && !!scroller.clientHeight && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4, selection: () => kept, dropSelection: () => keep(null), refit: () => { if (start) { restore(); renderVisible(); } else if (fit) rescale(0, true); else renderVisible(); },
       destroy() {
         destroyed = true; ro.disconnect(); nav.destroy(); hl.destroy(); closeAi(); clearTimeout(snapTimer);
+        if (offSpeech) { offSpeech(); RT.speech.stop('pdf'); }
         document.removeEventListener('mousedown', onDocDown); document.removeEventListener('keydown', onKey);
         slots.forEach((s) => { if (s.renderTask) { try { s.renderTask.cancel(); } catch { /* done */ } } });
         task.destroy().catch(() => {});
@@ -1330,6 +1405,8 @@
         onInput: () => { if (note.token === token) noteChanged(); }, onSave: () => saveAll('manual'), upload: (file) => uploadAsset(it.id, file),
         page: (n, text) => { if (cur === it.id) showPage(n, text); },
         ask: (p) => askClaude(it.id, p),
+        // dictation: the language of the note unless another was picked; the note is saved when the dictation ends
+        speech: { lang: noteLang, done: () => { if (note.token === token) saveNote('auto').catch(fail); } },
         // an answer that arrives after this editor was closed: into the editor that has the note open now, else into the saved note
         busy: () => drafts.has(it.id),
         patchLater: async (fn) => {

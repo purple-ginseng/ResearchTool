@@ -44,3 +44,8 @@
 .pf-cmd { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
 .pf-cmd code { padding: 1px 5px; border-radius: 4px; background: var(--soft-2); }
 .pf-cmd .ib { width: 22px; height: 22px; }
+
+/* Speech: the two kinds of voice under their own small heads, the download of the natural voice */
+
+#pref-natural-bar { flex: 1; min-width: 80px; max-width: 220px; height: 6px; accent-color: var(--accent); }
+#pref-natural-state:empty { display: none; }

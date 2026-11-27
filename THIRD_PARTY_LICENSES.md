@@ -85,6 +85,18 @@ how a library works):
 Line endings: one upstream file uses CRLF line endings (`vditor/dist/js/i18n/sv_SE.js`); `.gitattributes` marks
 `public/vendor/` as binary for git, so it is stored byte for byte.
 
+## Fetched on request (not in this repository)
+
+Reading aloud uses two things that are not bundled. They are downloaded only when the user presses "Download the
+voice" in Preferences › General › Speech, into a folder of the user's account (`lib/voice/install.js` lists every file
+with its pinned version and checksum):
+
+- **onnxruntime-node** and **onnxruntime-common** 1.31.1 (Microsoft, MIT), from the npm registry.
+- **Qwen3-TTS 12Hz 0.6B CustomVoice** (Alibaba Cloud, Apache-2.0) as the ONNX export
+  `danyalmalik/Qwen3-TTS-12Hz-0.6B-CustomVoice-ONNX-WebGPU` and its codec decoder
+  `danyalmalik/Qwen3-TTS-Tokenizer-12Hz-ONNX-WebGPU` (both Apache-2.0), from Hugging Face. The generation loop in
+  `lib/voice/synth.js` follows the recipe of that export's README and of Quick Inference (github.com/mdanyalmalik/quick-inf).
+
 ## Compatibility
 
 Every component is under a permissive licence (MIT, ISC, BSD, Apache-2.0, Mulan PSL v2, zlib, WTFPL) or a file-level licence that

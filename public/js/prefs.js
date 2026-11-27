@@ -101,6 +101,22 @@
           <button type="button" role="radio" data-icons-pick="sketch" title="Hand-drawn icons: the app's own drawings, as if made with a fountain pen">${icon('library', { style: 'sketch' })}<span>Hand-drawn</span></button>
           <button type="button" role="radio" data-icons-pick="classic" title="Classic icons: plain lines of one weight">${icon('library', { style: 'classic' })}<span>Classic</span></button>
         </div>
+        <div id="pref-speech" hidden>
+        <h4>Speech ${where(true)}</h4>
+        <div id="pref-natural">
+        <p class="muted">Papers and notes are read aloud by a neural voice (Qwen3-TTS) with the tone and pauses of a person reading. It is fetched once and runs on this computer, so what is read never leaves it.</p>
+        <p class="muted" id="pref-natural-state" role="status"></p>
+        <div class="set-row"><button type="button" id="pref-natural-get" title="Fetch the engine (onnxruntime, from the npm registry) and the model (from Hugging Face) once. Every file is checked against its known checksum.">Download the voice</button><button type="button" id="pref-natural-cancel" hidden>Cancel the download</button><button type="button" id="pref-natural-remove" hidden title="Delete the engine and the model from this computer again">Remove the voice</button><progress id="pref-natural-bar" max="100" value="0" hidden></progress></div>
+        <div class="set-row" data-natural-row hidden><label for="pref-natural-zh" class="pf-lab">Chinese voice</label>
+          <select id="pref-natural-zh" data-natural-lang="zh-CN" class="pf-narrow"></select>
+          <button type="button" class="ib" data-natural-test="zh-CN" title="Hear this voice" aria-label="Hear the Chinese voice">${icon('speaker')}</button></div>
+        <div class="set-row" data-natural-row hidden><label for="pref-natural-en" class="pf-lab">English voice</label>
+          <select id="pref-natural-en" data-natural-lang="en-US" class="pf-narrow"></select>
+          <button type="button" class="ib" data-natural-test="en-US" title="Hear this voice" aria-label="Hear the English voice">${icon('speaker')}</button></div>
+        </div>
+        <div class="set-row"><label for="pref-dict-lang" class="pf-lab">Dictation language</label>
+          <select id="pref-dict-lang" class="pf-narrow"><option value="">Same as the note</option><option value="en-US">English</option><option value="zh-CN" data-i18n-skip>中文</option></select></div>
+        </div>
         <h4>Start on ${where(true)}</h4>
         <p class="muted">The view the app opens on when the page is loaded.</p>
         <div class="seg pf-seg" role="radiogroup" aria-label="Start on" id="pref-start">
@@ -210,6 +226,82 @@
   });
   $('#pref-theme').addEventListener('click', (e) => { const b = e.target.closest('[data-theme-pick]'); if (b) { markTheme(b.dataset.themePick); applyTheme(pickedTheme); } }); // previewed at once, Cancel puts it back
   $('#pref-hints').addEventListener('change', (e) => { $('#pref-hint-delay').disabled = !e.target.checked; });
+  // ---------------- speech (speech.js): the voice that reads (lib/voice on the server) and dictation ----------------
+  async function fillSpeech() {
+    const S = RT.speech, box = $('#pref-speech');
+    if (!S || !(S.supported.tts || S.supported.stt)) { box.hidden = true; return; }
+    box.hidden = false;
+    $('#pref-dict-lang').value = S.prefs().lang;
+    $('#pref-dict-lang').closest('.set-row').hidden = !S.supported.stt;
+    $('#pref-natural').hidden = !S.supported.tts;
+    naturalFilled = false;
+    if (S.supported.tts) showNatural(await S.natural(true));
+  }
+  let naturalFilled = false, naturalTimer = 0;
+
+  // the voice: its state, the download, its speakers
+  const NATURAL_NAME = { serena: 'Serena', vivian: 'Vivian', uncle_fu: 'Uncle Fu', dylan: 'Dylan (Beijing dialect)', eric: 'Eric (Sichuan dialect)', ryan: 'Ryan', aiden: 'Aiden' };
+  const NATURAL_PROBLEM = {
+    offline: 'The download stopped: there was no connection. Press Download to continue it.',
+    hash: 'A downloaded file was not the expected one, so nothing was installed.',
+    disk: 'The files could not be written. Is the disk full?',
+    gpu: 'The voice needs a graphics processor (WebGPU) that this computer does not offer here.',
+    engine: 'The voice could not start on this computer.',
+  };
+  const mb = (n) => String(Math.round(n / 1e6));
+  function showNatural(st) {
+    const tr = (t, ...a) => (RT.i18n ? RT.i18n.t(t, ...a) : t.replace(/\{(\d)\}/g, (m, k) => a[k]));
+    const state = $('#pref-natural-state'), get = $('#pref-natural-get'), cancel = $('#pref-natural-cancel'), remove = $('#pref-natural-remove'), bar = $('#pref-natural-bar');
+    clearTimeout(naturalTimer);
+    const rows = $$('[data-natural-row]', $('#pref-natural'));
+    if (!st) { state.textContent = tr('The voice did not answer. Is ResearchTool still running?'); for (const el of [get, cancel, remove, bar, ...rows]) el.hidden = true; return; }
+    const sentence = !st.supported ? (st.reason === 'node' ? tr('The voice needs Node.js 18 or newer.') : tr('There is no voice for this kind of computer.'))
+      : st.installing ? tr('Downloading: {0} of {1} MB', mb(st.done), mb(st.total))
+        : st.installed ? (st.problem ? tr(NATURAL_PROBLEM[st.problem] || 'The voice could not start on this computer.') : tr('Installed. While it reads it uses about 1 GB of memory, which is given back a few minutes later.'))
+          : st.problem ? tr(NATURAL_PROBLEM[st.problem] || 'The download failed.')
+            : st.partial ? tr('Not installed yet: a download was started and can be continued. Its files are kept until then.')
+              : tr('Not installed yet, so nothing is read aloud. One download of about {0} MB.', mb(st.bytes));
+    if (state.textContent !== sentence) state.textContent = sentence;
+    get.hidden = !st.supported || st.installing || st.installed;
+    cancel.hidden = !st.installing;
+    remove.hidden = !(st.installed || st.partial) || st.installing;
+    remove.textContent = tr(st.installed ? 'Remove the voice' : 'Delete what was downloaded');
+    bar.hidden = !st.installing; bar.value = st.total ? Math.round(st.done / st.total * 100) : 0;
+    for (const r of rows) r.hidden = !st.installed;
+    if (st.installed && !naturalFilled) {
+      const p = RT.speech.prefs();
+      for (const sel of $$('select[data-natural-lang]', $('#pref-natural'))) {
+        const lang = sel.dataset.naturalLang, list = [...st.voices.filter((v) => v.lang === lang), ...st.voices.filter((v) => v.lang !== lang)];
+        sel.textContent = '';
+        for (const v of list) { const o = document.createElement('option'); o.value = v.id; o.textContent = tr(NATURAL_NAME[v.id] || v.id); sel.append(o); }
+        sel.value = list.some((v) => v.id === p.natural[lang]) ? p.natural[lang] : st.defaults[lang];
+      }
+      naturalFilled = true;
+    }
+    if (!st.installed) naturalFilled = false;
+    if (st.installing && $('#pref-speech').closest('dialog').open) naturalTimer = setTimeout(() => RT.speech.natural(true).then(showNatural), 1000);
+  }
+  const naturalCall = (url, method) => RT.api(url, { method }).then((st) => { showNatural(st); return RT.speech.natural(true); }).then(showNatural).catch((e) => RT.toast(e.message, 'bad'));
+  $('#pref-natural-get').addEventListener('click', () => naturalCall('/api/voice/install', 'POST'));
+  $('#pref-natural-cancel').addEventListener('click', () => naturalCall('/api/voice/cancel', 'POST'));
+  $('#pref-natural-remove').addEventListener('click', async () => {
+    const st = await RT.speech.natural(true);
+    if (st && st.installed && !(await RT.confirm('Remove the voice from this computer? Nothing is read aloud until it is downloaded again.', { title: 'Voice', okText: 'Remove' }))) return;
+    RT.speech.stop();
+    naturalCall('/api/voice', 'DELETE');
+  });
+  $('#pref-speech').addEventListener('click', (e) => {
+    const n = e.target.closest('[data-natural-test]');
+    if (n) RT.speech.sample(n.dataset.naturalTest, $('#pref-natural').querySelector('select[data-natural-lang="' + n.dataset.naturalTest + '"]').value);
+  });
+  { const dlgEl = $('#pref-speech').closest('dialog'); if (dlgEl) dlgEl.addEventListener('close', () => { clearTimeout(naturalTimer); if (RT.speech) RT.speech.stop('sample'); }); } // a sample stops with the dialog
+  const saveSpeech = () => {
+    const S = RT.speech; if (!S || !(S.supported.tts || S.supported.stt)) return;
+    // a speaker is stored only from a list that was filled
+    const natural = {};
+    if (naturalFilled) for (const sel of $$('select[data-natural-lang]', $('#pref-natural'))) natural[sel.dataset.naturalLang] = sel.value;
+    S.setPrefs({ natural, lang: $('#pref-dict-lang').value });
+  };
 
   async function open(pane) {
     try {
@@ -218,6 +310,7 @@
       $('#pref-lang').value = uiLang();
       const h = hints(); $('#pref-hints').checked = h !== 'off'; $('#pref-hint-delay').value = h === 'normal' ? 'normal' : 'fast'; $('#pref-hint-delay').disabled = h === 'off';
       markTheme(theme()); markStart(startView());
+      fillSpeech().catch((e) => console.error(e));
       $('#pref-auto-compile').checked = ls.get('rt-auto-compile', '1') !== '0'; $('#pref-halt').checked = ls.get('rt-halt-on-error', '0') === '1';
       // the workspace
       iconsSaved(s.iconStyle); markIcons(savedIcons);
@@ -373,6 +466,7 @@
       await api('/api/categories/lines', { method: 'PUT', json: { lines: $('#research-lines').value } });
       setDraftCache(body.draftLanguage); iconsSaved(body.iconStyle);
       // this browser
+      saveSpeech();
       const h = !$('#pref-hints').checked ? 'off' : $('#pref-hint-delay').value === 'normal' ? 'normal' : 'fast';
       ls.set('rt.ui.hints', h); document.documentElement.dataset.hints = h; if (RT.tips) RT.tips.configure();
       ls.set('rt.ui.theme', pickedTheme); applyTheme(pickedTheme);
