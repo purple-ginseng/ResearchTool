@@ -319,3 +319,16 @@ button.rd-rs-reset { font-size: 12px; line-height: 16px; min-height: 0; padding:
 .rd-lk-open:hover { background: var(--soft); color: var(--ink); }
 .rd-lk-open .ic { width: 13px; height: 13px; }
 .rd-lk-note { font-size: 11.5px; margin-top: 2px; }
+
+/* speech (speech.js): the microphone and the read-aloud button while they are on, and the "Listening…" pill of a dictation */
+.rd-ed-main .vditor-toolbar .rt-speech-on .rd-tbi, .rd-ed-main .vditor-toolbar .rt-speech-on svg { color: var(--accent); }
+.rd-ed-main .vditor-toolbar .rt-speech-on > * { background: var(--accent-soft, color-mix(in srgb, var(--accent) 14%, transparent)); border-radius: var(--radius-sm, 6px); }
+.rd-editor { position: relative; }
+.rd-dictate { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 20; display: flex; align-items: center; gap: 8px; max-width: min(520px, calc(100% - 32px)); padding: 6px 6px 6px 12px; background: var(--raised, var(--panel)); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow-3, 0 6px 22px rgba(0,0,0,.25)); font-size: 13px; }
+.rd-dictate[hidden] { display: none; }
+.rd-dictate-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--bad, #d64545); animation: rd-dictate-pulse 1.2s ease-in-out infinite; }
+.rd-dictate-l { flex: none; color: var(--muted); }
+.rd-dictate-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rd-dictate button.ib { flex: none; border-radius: 50%; padding: 5px; min-height: 0; }
+@keyframes rd-dictate-pulse { 50% { opacity: .35; transform: scale(.8); } }
+@media (prefers-reduced-motion: reduce) { .rd-dictate-dot { animation: none; } }

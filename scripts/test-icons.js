@@ -120,9 +120,9 @@ function scanUses(resolve) {
   const used = [...new Set([...USED, ...scanned.keys()])].sort();
 
   await test('the two data files load: the classic set as it was, the hand-drawn set beside it', () => {
-    assert.equal(Object.keys(CLASSIC).length, 180, 'the classic set keeps its 180 icons');
+    assert.equal(Object.keys(CLASSIC).length, 182, 'the classic set keeps its 182 icons');
     assert.ok(Object.keys(SKETCH).length >= 115, 'the hand-drawn set draws at least the icons the app uses');
-    assert.ok(Array.isArray(win.RT_ICON_ADDED) && win.RT_ICON_ADDED.length === 27);
+    assert.ok(Array.isArray(win.RT_ICON_ADDED) && win.RT_ICON_ADDED.length === 29);
     for (const [name, d] of Object.entries(CLASSIC)) { assert.ok(Array.isArray(d.o) && d.o.length, name); for (const [tag, at] of d.o) assert.ok(/^(path|rect|circle|ellipse|polyline)$/.test(tag) && at, name); }
   });
 

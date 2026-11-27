@@ -19,7 +19,8 @@
 ResearchTool is a local research workspace for one person, run as a small Node server and used in the browser. It
 keeps a reference library with a PDF reader, highlights and Markdown reading notes, helps you see how papers relate
 to each other, and has an Overleaf-style LaTeX editor with live PDF preview, version history and optional Overleaf
-sync. All data stays in a plain folder on your computer. The AI features are optional and run through an AI command-line tool
+sync. Papers and notes can be read aloud by a neural voice that runs on your computer (an optional download), and
+notes can be dictated. All data stays in a plain folder on your computer. The AI features are optional and run through an AI command-line tool
 installed on your computer and signed in with your own account: Claude Code (`claude`) by default, or OpenAI Codex,
 xAI Grok Build or Google Antigravity (see [AI providers](#ai-providers)).
 
@@ -630,6 +631,18 @@ it is kept in `settings.json` - at once, without a reload):
   tags, BibTeX.
 - **Export references** (header): writes `references.bib`, `notes.md` (grouped by category), `library.csv` and one
   file per reading note (`notes/<citekey>.md`, images in `notes/assets/<citekey>/`) to the export folder (gear button).
+- **Read aloud** (the speaker buttons of the PDF toolbar, the selection menu and the note editor): the selected
+  text, the PDF from the page you are on, or the note is read by a neural voice (Qwen3-TTS 0.6B) that runs on this
+  computer. The voice is not part of the app: Preferences › General › Speech fetches it once (about 805 MB: the
+  onnxruntime engine from the npm registry and the model from Hugging Face, every file checked against a pinned
+  checksum) into a folder of your user account, and can remove it again. It reads Chinese and English, with a choice
+  of speakers per language. It needs a graphics processor the engine can use (WebGPU: Apple Silicon Macs, most
+  Windows and Linux computers with a current graphics driver; there is no build for Intel Macs), uses about 1 GB of
+  memory while it reads, and makes sound about as fast as it is heard on an M2 Pro - on a slower computer it pauses
+  between sentences. Tried on macOS (Apple Silicon) only.
+- **Dictation** (the microphone button of the note editor): speech to text with the browser's speech recognition;
+  the note is saved when you stop. Where the browser cannot recognise speech on the computer itself (Chrome), it
+  sends the audio to its own service, which the app says and asks before the first use.
 
 ## Editor tab
 
@@ -731,8 +744,11 @@ this computer only in these cases:
 | Related tab, "Check metadata", "Check venues", Lineage | the scholarly indexes: OpenAlex, Semantic Scholar, arXiv, Crossref, doi.org, DBLP, PMLR | only when you press their button | the paper's DOI or arXiv id; "Check venues" also its title |
 | Overleaf sync | git.overleaf.com, by git, with the token your credential store keeps | when you import, pull or push a linked project | the files of that project |
 | Updates of ResearchTool | github.com, by git over https | only when "Keep ResearchTool up to date automatically" is ticked (a little after the start, then about once a day), or when you press "Check for updates now" or "Update now" | an anonymous git request for the public repository: no account, no token, nothing about you, your library or your notes. GitHub sees your IP address and that a git client asked for this repository |
+| Downloading the voice | registry.npmjs.org and huggingface.co | only when you press "Download the voice" in Preferences › General › Speech | a plain download request for public files: nothing about you, your library or your notes |
+| Dictation | the speech service of your browser (Chrome: Google) | only while the microphone button is on, and only in a browser that cannot recognise speech on the computer | what the microphone hears |
 
-The update check is off unless you tick its box in Preferences › General (see "Updating" above).
+The update check is off unless you tick its box in Preferences › General (see "Updating" above). Reading aloud itself
+sends nothing anywhere: the text goes to the voice on this computer.
 
 ## Where things live
 
@@ -1001,5 +1017,7 @@ A workspace that had chosen Gemini CLI opens on Claude Code.
 | `RT_OVERLEAF_NET_TIMEOUT_MS`, `RT_OVERLEAF_CLONE_TIMEOUT_MS` | 45000, 180000 | network timeouts of git |
 | `RT_CATEGORIZE_TIMEOUT_MS`, `RT_REGROUP_TIMEOUT_MS`, `RT_REGROUP_CHUNK`, `RT_BRIEF_BATCH` | see `lib/categorize.js` | limits of the grouping calls; papers per brief call (6) |
 | `RT_BACKUP_FIRST_MS` | 90000 | delay before the first automatic backup check after the start |
+| `RT_VOICE_DIR` | a folder of your user account (see "Read aloud") | the downloaded voice is kept in a folder `researchtool-voice` inside the folder named here |
+| `RT_VOICE_MIRROR` | unset | an `http://127.0.0.1:...` address that has the voice's files under their names (for trying the download without the internet; the checksums are checked all the same) |
 | `RT_NO_UPDATE` | unset | `1` switches the app's own updates off completely - no check, no download, whatever Preferences says (it can only switch them off) |
 | `RT_UPDATE_FIRST_MS` | 75000 | delay before the first automatic update check after the start (only with "Keep ResearchTool up to date automatically" ticked) |
