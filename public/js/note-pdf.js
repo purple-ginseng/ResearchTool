@@ -6,7 +6,7 @@
    searched and copied), nothing is uploaded, and the note itself is not changed.
    The pure part (page sizes, the scale of a wide thing, the file name) also loads in Node (scripts/test-note-pdf.js).
    API (RT.notePdf): print({ md, title, authors, year, citekey, options, paper? }) -> Promise<bool>,
-   PAGES, page(name), fit(width, room, least), fileName(citekey, title). */
+   PAGES, page(name), fit(width, room, least), fileName(citekey, title), mathBars(md). */
 (function (root, factory) {
   const pure = factory();
   if (typeof module === 'object' && module.exports) module.exports = pure;
@@ -32,7 +32,86 @@
     const base = String(citekey || title || 'note').normalize('NFKC').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'note';
     return base + ' - note';
   }
-  return { PAGES, page, paperFor, fit, fileName, MM };
+  // A "|" inside a formula in a table row ("| $p(a | b)$ | meaning |") ends the cell in Markdown, so the formula is
+  // cut in two and shown as its source. For drawing, such a bar is escaped ("\|"), which is how a bar is written
+  // inside a table cell: the renderer hands the formula a plain "|" again, so it means the same everywhere (also in
+  // \text{...} and in the columns of an array). In a "$$...$$" formula of a cell the escape is not undone by the
+  // renderer, so there the bar is named ("\vert", the same sign). Only rows of a real table (a header and a "| --- |" line) outside
+  // code are touched, and in them only a bar between a "$" and the "$" that closes it; a "\|" that is there already
+  // stays. What looks like money is not a formula: "$100 | 100$", "costs $5 | $x_i$ each" stay as they are. The
+  // note itself is not changed and the number of lines stays.
+  const QUOTE = /^[ \t]*(?:>[ \t]?)*/;
+  const DELIM = /^\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
+  function barsOfRow(line) {
+    // the "$" marks and the cell dividers of the row, in order (not the escaped ones, not those of a code span)
+    const T = [];
+    for (let i = 0; i < line.length;) {
+      const ch = line[i];
+      if (ch === '\\') { i += 2; continue; }
+      if (ch === '`') {
+        const run = /^`+/.exec(line.slice(i, i + 64))[0];
+        let end = -1;
+        for (let k = line.indexOf('`', i + run.length); k >= 0; k = line.indexOf('`', k)) {
+          let e = k; while (line[e] === '`') e++;
+          if (e - k === run.length) { end = e; break; }
+          k = e;
+        }
+        i = end < 0 ? i + run.length : end; continue;
+      }
+      if (ch === '|') { T.push({ at: i, bar: true }); i++; continue; }
+      if (ch === '$') { T.push({ at: i }); i++; continue; }
+      i++;
+    }
+    // the next "$" after each mark, and the next "$$" (two "$" side by side)
+    const next = new Array(T.length).fill(-1), next2 = new Array(T.length).fill(-1);
+    const two = (k) => k >= 0 && k + 1 < T.length && !T[k].bar && !T[k + 1].bar && T[k + 1].at === T[k].at + 1;
+    for (let k = T.length - 1, last = -1, last2 = -1; k >= 0; k--) { next[k] = last; next2[k] = last2; if (!T[k].bar) { last = k; if (two(k)) last2 = k; } }
+    const esc = [];
+    for (let i = 0; i < T.length;) {
+      if (T[i].bar) { i++; continue; }
+      const d = two(i) ? 2 : 1, j = d === 2 ? next2[i + 1] : next[i]; // "$$ ... $$" or "$ ... $"
+      if (j < 0) { if (d === 2) { i += 2; continue; } break; }
+      const open = i + d - 1; // (the last "$" of the opening mark)
+      if (j === open + 1) { i = j + d; continue; } // a formula inside one cell
+      const from = T[open].at + 1, c = T[j].at;
+      const first = line.slice(from, T[open + 1].at);
+      const money = /^\s*\d[\d.,]*(?![\w\\^_{(=+\-*/<>])/.test(first);
+      const opensAgain = /\s/.test(line[c - 1]) && /[^\s|]/.test(line[c + d] || '') && !/\s/.test(line[from] || '');
+      const clean = T.slice(open + 1, j).every((t) => t.bar); // (only for "$$": no single "$" inside)
+      if (money || opensAgain || !clean) { i++; continue; } // not a formula: this "$" is a sign of its own
+      for (let k = open + 1; k < j; k++) esc.push([T[k].at, d]);
+      i = j + d;
+    }
+    if (!esc.length) return line;
+    let out = '', at = 0;
+    for (const [e, d] of esc) { out += line.slice(at, e) + (d === 1 ? '\\|' : '\\vert' + (/[A-Za-z]/.test(line[e + 1] || '') ? ' ' : '')); at = e + 1; }
+    return out + line.slice(at);
+  }
+  function mathBars(md) {
+    const lines = String(md == null ? '' : md).split('\n');
+    let fence = null, table = false, list = false;
+    for (let n = 0; n < lines.length; n++) {
+      const line = lines[n], q = QUOTE.exec(line)[0], quoted = q.indexOf('>') >= 0, rest = line.slice(q.length).replace(/\r$/, '');
+      if (fence) {
+        if (fence.quoted && !quoted) fence = null; // the quote is over, and its code with it
+        else { const m = /^(`{3,}|~{3,})[ \t]*$/.exec(rest); if (m && m[1][0] === fence.ch && m[1].length >= fence.len) fence = null; continue; }
+      }
+      const f = /^(`{3,}|~{3,})(.*)$/.exec(rest);
+      if (f && !(f[1][0] === '`' && f[2].indexOf('`') >= 0)) { fence = { ch: f[1][0], len: f[1].length, quoted }; table = false; continue; }
+      if (!rest.trim()) { table = false; continue; }
+      const indent = /^[ \t]*/.exec(line.replace(/^[ \t]*(?:>[ \t]?)+/, ''))[0].replace(/\t/g, '    ').length;
+      if (/^(?:[-*+]|\d{1,9}[.)])(?:[ \t]|$)/.test(rest)) list = true; else if (indent === 0 && !quoted && !table) list = false;
+      if (!table) {
+        // a table starts with a header and the line of dashes under it
+        const under = n + 1 < lines.length ? lines[n + 1].slice(QUOTE.exec(lines[n + 1])[0].length).replace(/\r$/, '') : '';
+        if (rest.indexOf('|') < 0 || under.indexOf('-') < 0 || under.indexOf('|') < 0 || !DELIM.test(under) || (indent >= 4 && !list)) continue;
+        table = true;
+      }
+      if (line.indexOf('$') >= 0 && line.indexOf('|') >= 0) lines[n] = barsOfRow(line);
+    }
+    return lines.join('\n');
+  }
+  return { PAGES, page, paperFor, fit, fileName, mathBars, MM };
 });
 
 (function () {
@@ -144,7 +223,7 @@
       stage.style.cssText = `position:fixed;left:-10000px;top:0;width:${pg.width}px;visibility:hidden;`;
       document.body.append(stage);
       try {
-        await Vditor.preview(stage, String(note.md || ''), { ...(note.options || {}), mode: 'light', theme: { current: 'light' }, hljs: { style: 'github', lineNumber: false }, after() { scrub(stage); } });
+        await Vditor.preview(stage, P.mathBars(note.md), { ...(note.options || {}), mode: 'light', theme: { current: 'light' }, hljs: { style: 'github', lineNumber: false }, after() { scrub(stage); } });
         await settled(stage);
         scrub(stage);
         const body = doc.querySelector('.np-body');
@@ -185,5 +264,5 @@
     }
   }
 
-  RT.notePdf = { print, PAGES: P.PAGES, page: P.page, fit: P.fit, fileName: P.fileName, _fitAll: fitAll, _sheet: sheet };
+  RT.notePdf = { print, PAGES: P.PAGES, page: P.page, fit: P.fit, fileName: P.fileName, mathBars: P.mathBars, _fitAll: fitAll, _sheet: sheet };
 })();

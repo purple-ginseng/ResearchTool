@@ -578,7 +578,7 @@
     function renderPreview() {
       if (destroyed || !split) return;
       const top = preview.scrollTop;
-      try { Vditor.preview(preview, api_.value(), { ...previewOptions(), after() { preview.scrollTop = top; scrub(preview); citePreview(); } }); } catch (e) { console.error(e); }
+      try { Vditor.preview(preview, RT.notePdf.mathBars(api_.value()), { ...previewOptions(), after() { preview.scrollTop = top; scrub(preview); citePreview(); } }); } catch (e) { console.error(e); }
     }
     const renderPreviewSoon = debounce(renderPreview, 350);
     const onSel = () => {
@@ -2244,7 +2244,7 @@
       if (!md.trim()) return toast('The note is empty', 'bad');
       if (size > COPY_MAX) return toast(`The note with its pictures is ${MB(size)}, too large for the clipboard - use "Export paper package (.zip)" instead.`, 'bad');
       let html = '';
-      try { const lute = note.ed && note.ed.vd && note.ed.vd.vditor && note.ed.vd.vditor.lute; if (lute) html = lute.Md2HTML(md); } catch { html = ''; }
+      try { const lute = note.ed && note.ed.vd && note.ed.vd.vditor && note.ed.vd.vditor.lute; if (lute) html = lute.Md2HTML(RT.notePdf.mathBars(md)); } catch { html = ''; }
       let rich = false;
       if (html && window.ClipboardItem && navigator.clipboard.write) {
         try {
