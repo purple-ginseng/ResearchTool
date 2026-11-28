@@ -72,6 +72,8 @@ test('mathBars: a bar inside a formula of a table row no longer ends the cell; e
   const HI = '    | a | b |\n    | :---: | --- |\n'; // (the header, indented as in a list item)
   assert.equal(N.mathBars('1. step\n\n' + HI + '    | $a|b$ | c |'), '1. step\n\n' + HI + '    | $a\\|b$ | c |', 'a table of a list item');
   assert.equal(N.mathBars(H + '| $a|b$ |\r\n| $c|d$ |\r'), H + '| $a\\|b$ |\r\n| $c\\|d$ |\r');
+  // what the editor gives back (the bars escaped) is not changed a second time
+  for (const row of ['| $u(a | b) = c$ | x |', '| $|x|$ | $$p(a|b)$$ | $\\text{a|b}$ |', '| $a$$p(a|b)$ | US$5 |']) { const once = N.mathBars(H + row); assert.notEqual(once, H + row); assert.equal(N.mathBars(once), once, row); }
   assert.equal(N.mathBars(null), ''); assert.equal(N.mathBars('a\n' + H + '| $x|y$ |\nb').split('\n').length, 5);
   const t = Date.now();
   for (const long of ['$a '.repeat(66000), '$a$b '.repeat(30000), '`'.repeat(100000), '$a | '.repeat(40000), '`a` $ | '.repeat(30000)]) N.mathBars(H + '| ' + long + '|');
@@ -92,6 +94,10 @@ test('the page loads note-pdf.js before the reader; the note menu offers the exp
   assert.equal(require('../public/js/lineage.js').texPlain('$\\pi_0$: A Vision-Language-Action Flow Model'), 'π₀: A Vision-Language-Action Flow Model');
   assert.match(src, /Vditor\.preview\(stage, P\.mathBars\(note\.md\)/, 'the export draws the note with the bars named');
   assert.match(reader, /Vditor\.preview\(preview, RT\.notePdf\.mathBars\(/, 'and so does the preview beside the editor');
+  assert.match(reader, /const bars = \(md\) => RT\.notePdf\.mathBars\(/);
+  assert.equal((reader.match(/vd\.setValue\(bars\(/g) || []).length, 4, 'a note, a restored or patched text and the first text go into the editor with the bars escaped');
+  assert.equal((reader.match(/vd\.insertMD\(bars\(/g) || []).length, 2, 'and so does text that is inserted');
+  assert.ok(!/vd\.setValue\((?!bars\(|vd\.getValue\(\))/.test(reader), 'no other way into the editor');
   assert.match(src, /break-inside: avoid/); assert.match(src, /@page \{ size:/);
 });
 
