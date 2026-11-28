@@ -48,6 +48,8 @@ test('plain: markup, code, formulas, pictures and page links are not read', () =
   assert.match(t, /Quantity, Meaning/);
   assert.match(t, /x\s*, position/);
   assert.equal(S.plain(''), '');
+  assert.equal(S.plain('a &amp;lt; b'), 'a &lt; b.', 'an escaped entity is unescaped once');
+  assert.equal(S.plain('x <<b>i>y</i> z'), 'x y z.', 'no tag is left by removing another');
   // what looks like markup but is text stays; code in a list item or a callout goes
   assert.equal(S.plain('Training costs $500 on A100 versus $2,000 on H100.'), 'Training costs $500 on A100 versus $2,000 on H100.');
   assert.equal(S.plain('If a<b and c>d then swap; accuracy<baseline while loss>threshold.'), 'If a<b and c>d then swap; accuracy<baseline while loss>threshold.');
@@ -100,6 +102,18 @@ test('chunks: one utterance per run of sentences in a language, never longer tha
 });
 
 
+test('forSpeech: citations, links and formulas are not read; ordinary sentences are untouched', () => {
+  const F = S.forSpeech;
+  assert.equal(F('Video models use pixel-space state, trained with photometric reconstruction [4, 14–29] or prediction [30].'), 'Video models use pixel-space state, trained with photometric reconstruction or prediction.');
+  assert.equal(F('NeRF (Mildenhall et al., 2020) and its successors (Barron et al., 2021; Müller and Evans, 2022) are slow.'), 'NeRF and its successors are slow.');
+  assert.equal(F('Existing approaches [5] formulate this as a single-step update, s t+1 = f(a t, s t), which accumulates error.'), 'Existing approaches formulate this as a single-step update, which accumulates error.');
+  assert.equal(F('We minimise L = ∑ ||x − y||. The result is stable.'), 'The result is stable.');
+  assert.equal(F('See https://example.org/a?b=1 for the code.'), 'See for the code.');
+  assert.equal(F('The method reaches 92.3% accuracy (see Table 2), a gain of 1.7 points.'), 'The method reaches 92.3% accuracy (see Table 2), a gain of 1.7 points.');
+  assert.equal(F('本文提出一种新方法［3］，准确率达到 92.3%。其中 α = 0.5，效果最好。'), '本文提出一种新方法，准确率达到 92.3%。效果最好。');
+  assert.equal(F(''), '');
+});
+
 test('escapeMd: dictated words stay text', () => {
   assert.equal(S.escapeMd('a * b _c_ `d` [e] <f>'), 'a \\* b \\_c\\_ \\`d\\` \\[e\\] \\<f\\>');
   assert.equal(S.escapeMd('# not a heading'), '\\# not a heading');
@@ -115,6 +129,9 @@ test('the page loads speech.js before the reader, and the reader only shows what
   assert.match(reader, /S\.supported\.stt \? \[\{ name: 'rt-dictate'/);
   assert.match(reader, /RT\.speech && RT\.speech\.supported\.tts \? `<button id="pdf-read"/);
   const speech = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'speech.js'), 'utf8');
+  // a Chinese text is read as Chinese throughout, by one speaker
+  assert.match(speech, /for \(const x of parts\) x\.lang = 'zh-CN';/);
+  assert.match(speech, /const PART = \{ 'zh-CN': 90, 'en-US': 260 \};/, 'English pieces are long enough for whole sentences');
   // the only thing speech.js asks for is the voice of this computer's own server
   const asked = [...speech.matchAll(/fetch\(([^,)]*)/g)].map((m) => m[1].trim());
   assert.deepEqual(asked.sort(), ["'/api/voice/speak'", "'/api/voice/status'"]);

@@ -51,6 +51,9 @@ lib/routes/*.js           one route module per feature; ALL are auto-loaded in f
   ai.js                   GET /api/ai/providers, GET /api/ai/status[?p=id][&fresh=1] (installed / version / signed in, no model call)
   claude.js               POST /api/claude (NDJSON stream; with another AI provider a read-only chat through lib/ai -
                           Codex with "Let Codex edit files": a chat that edits files, in its workspace-write sandbox)
+  chats.js                GET /api/chats, GET|PUT|DELETE /api/chats/:key/:id, DELETE /api/chats/:key  the kept conversations
+                          of the AI panel: several per paper (item:<id>), project (project:<id>) or "general", in
+                          <workspace>/chats/<kind>-<id>.json (UI: the History button of public/js/claude.js)
   drafting.js             GET /api/writing/material (ids of the papers that have a note), POST /api/projects/:id/rewrite
                           {mode, instruction?, text, section?, before?, after?} -> {text, same, newKeys}, POST
                           /api/projects/:id/related-work {ids, angle?, heading?} -> {latex, papers, cited, uncited, thin,
@@ -425,7 +428,11 @@ public/js/project-papers.js which papers belong to which project and the working
                           own but the project picker; see "Papers of a project" below). notesZip(ids, {pdf}) / readingPackZip(pid):
                           the paper-package downloads; askPdfs(ids) asks (POST export-zip estimate) when the PDFs are over
                           100 MB: with them / without them / cancel (#pk-dlg through RT.write.ui.openDialog)
-public/js/claude.js       Claude panel
+public/js/note-pdf.js     RT.notePdf.print({md, title, authors, year, citekey, options}): a reading note as a PDF through the
+                          browser's print window; the note is drawn into a hidden frame as wide as the page's text area and
+                          what is wider is scaled or wrapped (tests: node scripts/test-note-pdf.js)
+public/js/claude.js       Claude panel: one open conversation per paper / project (a copy in localStorage for a fast start),
+                          every conversation kept through /api/chats; History menu, "New chat" keeps the earlier one
 public/js/account.js      "Claude Code account" dialog (person button in the Claude panel): status, sign in, sign out; with
                           another AI provider: that CLI's status and the terminal command that signs in
 public/js/ai.js           RT.ai: the chosen AI provider (id, name, caps, status), 'ai:changed'; sets the brand of i18n.js
@@ -1213,12 +1220,19 @@ when the process ends after five idle minutes. `synth.js` follows the recipe of 
 WebGPU backend; per 80 ms frame, code 0 sampled from the talker and codes 1-15 from the 5-layer code predictor (CPU);
 the codec decoder (WebGPU) turns frames into 24 kHz audio in pieces of about two seconds while the next frames are
 made, the two newest frames held back until what follows them is known. On an M2 Pro a frame takes about 70 ms, so
-sound is made about as fast as it is heard; the page therefore collects 1.2 s before it starts a sentence.
+sound is made about as fast as it is heard.
 
 `POST /api/voice/speak {text, lang, voice}` answers with the samples as they are made (`audio/L16`, 16-bit mono,
 24 kHz); closing the request cancels the sentence. Sentences are spoken one after the other (one process, one
-queue). The page (`public/js/speech.js`) cuts text into pieces of at most 220 characters of one language, asks for
-them in turn, never more than 12 s ahead of what is heard, and schedules the samples on an AudioContext. Errors are
+queue). The page (`public/js/speech.js`) cuts text into pieces of one language that end with a sentence (at most 90 Chinese or 260 English characters:
+15 to 20 seconds of speech; a smaller limit cuts English sentences in the middle) and asks for each with `{stream: false}`: the piece is made whole and decoded in one go, so there is no
+seam inside it, and the next piece is made while this one is heard (never more than 45 s ahead). The first sound
+therefore takes as long as the first piece takes to make; a slower computer pauses between pieces, not inside them.
+Now and then the sampling loses its way, never picks the stop code and babbles on (about one piece in ten in a
+trial): `synth.js` estimates how long the text should take (`expectedFrames`), and a whole piece that overruns 1.7
+times that is thrown away and made again, up to three times, before anything of it is heard; if none ends, it is cut
+and faded. A text that is Chinese on the whole is read as Chinese throughout by the Chinese speaker, its English
+terms included. Errors are
 codes (`missing`, `gpu`, `engine`, `offline`, `hash`, `disk`); the sentences are in the page, so they are translated.
 Not done: other platforms than macOS on Apple Silicon were not tried; the reading speed cannot be changed.
 

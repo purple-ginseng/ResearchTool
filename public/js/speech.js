@@ -40,9 +40,11 @@
     s = s.replace(/\$\$[\s\S]*?\$\$/g, '\n');                              // display formulas
     s = s.replace(/<!--[\s\S]*?-->/g, ' ');
     s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, ' ');                           // pictures
-    s = s.replace(/<(video|audio|svg|style|script)\b[\s\S]*?<\/\1>/gi, ' ');
+    for (let before = null; before !== s;) { before = s; s = s.replace(/<(video|audio|svg|style|script)\b[\s\S]*?<\/\1\s*>/gi, ' '); }
     s = s.replace(/\[([^\]]*)\]\([^)]*\)/g, (m, t) => (/^p{1,2}\.\s*\d/i.test(t.trim()) ? ' ' : t)); // links; page links (p. 2) are dropped
-    s = s.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>\n]*=[^<>\n]*)?\s*\/?>/g, ''); // tags only: "a<b and c>d" is text
+    s = s.replace(/<br\s*\/?>/gi, '\n');
+    // tags only ("a<b and c>d" is text), until none is left ("<<b>b>" must not leave a tag behind)
+    for (let before = null; before !== s;) { before = s; s = s.replace(/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>\n]*=[^<>\n]*)?\s*\/?>/g, ''); }
     s = s.replace(/`([^`\n]*)`/g, '$1');
     s = s.replace(/\$(?=\S)(?!\d[\d,.]*(?:\s|$))([^$\n]{1,200}?)(?<=\S)\$(?!\d)/g, (m, f) => inlineMath(f)); // not two prices on a line
     const lines = s.split('\n').map((line) => {
@@ -55,7 +57,7 @@
       if (/\|/.test(l) && /^\s*\|/.test(line.replace(/^\s*(>\s*)+/, ''))) l = l.replace(/^\s*\|/, '').replace(/\|\s*$/, '').replace(/\s*\|\s*/g, ', ');
       l = l.replace(/==([^=\n]+)==/g, '$1').replace(/~~([^~\n]+)~~/g, '$1');
       l = l.replace(/(\*\*|__)(.+?)\1/g, '$2').replace(/(^|[\s(（“"'])[*_]([^*_\n]+)[*_](?=$|[\s).,;:!?，。；：！？）”"'])/g, '$1$2');
-      l = l.replace(/\\([\\`*_{}\[\]()#+\-.!|<>~=$])/g, '$1').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      l = l.replace(/\\([\\`*_{}\[\]()#+\-.!|<>~=$])/g, '$1').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'); // (&amp; last: "&amp;lt;" is the text "&lt;")
       l = l.replace(/[(（]\s*[)）]/g, ' ').replace(/\s+([,.;:!?])/g, '$1');
       l = l.replace(PICTO, '').replace(/[ \t\u00a0]+/g, ' ').trim();
       if (l && (heading || !/[.!?:;。！？：；…,，、]$/.test(l))) l += langOf(l) === 'zh-CN' ? '。' : '.'; // a pause after a heading or a list line
@@ -107,10 +109,39 @@
     return out;
   }
 
+  // What is left out when text is spoken: the parts of a paper that are not sentences. A voice model stumbles over
+  // them (it babbles, repeats or makes sounds that are not speech): citation numbers "[4, 14-29]", author-year
+  // citations "(Mildenhall et al., 2020)", links, and a clause that is a formula ("s t+1 = f(a t, s t)").
+  const MATHS = /[=^_\\{}|<>\u2190-\u21ff\u2200-\u22ff\u0370-\u03ff\u2a00-\u2aff]/;
+  const CITE = "\\p{Lu}[\\p{L}'’.-]+(?:\\s+(?:et al\\.?|and|&)(?:\\s+\\p{Lu}[\\p{L}'’.-]+)?)?,?\\s+(?:19|20)\\d\\d[a-z]?";
+  const CITED = new RegExp('[(（]\\s*(?:(?:see|e\\.g\\.,?|cf\\.)\\s+)?' + CITE + '(?:\\s*[;,]\\s*' + CITE + ')*\\s*[)）]', 'gu');
+  function forSpeech(text) {
+    let s = String(text || '');
+    s = s.replace(/https?:\/\/\S+|www\.\S+/g, ' ');
+    s = s.replace(/[\[［]\s*\d+(?:\s*[,;，、\u2013\u2014-]\s*\d+)*\s*[\]］]/g, '');
+    s = s.replace(CITED, '');
+    // sentence by sentence, the clauses that are formulas go
+    s = s.replace(/(?:[^.!?。！？\n]|[.!?](?=\S))+[.!?。！？]*/g, (sentence) => { // (a dot inside "0.5" ends nothing)
+      if (!MATHS.test(sentence)) return sentence;
+      const end = (/[.!?。！？]+\s*$/.exec(sentence) || [''])[0];
+      // clauses end at a comma, semicolon or colon that is not inside brackets ("f(a, b)" is one thing)
+      const clauses = []; let depth = 0, cur = '';
+      for (const ch of sentence.slice(0, sentence.length - end.length)) {
+        if ('([{（［'.includes(ch)) depth++; else if (')]}）］'.includes(ch)) depth = Math.max(0, depth - 1);
+        if (depth === 0 && ',;:，；：'.includes(ch)) { clauses.push([cur, ch]); cur = ''; } else cur += ch;
+      }
+      clauses.push([cur, '']);
+      const body = clauses.filter(([c]) => !MATHS.test(c)).map(([c, sep]) => c + sep).join('').replace(/^[\s,;:，；：]+|[\s,;:，；：]+$/g, '');
+      return /[A-Za-z\u3400-\u9fff]{2}/.test(body) ? ' ' + body + (end || '. ') : ' ';
+    });
+    s = s.replace(/[(（\[]\s*[)）\]]/g, ' ').replace(/[ \t]{2,}/g, ' ').replace(/\s+([,.;:!?，。；：！？)）\]])/g, '$1').replace(/([,;:，；：])\s*(?=[.!?。！？])/g, '').replace(/([。！？，；：])[ \t]+/g, '$1');
+    return s.trim();
+  }
+
   // dictated words are text, never Markdown: what would start markup is escaped
   const escapeMd = (s) => String(s || '').replace(/([\\`*_\[\]<>~$|])/g, '\\$1').replace(/^(\s*)(#{1,6}\s|[-+]\s|\d+[.)]\s)/, '$1\\$2');
 
-  return { langOf, plain, pdfText, chunks, escapeMd };
+  return { langOf, plain, pdfText, chunks, forSpeech, escapeMd };
 });
 
 (function () {
@@ -163,62 +194,51 @@
   }
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const NAT_RATE = 24000;
-  const START_BUFFER = 1.2; // seconds of sound in hand before it starts: the model makes sound about as fast as it is heard
+  // characters of one piece, made whole before it is heard: whole sentences, about 15 to 20 seconds of speech
+  // (a Chinese character takes as long to say as four or five letters). A smaller limit cuts English sentences in
+  // the middle, and each half is then spoken with the melody of a sentence of its own.
+  const PART = { 'zh-CN': 90, 'en-US': 260 };
+  const AHEAD = 45;   // seconds of sound in hand at most: the next piece is made while this one is heard
   let actx = null;
   function natPlayer() {
     if (!actx) actx = new AC();
     if (actx.state === 'suspended') actx.resume().catch(() => { /* needs a click: there was one */ });
-    const live = new Set();
-    let head = 0, wait = [], waiting = 0; // head: the time (of actx) at which the sound in hand ends
-    const put = (f) => {
-      const b = actx.createBuffer(1, f.length, NAT_RATE);
-      b.getChannelData(0).set(f);
-      const src = actx.createBufferSource();
-      src.buffer = b; src.connect(actx.destination);
-      const at = Math.max(head, actx.currentTime + 0.06);
-      src.start(at); head = at + b.duration;
-      live.add(src); src.onended = () => live.delete(src);
-    };
+    const live = new Set(), timers = new Set();
+    let head = 0; // the time (of actx) at which the sound in hand ends
     return {
-      // samples as they arrive; last: this sentence is complete. After a silence, sound is first collected for a
-      // moment, so that it does not start and stall.
-      add(f, last) {
-        const dry = head <= actx.currentTime + 0.05;
-        if (!dry && !wait.length) { if (f && f.length) put(f); return; }
-        if (f && f.length) { wait.push(f); waiting += f.length / NAT_RATE; }
-        if (waiting >= START_BUFFER || last) { for (const w of wait) put(w); wait = []; waiting = 0; }
+      // a whole piece, after what is in hand; onStart() is called when it begins to be heard
+      add(f, onStart) {
+        const b = actx.createBuffer(1, f.length, NAT_RATE);
+        b.getChannelData(0).set(f);
+        const src = actx.createBufferSource();
+        src.buffer = b; src.connect(actx.destination);
+        const at = Math.max(head, actx.currentTime + 0.06);
+        src.start(at); head = at + b.duration;
+        live.add(src); src.onended = () => live.delete(src);
+        if (onStart) { const t = setTimeout(() => { timers.delete(t); onStart(); }, Math.max(0, (at - actx.currentTime) * 1000)); timers.add(t); }
       },
       ahead: () => Math.max(0, head - actx.currentTime),
-      stop() { for (const src of live) { try { src.onended = null; src.stop(); } catch { /* ended */ } } live.clear(); wait = []; waiting = 0; head = 0; },
+      stop() { for (const src of live) { try { src.onended = null; src.stop(); } catch { /* ended */ } } live.clear(); for (const t of timers) clearTimeout(t); timers.clear(); head = 0; },
     };
   }
-  // one piece of text: asked of the server, played as it comes. false: the natural voice did not speak it (j.natProblem says why)
+  // one piece of text: the server makes all of its sound, then it is queued. false: the voice did not speak it
+  // (j.natProblem says why)
   async function natPart(j, p) {
     const ac = j.abort = new AbortController();
-    let r;
+    let r, bytes;
     try {
       r = await fetch('/api/voice/speak', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-RT': '1' }, signal: ac.signal,
-        body: JSON.stringify({ text: p.text, lang: p.lang, voice: (j.voice ? j.voice[p.lang] : prefs().natural[p.lang]) || '' }) });
+        body: JSON.stringify({ text: p.text, lang: p.lang, stream: false, voice: (j.voice ? j.voice[p.lang] : prefs().natural[p.lang]) || '' }) });
+      if (!r.ok) { let code = 'failed'; try { code = (await r.json()).code || code; } catch { /* no JSON */ } j.natProblem = code; return false; }
+      bytes = new Uint8Array(await r.arrayBuffer());
     } catch { j.natProblem = 'failed'; return false; }
-    if (!r.ok || !r.body) { let code = 'failed'; try { code = (await r.json()).code || code; } catch { /* no JSON */ } j.natProblem = code; return false; }
-    const reader = r.body.getReader();
-    let odd = null, any = false;
-    try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (job !== j) { reader.cancel().catch(() => {}); return true; }
-        let bytes = value;
-        if (odd != null) { const m = new Uint8Array(bytes.length + 1); m[0] = odd; m.set(bytes, 1); bytes = m; odd = null; }
-        if (bytes.length % 2) { odd = bytes[bytes.length - 1]; bytes = bytes.subarray(0, bytes.length - 1); }
-        if (!bytes.length) continue;
-        const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), f = new Float32Array(bytes.length / 2);
-        for (let i = 0; i < f.length; i++) f[i] = dv.getInt16(i * 2, true) / 32768;
-        any = true;
-        j.player.add(f, false);
-      }
-    } catch { if (job === j && !any) { j.natProblem = 'failed'; return false; } }
-    if (job === j) j.player.add(null, true);
+    if (job !== j) return true;
+    const n = bytes.length >> 1;
+    if (!n) return true; // (nothing to say in it)
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, n * 2), f = new Float32Array(n);
+    for (let i = 0; i < n; i++) f[i] = dv.getInt16(i * 2, true) / 32768;
+    const onStart = p.onStart;
+    j.player.add(f, onStart ? () => { if (job === j) { try { onStart(); } catch (e) { console.error(e); } } } : null);
     return true;
   }
   const NAT_PROBLEM = {
@@ -226,22 +246,36 @@
     missing: 'Reading aloud needs the voice, which is downloaded once in Preferences > General > Speech.',
     platform: 'There is no voice for this kind of computer.',
   };
+  // what more() gives: a text, or {text, onStart} (onStart: called when that text begins to be heard)
+  const partsOf = (m) => {
+    const text = P.forSpeech(typeof m === 'string' ? m : (m && m.text) || '');
+    let parts;
+    if (P.langOf(text) === 'zh-CN') {
+      // a Chinese text is Chinese throughout: a sentence that is mostly English terms is still read by the Chinese
+      // speaker (who says the terms in English), not handed to the English one
+      parts = P.chunks(text, PART['zh-CN']);
+      for (const x of parts) x.lang = 'zh-CN';
+    } else {
+      parts = P.chunks(text, PART['en-US']).flatMap((x) => (x.lang === 'zh-CN' && x.text.length > PART['zh-CN'] ? P.chunks(x.text, PART['zh-CN']).map((y) => ({ ...y, lang: 'zh-CN' })) : [x]));
+    }
+    if (m && typeof m === 'object' && typeof m.onStart === 'function' && parts.length) parts[0].onStart = m.onStart;
+    return parts;
+  };
   async function nextNatural(j) {
     const pl = j.player = natPlayer();
+    toast('Preparing the first paragraph. Reading starts in a moment.');
     for (;;) {
       if (job !== j) return;
+      while (job === j && pl.ahead() > AHEAD) await sleep(200); // never far ahead of the listener
+      if (job !== j) return;
       if (j.i >= j.parts.length) {
-        while (job === j && pl.ahead() > 4) await sleep(200); // the next page when this one is nearly said
-        if (job !== j) return;
         let more = null;
         if (j.more) { try { more = await j.more(); } catch (e) { console.error(e); } }
         if (job !== j) return;
         if (more == null) break;
-        j.parts = P.chunks(more); j.i = 0;
+        j.parts = partsOf(more); j.i = 0;
         continue;
       }
-      while (job === j && pl.ahead() > 12) await sleep(200); // never far ahead of the listener
-      if (job !== j) return;
       const ok = await natPart(j, j.parts[j.i]);
       if (job !== j) return;
       if (!ok) { // what was made so far is said, then the reason is given
@@ -263,7 +297,9 @@
     finish(j, j.said);
   }
 
-  // speak(text) or speak({text, more}): more() -> Promise<string | null> gives what comes after (the next page).
+  // speak(text) or speak({text, more}): more() -> Promise<string | {text, onStart} | null> gives what comes after
+  // (the next page; onStart is called when it begins to be heard). A piece of text is made whole before it is
+  // heard, and the next one is made meanwhile: the first sound takes a moment, then the reading has no seams.
   // voice: {lang: speaker} to hear another speaker than the saved one.
   async function speak(what, { key = 'text', voice = null } = {}) {
     if (!AC) { toast('This browser cannot play sound made by the page.', 'bad'); return false; }
@@ -271,7 +307,7 @@
     try { if (!actx) actx = new AC(); if (actx.state !== 'running') actx.resume().catch(() => {}); } catch { /* said below, if it stays silent */ }
     const src = typeof what === 'string' ? { text: what } : (what || {});
     stopListening(); stop();
-    const j = job = { key, parts: P.chunks(src.text || ''), i: 0, more: src.more || null, said: false, voice, player: null, abort: null };
+    const j = job = { key, parts: partsOf(src.text || ''), i: 0, more: src.more || null, said: false, voice, player: null, abort: null };
     if (!j.parts.length && !j.more) { job = null; toast('There is no text to read here.'); return false; }
     notify();
     const st = await natural();

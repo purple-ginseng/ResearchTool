@@ -629,6 +629,11 @@ it is kept in `settings.json` - at once, without a reload):
   the open `.tex` file.
 - **Key points** and **Details** tabs: sentence-level key points with your own glosses, metadata, category and
   tags, BibTeX.
+- **Export note as PDF** (the note's ⋯ menu): the note laid out for a page (A4, or Letter where that is the usual
+  paper, with the one-inch margins of a report) with the paper's title, authors and year on top. What would not fit is made to fit: a wide table or formula
+  is scaled down (a long formula first breaks at its operators), pictures and diagrams stay inside the page, code
+  lines wrap, and headings, table rows, pictures and formulas are not split across pages. It opens the browser's
+  print window - choose "Save as PDF" there; the text of the PDF can be searched and copied.
 - **Export references** (header): writes `references.bib`, `notes.md` (grouped by category), `library.csv` and one
   file per reading note (`notes/<citekey>.md`, images in `notes/assets/<citekey>/`) to the export folder (gear button).
 - **Read aloud** (the speaker buttons of the PDF toolbar, the selection menu and the note editor): the selected
@@ -811,7 +816,9 @@ first time the reference is opened or the library is exported.
   with file tools only (read/edit/write/search). Edits show up in the editor and preview when it finishes.
   The answer appears while it is written and the send button becomes Stop (Esc). Claude is told the page you are
   on, the passage you selected in the PDF or the editor, and where the open paper's note, text and PDF are. Each
-  paper and each project has its own conversation, kept in the browser and continued after a reload.
+  paper and each project has its own conversations, kept in the workspace (`chats/`) and continued after a reload.
+  "New chat" starts another conversation about the same paper and the earlier ones stay: the History button of
+  the panel lists them, and the conversations about your other papers and projects, to read again or go on with.
 - **In a terminal:** `cd workspace && claude`. `workspace/CLAUDE.md` explains the data layout to it.
   The app picks up changes when you switch back to the browser window.
 - Grouping, key-point extraction and note drafts call `claude -p` with no tools (drafts: the Read tool only).

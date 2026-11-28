@@ -119,7 +119,30 @@
     "Delete what was downloaded": "删除已下载的文件",
     "Not installed yet: a download was started and can be continued. Its files are kept until then.": "尚未安装：下载已开始，可以继续。在此之前，已下载的文件会保留。",
     "The browser did not let the page play sound. Press the read button again.": "浏览器没有允许页面播放声音。请再按一次朗读按钮。",
-  }, keep: ['Claude Code'], notUi: ['Serena', 'Vivian', 'Uncle Fu', 'Ryan', 'Aiden', 'This is how I read a paper aloud. The method recovers geometry and appearance from a single video.'], rules: [], captureWords: [] };
+    "Preparing the first paragraph. Reading starts in a moment.": "正在准备第一段，稍后开始朗读。",
+    "History: the earlier conversations about this paper or project, and those about your other papers": "历史：关于这篇论文或这个项目的以往对话，以及关于其他论文的对话",
+    "Conversation history": "对话历史",
+    "New chat: start a fresh conversation about this paper or project. The current one stays in the history.": "新对话：就这篇论文或这个项目开始一段新的对话。当前对话会保留在历史中。",
+    "General questions": "一般问题",
+    "A paper that is no longer in the library": "已不在文献库中的论文",
+    "A project that is no longer there": "已不存在的项目",
+    "This paper": "这篇论文",
+    "This project": "这个项目",
+    "No conversation yet": "还没有对话",
+    "{0} questions. Click to read it again or to go on with it.": "{0} 个问题。点击可重新阅读或继续这段对话。",
+    "Delete this conversation": "删除这段对话",
+    "Delete the conversation that is showing? This cannot be undone.": "要删除当前显示的对话吗？此操作无法撤销。",
+    "History": "历史",
+    "Other papers and projects": "其他论文和项目",
+    "{0} conversations, the last one {1}. Click to open it there.": "{0} 段对话，最近一次在 {1}。点击可在那里打开。",
+    "Open that paper or project to see the conversation.": "请打开那篇论文或那个项目以查看对话。",
+    "Export note as PDF…": "将笔记导出为 PDF…",
+    "The note as a PDF, laid out for the page: wide tables and formulas are scaled to fit, pictures and diagrams stay inside the page, code wraps. It opens the print window of the browser - choose \"Save as PDF\" there.": "将笔记排版为适合纸张的 PDF：过宽的表格和公式会缩小以适应页面，图片和图表保持在页面之内，代码自动换行。此操作会打开浏览器的打印窗口，请在其中选择“另存为 PDF”。",
+    "Open the note first.": "请先打开笔记。",
+    "Preparing the PDF…": "正在准备 PDF…",
+    "This note is empty: there is nothing to export.": "这篇笔记是空的，没有可导出的内容。",
+    "The note could not be made into a PDF:": "无法将笔记生成 PDF：",
+  }, keep: ['Claude Code'], notUi: ['{0}mm {1}mm {2}mm', 'Letter', 'table, .katex-display > .katex, mjx-container[display="true"]', 'Serena', 'Vivian', 'Uncle Fu', 'Ryan', 'Aiden', 'This is how I read a paper aloud. The method recovers geometry and appearance from a single video.'], rules: [], captureWords: [] };
   if (typeof module === 'object' && module.exports) module.exports = part;
   else (root.RT_I18N_ZH_PARTS = root.RT_I18N_ZH_PARTS || []).push(part);
 })(typeof window !== 'undefined' ? window : globalThis);

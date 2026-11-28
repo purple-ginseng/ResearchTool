@@ -50,6 +50,17 @@ test('sampleTopK: only the k most likely, never a masked value, the offset of a 
   assert.ok(seen.size <= 5 && seen.size > 1);
 });
 
+test('an overrunning piece: how long a text should take, and the fade of a cut', () => {
+  const E = synth.expectedFrames;
+  assert.ok(E('这篇论文提出了一种新的方法。') >= 35 && E('这篇论文提出了一种新的方法。') <= 50, 'about a quarter of a second a character');
+  assert.ok(E('This paper proposes a new method.') >= 20 && E('This paper proposes a new method.') <= 32);
+  assert.ok(E('accuracy 92.3 and 1234567') > E('accuracy ab.c and abcdefg'), 'digits are said as words');
+  assert.equal(E(''), 12); assert.equal(E('好'), 12, 'never less than a second');
+  const f = synth.fadeOut(new Float32Array(3000).fill(1));
+  assert.equal(f[0], 1); assert.equal(f[1559], 1); assert.ok(f[2999] === 0 && f[2200] < 1 && f[2200] > 0);
+  assert.equal(synth.fadeOut(new Float32Array(10).fill(1))[9], 0);
+});
+
 test('the files: one folder per user outside the app, the builds that exist, the pinned list', () => {
   assert.equal(files.dir({}, 'darwin', '/Users/a'), path.join('/Users/a', 'Library', 'Application Support', 'ResearchTool', 'voice'));
   assert.equal(files.dir({ LOCALAPPDATA: 'C:\\L' }, 'win32', 'C:\\U'), path.join('C:\\L', 'ResearchTool', 'voice'));
@@ -187,6 +198,9 @@ test('the service: audio in order, one sentence after the other, cancelling, err
   try {
     assert.equal(v.status().installed, true);
     await assert.rejects(v.speak({ text: 'a', lang: 'fr-FR' }, () => {}), (e) => e.code === 'bad');
+    assert.equal(voice.hasChinese('作者提出通用方法 RECAP（RL with Experience and Corrections）'), true);
+    assert.equal(voice.hasChinese('We call this 尺度 ambiguity in the monocular setting.'), true);
+    assert.equal(voice.hasChinese('Plain English.'), false);
     const got = [];
     const [a, b] = await Promise.all([
       v.speak({ text: 'a', lang: 'en-US' }, (p) => got.push('a' + p[1])),
