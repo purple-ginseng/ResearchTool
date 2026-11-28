@@ -69,7 +69,7 @@ should be green on all of them; if you cannot test on one system yourself, CI do
   `public/js/i18n/zh.js`; `node scripts/i18n-extract.js --check` must pass. How the translation layer works is
   described in [docs/preferences.md](docs/preferences.md).
 - **Local only**: the server must keep listening on 127.0.0.1 and keep the same-origin checks in `server.js`.
-  New online lookups should send no more than an id, DOI or title, and be described in the README's Privacy section.
+  New online lookups should send no more than an id, DOI or title, and be described in [docs/privacy.md](docs/privacy.md).
 - **User data**: never commit anything from a `workspace/` folder. Keep changes to the workspace format backward
   compatible, or migrate old data in `core.migrate()`.
 - Keep pull requests focused, and describe what you changed and how you tested it.

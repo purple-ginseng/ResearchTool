@@ -26,7 +26,7 @@
     unsafe: 'git refuses to work in the ResearchTool folder because the folder belongs to another user account (“dubious ownership”). Run “git status” there in a terminal: git says how to allow the folder.',
     locked: 'Another git command is running in the ResearchTool folder, or one was interrupted (the file .git/index.lock exists). Try again when it has finished.',
     'in-progress': 'A merge or rebase is in progress in the ResearchTool folder. Finish or abort it in a terminal, then check again.',
-    config: 'The git settings inside the ResearchTool folder hold something that a plain clone does not have, so ResearchTool does not update itself. Run “git pull” in the ResearchTool folder yourself, or see “Troubleshooting” in the README.',
+    config: 'The git settings inside the ResearchTool folder hold something that a plain clone does not have, so ResearchTool does not update itself. Run “git pull” in the ResearchTool folder yourself, or see docs/troubleshooting.md.',
     origin: 'This copy does not come from the official repository (github.com/purple-ginseng/ResearchTool) - it is a fork, for example - so it is never updated automatically. Update it yourself with git.',
     detached: 'The ResearchTool folder is not on a branch (a single commit is checked out). Run “git switch main” in it to get updates again.',
     branch: 'The ResearchTool folder is on another branch than main, so it is not updated automatically. Run “git switch main” in it to get updates again.',
@@ -38,10 +38,10 @@
     compare: 'This copy could not be compared with the official repository. Nothing was changed. Run “git pull” in the ResearchTool folder yourself.',
     ahead: 'This copy has commits of its own that the official repository does not have, so it is not updated automatically.',
     diverged: 'This copy and the official repository have gone different ways, so it is not updated automatically. Nothing was changed. Update it yourself with git.',
-    manual: 'The newest version cannot be installed automatically: it needs a step by hand. See “Updating” in the README on GitHub.',
+    manual: 'The newest version cannot be installed automatically: it needs a step by hand. See “Updating” in docs/install.md on GitHub.',
     moved: 'The ResearchTool folder changed while the update was being prepared. Check again.',
     refused: 'git did not install the update. Nothing was changed. Run “git pull” in the ResearchTool folder to see why.',
-    interrupted: 'The update was interrupted, and the ResearchTool folder may be half updated. Your workspace is not affected. To repair it, see “The update was interrupted” under “Troubleshooting” in the README.',
+    interrupted: 'The update was interrupted, and the ResearchTool folder may be half updated. Your workspace is not affected. To repair it, see “The update was interrupted” in docs/troubleshooting.md.',
     'git-failed': 'git reported an error in the ResearchTool folder. Run “git status” there in a terminal to see what is wrong.',
   };
   // reasons that are about the folder itself: a look at it (the status with ?local=1) answers them afresh, so one
@@ -57,7 +57,7 @@
       if (d.what === 'package') return 'The newest version cannot be installed automatically: its package.json could not be read. Nothing was changed.';
       return `The newest version cannot be installed automatically on this computer (${d.what || '?'}: ${d.path || '?'}). Nothing was changed.`;
     }
-    if (code === 'config' && d.what) return `The git settings inside the ResearchTool folder hold something that a plain clone does not have (${d.what}), so ResearchTool does not update itself. Run “git pull” in the ResearchTool folder yourself, or see “Troubleshooting” in the README.`;
+    if (code === 'config' && d.what) return `The git settings inside the ResearchTool folder hold something that a plain clone does not have (${d.what}), so ResearchTool does not update itself. Run “git pull” in the ResearchTool folder yourself, or see docs/troubleshooting.md.`;
     if (code === 'refused' && Array.isArray(d.files) && d.files.length) return `git did not install the update because a file in the ResearchTool folder is in the way: ${d.files.join(', ')}. Move it somewhere else and try again. Nothing was changed.`;
     return WHY[code] || `ResearchTool could not be updated (${code}).`;
   }
