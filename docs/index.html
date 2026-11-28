@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="en" data-base="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-zh="ResearchTool 文档：功能详解、AI、隐私、安装与常见问题">ResearchTool Docs: Features, AI, Privacy, Install and FAQ</title>
+<meta name="description" content="ResearchTool documentation: every feature step by step, the four AI CLIs, privacy host by host, requirements, installation on macOS, Linux and Windows, and the FAQ." data-zh-content="ResearchTool 文档：逐步讲解每项功能、四种 AI 命令行工具、逐个主机说明的隐私、环境要求、在 macOS、Linux 和 Windows 上的安装，以及常见问题。">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="theme-color" content="#7b4cc2">
+<meta name="color-scheme" content="light">
+<meta name="author" content="purple-ginseng">
+<link rel="canonical" href="https://purple-ginseng.github.io/ResearchTool/docs/">
+<link rel="alternate" hreflang="en" href="https://purple-ginseng.github.io/ResearchTool/docs/">
+<link rel="alternate" hreflang="zh-CN" href="https://purple-ginseng.github.io/ResearchTool/zh/docs/">
+<link rel="alternate" hreflang="zh" href="https://purple-ginseng.github.io/ResearchTool/zh/docs/">
+<link rel="alternate" hreflang="x-default" href="https://purple-ginseng.github.io/ResearchTool/docs/">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="alternate icon" href="../favicon.ico">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ResearchTool">
+<meta property="og:title" content="ResearchTool Docs: Features, AI, Privacy, Install and FAQ" data-zh-content="ResearchTool 文档：功能详解、AI、隐私、安装与常见问题">
+<meta property="og:description" content="ResearchTool documentation: every feature step by step, the four AI CLIs, privacy host by host, requirements, installation on macOS, Linux and Windows, and the FAQ." data-zh-content="ResearchTool 文档：逐步讲解每项功能、四种 AI 命令行工具、逐个主机说明的隐私、环境要求、在 macOS、Linux 和 Windows 上的安装，以及常见问题。">
+<meta property="og:url" content="https://purple-ginseng.github.io/ResearchTool/docs/">
+<meta property="og:image" content="https://purple-ginseng.github.io/ResearchTool/img/social.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="ResearchTool: your papers, notes and LaTeX in one local workspace" data-zh-content="ResearchTool：论文、笔记与 LaTeX，尽在一个本地工作区">
+<meta property="og:locale" content="en_US" data-zh-content="zh_CN">
+<meta property="og:locale:alternate" content="zh_CN" data-zh-content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ResearchTool Docs: Features, AI, Privacy, Install and FAQ" data-zh-content="ResearchTool 文档：功能详解、AI、隐私、安装与常见问题">
+<meta name="twitter:description" content="ResearchTool documentation: every feature step by step, the four AI CLIs, privacy host by host, requirements, installation on macOS, Linux and Windows, and the FAQ." data-zh-content="ResearchTool 文档：逐步讲解每项功能、四种 AI 命令行工具、逐个主机说明的隐私、环境要求、在 macOS、Linux 和 Windows 上的安装，以及常见问题。">
+<meta name="twitter:image" content="https://purple-ginseng.github.io/ResearchTool/img/social.jpg">
+<meta name="twitter:image:alt" content="ResearchTool: your papers, notes and LaTeX in one local workspace" data-zh-content="ResearchTool：论文、笔记与 LaTeX，尽在一个本地工作区">
+<link rel="preload" href="../fonts/montserrat-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/roboto-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../css/site.css">
+<script>
+  /* The same rule as on the front page: a language the visitor picked earlier with the EN / 中文 switch wins on the English
+     URL, but only on a fresh navigation. Back / Forward and Reload never redirect, and neither does a visit that comes
+     from a Chinese page. The Chinese twin of docs/ is zh/docs/. */
+  (function () {
+    if (document.documentElement.lang !== 'en') return;
+    var l = null;
+    try { l = localStorage.getItem('rt-site-lang'); } catch (e) {}
+    if (l !== 'zh') return;
+    var t = '';
+    try {
+      var n = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      t = n ? n.type : ({ 1: 'reload', 2: 'back_forward' })[performance.navigation && performance.navigation.type] || '';
+    } catch (e) {}
+    if (t === 'back_forward' || t === 'reload') return;
+    if (document.referrer.indexOf(location.origin + location.pathname.replace(/[^/]*$/, '').replace(/docs\/$/, '') + 'zh/') !== 0) {
+      location.replace('../zh/docs/' + location.search + location.hash);
+    }
+  })();
+</script>
+<script type="application/ld+json" id="ld-main">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebPage","@id":"https://purple-ginseng.github.io/ResearchTool/docs/#webpage","url":"https://purple-ginseng.github.io/ResearchTool/docs/","name":"ResearchTool Docs: Features, AI, Privacy, Install and FAQ","description":"ResearchTool documentation: every feature step by step, the four AI CLIs, privacy host by host, requirements, installation on macOS, Linux and Windows, and the FAQ.","isPartOf":{"@id":"https://purple-ginseng.github.io/ResearchTool/#website"},"about":{"@id":"https://purple-ginseng.github.io/ResearchTool/#app"},"primaryImageOfPage":"https://purple-ginseng.github.io/ResearchTool/img/social.jpg","inLanguage":"en"}
+]}
+</script>
+<script type="application/ld+json" id="ld-faq">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "@id": "https://purple-ginseng.github.io/ResearchTool/docs/#faq",
+ "url": "https://purple-ginseng.github.io/ResearchTool/docs/",
+ "inLanguage": "en",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "Is it free?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes. ResearchTool is open source under the MIT licence, with no paid tier and no sign-up. Only outside services you choose to use (such as the AI CLI you pick, or Overleaf's Git integration, which is a Premium feature) have their own terms."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it need Claude or another AI?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. Without an AI CLI the library, reader, notes, Related, Lineage and the LaTeX editor all work. The AI features (diagrams, quizzes, explanations, comparison tables, note drafts, auto-filing) need one AI command-line tool installed and signed in on your computer: Claude Code by default, or OpenAI Codex, xAI Grok Build or Google Antigravity."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Which AI tools can I use, and can they change my files?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Pick one in Preferences › AI, signed in with your own account: Claude Code (claude, the default), OpenAI Codex (codex), xAI Grok Build (grok, macOS and Linux only) or Google Antigravity (agy 1.5.13 or later; a personal Google account works). Gemini CLI is not offered. ResearchTool never asks for an API key and never stores one. In the AI panel, Claude Code can edit files. Codex can only if you tick “Let Codex edit files” (off by default), and then only the open LaTeX project and your reading notes; library.json is copied before each such run, and every project change is kept in the history and can be restored. Grok Build and Antigravity are read-only. The AI features themselves (diagrams, tables, drafts) only read. Only Claude reads PDF pages itself; the other CLIs get the extracted text."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Can I bring my library from Zotero, Mendeley or JabRef?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes, through BibTeX: export a .bib file from your current reference manager and import it, along with PDFs or whole folders; pasted BibTeX, arXiv ids, DOIs and OpenReview or publisher links work too, and duplicates are reported. Comment headings or JabRef groups in a .bib can regroup the library. The other way, Export references writes references.bib, notes.md and library.csv, and the Markdown of a paper package (.zip) opens in Obsidian, Typora or VS Code."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it work with Overleaf?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes, through Overleaf's own Git integration, which is an Overleaf Premium feature: import an Overleaf project, then pull and push from the editor; if both sides changed the same lines you choose which version wins. The token stays in git's credential store, and ResearchTool never sees your Overleaf password. Compiling happens on your computer with latexmk (pdfLaTeX, XeLaTeX or LuaLaTeX), with SyncTeX both ways. ResearchTool is a workspace for one person, with no real-time co-editing."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Can it help with a literature review?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "The Related tab lists a paper's references and the papers citing it (OpenAlex, Semantic Scholar), each added in one click; Lineage shows the prior, derivative and similar works of a paper, a research line or the whole library, in the spirit of Connected Papers. With an AI CLI you can also fill a comparison table of up to 15 papers with page references, ask one question of all of them, or draft related work in LaTeX from your notes that cites only papers in your library. AI output is a draft to check against the papers."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Where is my data?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "In workspace/ next to the app (or wherever RT_WORKSPACE points): library.json, the PDFs, Markdown notes, LaTeX projects and their history, all as plain files. Deleted things go to a trash first, and Settings can keep daily snapshots on another disk."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Which systems does it run on?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "macOS, Linux (Ubuntu) and Windows 10 / 11. The tests run in CI on all three for every push to main and every pull request, PDF import with poppler included. A few things differ: on Linux and Windows the in-page folder browser replaces the native macOS folder chooser (on Windows, “This PC” leads to other drives); spell check uses the system word list (wamerican on Debian / Ubuntu) and is off on Windows, which has none; Overleaf sync keeps its token in git's credential store (the macOS Keychain, the Windows Credential Manager or a Linux helper such as libsecret). The install commands for each system are under Install and requirements above. Of the AI CLIs, Grok Build does not work on Windows; Claude Code, Codex and Antigravity do. ResearchTool is a personal project, shared as it is. If something does not work on your system, an issue describing what happened is very welcome."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Is there a Chinese interface?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes. Preferences › General › Display language switches between English and 中文, and the guided tour is translated too. Full-text search handles Chinese, and the language of AI drafts and of category names has its own settings."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it work offline?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes. All browser libraries and fonts ship with the app. Only adding papers by id, Related, Lineage, metadata and venue checks, Find links, Overleaf sync and the AI features need a connection."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-check" viewBox="0 0 24 24"><path class="sk-k" d="M5.1 12q.9.4 2.3 1.7t1.9 2.1.9 1.7a.5.5 0 0 1-.8.6q-.8-.5-1.5-1.1t-2-1.8-1.7-2.1a.8.8 0 0 1 .9-1.1zm3.4 5.6q1.2-2 2.4-3.5t2.3-2.8 2.5-2.6 2-1.6q.8-.5 1.8-1.3a.5.5 0 0 1 .5.7q-.9.8-1.5 1.5t-1.7 1.8-2.3 2.6-2.3 2.8-2.7 3.1a.6.6 0 0 1-1-.7z"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path class="sk-k" d="M3.7 11.6q1.9-.4 3.7-.5t3.7-.2 3.7 0 2.5.3 1.6.2a.5.5 0 0 1 0 .9q-.9 0-1.6.2t-2.5.2-3.7.2q-1.8 0-3.6.1t-3.6 0a.7.7 0 0 1-.2-1.4zm10.2-5.7q.8.4 2.2 1.6t2.5 2.4 1.7 2a.5.5 0 0 1-.5.7q-.9-.4-2.4-1.4t-2.7-2.2-1.8-2a.8.8 0 0 1 1-1.1zm6.7 5.9q-1.1 1.5-2.4 2.8t-4.1 3.5a.5.5 0 0 1-.7-.7q2.4-2.7 3.6-4t2.7-2.4a.6.6 0 0 1 .9.8z"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path class="sk-k" d="M6.5 8.2q1.2.8 2.5 2.1t2.3 2.6 1.2 1.7.4.8a.5.5 0 0 1-.7.6q-.3-.3-.7-.5t-1.6-1.3-2.5-2.4-2-2.5a.8.8 0 0 1 1.1-1.1zm4.5 7.1q.7-1.1 1.9-2.4t2.5-2.6 2.4-2a.5.5 0 0 1 .6.7q-.8 1-1.9 2.4t-2.4 2.6-2.2 2.1a.6.6 0 0 1-.9-.8z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><path class="sk-k" d="M3.2 16.1q-.8-3-1.1-4.7t-.5-3.5-.3-2.6.2-1.2.8-.8 2.5-.8 3.8-.6 3.1-.3 1.6.1.6.4q.1.1.3.5t.5 3.2a.5.5 0 0 1-.9.1q-.8-2.5-.9-2.6t-1.1 0-2.9.4-3.6.6-1.9.4 0 .6q0 .6.2 2.3t.5 3.4.5 4.9a.7.7 0 0 1-1.4.2zm4.7 4.4q-.2-2.2-.2-3.9t.2-3.6q0-1.7.3-3t.5-1.6.5-.6q.2-.1.6-.3t2.2 0 2.7.3 2.8.5a.5.5 0 0 1-.1.9q-1.9 0-2.8.1t-2.5 0-1.8 0-.2 1.1-.2 2.7-.2 3.5-.4 4a.7.7 0 0 1-1.4-.1zm9.6-12.4q.6.4 1.5 1.4t2.7 3.7a.5.5 0 0 1-.7.6q-2.3-2.2-3.1-3.2t-1.3-1.7a.6.6 0 0 1 .9-.8zm4.4 6q0 2.1 0 3.9t-.2 2.5-.4 1-.7.6-.7.3q-.4.1-2.2-.1t-3.5-.3-2.6-.4-2.2-.3a.5.5 0 0 1 0-.9q1.3-.1 2.2-.2t2.7-.1 3.4.2 1.9.2.3-2.2.6-4.3a.7.7 0 0 1 1.4.1z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path class="sk-k" d="M9.3 5q.3 1.8.3 3.6t0 3.6 0 3.4-.2 2.2-.1 1.2a.5.5 0 0 1-.9 0q-.4-1.8-.6-3.4t-.2-3.4-.1-3.6q.1-1.8.4-3.7a.7.7 0 0 1 1.4.1zm6.7.3q.3 1.8.4 3.6t0 3.6-.2 3.4-.4 2.2q-.1.7-.2 1.1a.5.5 0 0 1-.8 0q-.1-.5-.2-1.1t-.2-2.3q-.1-1.5-.1-3.3t0-3.6.3-3.6a.7.7 0 0 1 1.4 0z"/></symbol>
+  <symbol id="i-play-s" viewBox="0 0 24 24"><path class="sk-k" d="M7.5 4q.3 3.2.4 5.1t.1 3.5q0 1.8 0 3.6t.1 2.1 1-.5 2.5-1.6 3.2-1.8 4.8-2.6a.5.5 0 0 1 .5.8q-3 1.9-4.6 3t-3.1 2-3 1.7-1.7.9-.6 0-.6-.3-.4-1.1q-.2-.7-.2-2.6t.1-3.6-.1-3.5q0-1.8.1-5.1a.7.7 0 0 1 1.5 0zm-.1-.1q1.7.7 3.3 1.7t3.1 1.8 3.1 1.9 2.1 1.4q.5.5 1.6 1.3a.5.5 0 0 1-.4.8q-1.3-.5-2-.7t-2.3-1.1-3.2-1.8-3.1-1.8-3-2.2a.7.7 0 0 1 .8-1.3z"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path class="sk-k" d="M15.7 5.2q-1.2 1.4-2.5 2.7t-2.6 2.6-2.4 2.2a.5.5 0 0 1-.6-.6q.8-1.2 1.9-2.6t2.5-2.7 2.8-2.5a.6.6 0 0 1 .9.9zm-7.3 5.7q1.2.7 2.5 2t2.5 2.6 1.7 2.2.7 1.2a.5.5 0 0 1-.7.7q-.3-.3-1.1-.8t-2.1-1.8-2.5-2.6-2.1-2.4a.8.8 0 0 1 1.1-1.1z"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path class="sk-k" d="M9.4 4.3q1.1.8 2.3 2t2.5 2.5 1.7 2 .8 1.1a.5.5 0 0 1-.6.7q-.4-.2-1.2-.6t-2.2-1.7-2.5-2.5-2-2.4a.8.8 0 0 1 1.2-1.1zm7.5 7.5q-1 1.5-2.3 2.8t-2.5 2.5-1.9 1.6-.9.7a.5.5 0 0 1-.6-.6q.3-.3.7-.9t1.6-1.9 2.4-2.5 2.6-2.5a.6.6 0 0 1 .9.8z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path class="sk-k" d="M18.6 16.6q-2.3 2.9-2.9 3.4t-1.5.8-2.2.5-2.2 0-2.1-.5-2.2-1.1-1.9-1.6-1.4-2-.9-2.1q-.2-1-.2-1.7t.2-1.8.8-2.1q.5-1.2 1.2-1.9t1.6-1.5 2.2-1.3 2.5-.9q1.2-.2 2.4 0t2.1.5 1.6.8q.5.4 2.7 3.4a.5.5 0 0 1-.7.6q-2.3-2.6-2.8-2.9t-1.2-.5-1.8-.2-2 .1-2.1.6-1.9 1.1-1.3 1.3-.9 1.5q-.4 1-.5 1.7t-.1 1.4q.1.5.3 1.3t.7 1.6 1.1 1.6 1.5 1.2q.8.6 1.7 1t1.7.5 1.7.1 1.8-.3 1.3-.5 2.8-2.8a.6.6 0 0 1 .9.7zm-9.9-9.6q.4 2.7.5 4.7t0 3.2q.1 1.3.9.8t2.7-1.2 3.6-1.2 4.6-1.5a.5.5 0 0 1 .4.8q-2.7 1.3-4.5 2.1t-3.5 1.5-3.2 1.1q-1.3.5-1.5.5t-.6 0-.5-.4q-.3-.2-.3-.5t-.1-1.8-.1-3.4.2-4.7a.7.7 0 0 1 1.4 0zm-.1-.3q1.7.4 3.4 1t3.4 1.3 3.3 1.3q1.6.8 3.2 1.7a.5.5 0 0 1-.3.8q-1.8-.3-3.5-.8t-3.5-1.1-3.3-1.2q-1.7-.7-3.3-1.6a.7.7 0 0 1 .6-1.4z"/></symbol>
+  <symbol id="i-overview" viewBox="0 0 24 24"><path class="sk-w" d="M16.2 8.7q2-.5 3.5.2t1.7 3 .1 4.5-2.5 2.5-3.7.2-1.5-2.8.1-4.9 2.3-2.7z"/><path class="sk-k" d="M2.1 18q-.3-2.2-.4-4t-.2-3.6.1-2.6.3-1.2q.3-.5.7-.9t.9-.6 1.4-.6 1.9-.3q1-.1 1.7.1t1.2.5 2.1 1.7a.5.5 0 0 1-.6.8q-1.8-1.1-2.1-1.1t-.9-.2q-.5 0-1.3 0t-1.5.2-1.1.3-.5.4-.2.9 0 2.6q0 1.8.1 3.6t-.2 4a.7.7 0 0 1-1.4 0zm18.5-.4q-.2-2.3-.2-4t0-3.6 0-2.4-.1-.6-.2-.3-.5-.3q-.2-.2-1-.4t-1.5-.2-1.4-.1-.9.1-2 1.5a.5.5 0 0 1-.6-.8q1.7-1.4 2.1-1.7t1.1-.6 1.7-.3 2 .2 1.5.4.9.7.7.9.3 1.2 0 2.6-.1 3.7-.4 4a.7.7 0 0 1-1.4 0zm-8.1-10q.2 1.4.2 2.8t0 2.7-.1 2.7-.1 2.8a.5.5 0 0 1-.9 0q-.2-1.4-.3-2.7t-.2-2.8.1-2.8q0-1.3.3-2.7a.5.5 0 0 1 1 0zm-10.2 11q2.5-.6 3.9-.7t2.7.2 1.8.4.9.7q.4.4.5.4t.7-.5 1.3-.7 2.6-.4 2.8 0 2.2.2a.5.5 0 0 1 0 .8q-1.3.1-2.2.3t-2.5.4q-1.8.2-2.3.4t-1.2.6q-.8.6-1.1.7t-1.6-.5-2.3-.8-2.2-.3-3.8.2a.7.7 0 0 1-.2-1.4zm12.2-9.2q.7-.3 2-.4t1.9 0 .8.2a.5.5 0 0 1 0 .8q-.3.1-.8.2t-1.8.2-1.9 0a.5.5 0 0 1-.2-1z"/><path class="sk-au" d="M18.4 14.1q-.1.6-.5 1t-1.1.5-1-.4q-.4-.3-.4-.9t.4-1 1-.5 1.1.3.5 1z"/></symbol>
+  <symbol id="i-ai" viewBox="0 0 24 24"><path class="sk-w" d="M13.9 9.4q2.7-.3 5.2 0t2.8 2.4q.3 1.9.4 4.6t-2.8 3-5.5 0-2.9-2.5-.1-4.7 2.9-2.8z"/><path class="sk-k" d="M2.9 8.1q.8.4 2.2 1.5t2.4 2.6a.5.5 0 0 1-.6.7q-1.7-.6-3.1-1.7t-1.9-1.9a.8.8 0 0 1 1-1.2zm4.8 4.1q-.8 1.1-2.1 2.3t-1.8 1.4-.8.4a.5.5 0 0 1-.6-.6q.3-.3.6-.8t1.5-1.6 2.4-2a.6.6 0 0 1 .8.9zm1.4 5.1q-.3-2.1-.4-3.8t-.1-3.4 0-2.6.4-1.2.5-.5.6-.4 2.3-.2 2.7.1 2.1.3a.5.5 0 0 1 0 .9q-1.3.1-2.1.2t-2.6.3q-1.6.1-1.7.1t-.2.7 0 2.2q.1 1.7.1 3.4t-.1 3.9a.7.7 0 0 1-1.5 0zm8.2-12.1q.9.4 2.2 1.7t1.7 1.9.8 1.4a.5.5 0 0 1-.7.7q-.9-.4-1.4-.8t-1.9-1.7q-1.2-1.2-1.7-2a.8.8 0 0 1 1-1.2zm4.9 5.9q.2 2.2.3 3.9t0 2.1-.4.8-.6.7-.8.3-2.3.1q-1.9-.1-3.7-.1t-2.5-.2-1.6-.1a.5.5 0 0 1 0-.9q.9-.1 1.6-.2t2.5-.3 3.6-.1 2-.1q.2 0 .2-1.9t.2-4a.7.7 0 0 1 1.5 0zm-9.9-1.4q.7-.3 3.9 0a.5.5 0 0 1 0 .8q-3.1.3-3.7.2a.5.5 0 0 1-.2-1z"/><path class="sk-au" d="M13.8 12.9q1.6-.1 3.4 0t2 .6 0 1.3-2 .8-3.3 0-1.9-.6q-.2-.7 0-1.3t1.8-.8z"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path class="sk-k" d="M7.5 11q-.7 1.2-2 2.4t-1.8 1.5-.7.5a.5.5 0 0 1-.7-.7q.4-.3.6-.7t1.4-1.7 2.4-2.1a.6.6 0 0 1 .8.8zm-4.1 2.7q.8.4 2.1 1.7t2.2 2.8a.5.5 0 0 1-.6.8q-1.8-.8-3.1-2.1t-1.7-2.2a.8.8 0 0 1 1.1-1zm13.8-5.8q.8.5 1.9 1.8t1.8 2.2 1 1.8a.5.5 0 0 1-.7.6q-.8-.4-1.7-1.1t-2-2.1-1.5-2.2a.8.8 0 0 1 1.2-1zm5 5.5q-.6 1.3-1.7 2.7t-3.2 3.2a.5.5 0 0 1-.6-.6q1.3-2.3 2.4-3.7t2.1-2.3a.6.6 0 0 1 1 .7zm-6.4-10.5q-.5 2.4-.9 3.8t-.8 2.7-.8 2.6-.9 2.7-.9 2.6-1.7 4.2a.5.5 0 0 1-.8-.2q.8-3.1 1.2-4.4t.8-2.7.9-2.6.8-2.7q.4-1.3.8-2.6t1.3-3.6a.5.5 0 0 1 1 .2z"/></symbol>
+  <symbol id="i-tour" viewBox="0 0 24 24"><path class="sk-w" d="M13.9 10.8q2.5-.2 4.5.5t2.2 3.1-.1 5q-.1 2.6-2.7 2.5t-5.1-.5-2.4-3 .5-5 3.1-2.6z"/><path class="sk-k" d="M2.3 19.1q0-3.7.1-5.5t.2-3.5.3-3.6.4-2.8.8-1.3q.4-.3.6-.4t1.1-.1 2.8 0q1.9.2 3.8.4t3.4.4 3 .5q1.3.3 2.7.4a.5.5 0 0 1-.1.9q-1.4-.1-2.8-.1t-2.9 0-3.5-.2-3.7-.3-2.6-.2q-.7 0-.8.6t-.2 2.4-.3 3.5-.2 3.5q-.2 1.8-.6 5.5a.7.7 0 0 1-1.5-.1zm19.5-14.2q-.1 3.7-.3 5.6t-.2 3.5-.2 3.3-.3 2.7-.3 1.1-.5.5-.6.4-.8.1-2.5-.1-3.5-.4q-1.7-.2-3.2-.4t-2.9-.4-2.7-.3a.5.5 0 0 1 .1-.9q1.3 0 2.7 0t2.9-.1 3.3.2 3.5.4 2.2.2q.3 0 .4-.7t.1-2.4.2-3.4.4-3.5.8-5.5a.7.7 0 0 1 1.4.1zm-13.8 12.3q-.4.4-1.1.4t-1.1-.4-.5-1 .4-1 1-.4 1.2.3q.5.4.5 1t-.4 1.1zm.4-2.1q1.2-.8 2.6-.9a.5.5 0 0 1 .1.9q-.6.1-.8.3t-1.4.5a.5.5 0 0 1-.5-.8zm3.5-1.6q.2-.9.5-1.3t.3-.7a.5.5 0 0 1 .9.2q-.3 1.4-1 2.3a.5.5 0 0 1-.7-.5zm1.8-3.4q1.1-.8 1.8-1a.5.5 0 0 1 .3.8q-.5.3-1.5.9a.5.5 0 0 1-.6-.7z"/><path class="sk-au" d="M18.9 8.4q-.1.6-.6 1t-1.2.4-1-.4q-.5-.5-.4-1.1t.5-1 1.2-.5q.6 0 1.1.4t.4 1.2z"/></symbol>
+  <symbol id="i-lang" viewBox="0 0 24 24"><path class="sk-w" d="M17.3 9.1q2.7-.3 3.8.6t1 3-3.2 2.5-3.9-1q-.8-1.1-.6-3t2.9-2.1z"/><path class="sk-k" d="M6.6 5.4q-.1 1.4-.6 3.1t-1 3.6q-.5 1.7-2.1 5a.5.5 0 0 1-.8-.2q.6-3.6 1.1-5.4t1-3.5 1-3a.7.7 0 0 1 1.4.4zm-.7-.6q.6 1.2 1.2 2.9t1.1 3.5 1.2 5.4a.5.5 0 0 1-.8.4q-1.8-3.3-2.4-5.1t-1.1-3.5-.7-3.2a.7.7 0 0 1 1.5-.4zm-2.2 7.7q.6-.3 2-.3t1.6.1q.4.1.7.1a.5.5 0 0 1 0 .9q-.3 0-.7.1t-1.6.2-1.9-.1a.5.5 0 0 1-.1-1zm8.4 1.8q-.4-3.3-.4-5t.4-2.1.7-.4 2-.2 3.6-.2 2.5 0 .9.2.4.4.2.4 0 1q.1.8.1 2.5t0 2.2-.1.7-.4.5-.5.4-.6.1-2.1 0-3-.2q-1.3 0-2.2 0a.5.5 0 0 1 0-.8q.9-.1 2.2-.3t2.9-.3 1.7 0 .1-2 .1-2.4-.1-.4-2.1 0-3.3-.1-1.5 1.2q.1 1.4 0 4.8a.7.7 0 0 1-1.5 0zm5.7-11.4q.2 1.8.2 3.7t.1 3.6q0 1.9-.1 3.7t-.4 3.7a.5.5 0 0 1-.8 0q-.4-1.8-.6-3.7t-.2-3.6q0-1.9 0-3.7t.3-3.7a.7.7 0 0 1 1.5 0z"/><path class="sk-au" d="M18.9 20.3q.1.7-.4 1.1t-1 .6-1-.3q-.5-.3-.5-.9t.3-1 1-.6 1.1.2.5.9z"/></symbol>
+  <symbol id="i-laptop" viewBox="0 0 24 24"><path class="sk-w" d="M9.9 5.6q2.7-.5 5.4-.8t3.3 2 .9 4.4-3 2.6-6 .9-3.3-2-.3-4.5 3-2.6z"/><path class="sk-k" d="M5.3 14.3q-.7-2.5-1-4.2t-.5-3.6 0-2.3.6-.8 1.2-.4q.7-.2 2.6-.4t3.7-.4 2.7 0q.9 0 3.2 0a.5.5 0 0 1 0 .8q-2.2.4-3.1.6t-2.7.4-3.6.4-2.3.3-.3 1.7.5 3.3.5 4.4a.7.7 0 0 1-1.5.2zm13.4-11.1q.6 2.5 1 4.2t.5 2.9q.3 1.3.2 1.8t-.3.6-.5.4-.9.5-2.2.4-3.5.5-2.9.3-3.3.2a.5.5 0 0 1-.2-.8q2.2-.6 3.2-.9t2.9-.6 3.5-.5 1.9-.3.1-1.2-.5-2.9-.5-4.4a.7.7 0 0 1 1.5-.2zm-12.6 12.6q-1.6 3.1-1.8 3.6t.5 0 2.5-.7 3.5-.5 3.6-.4 3.6-.4q1.8-.1 2.3-.1t-.4-3.7a.5.5 0 0 1 .8-.2q1 2.3 1.2 3.1t.3 1-.1.4-.3.4-1 .4-2.6.6q-1.8.2-3.6.3t-3.6.5q-1.7.2-3.5.5t-2.9.3q-1.2.2-1.5.1t-.5-.2q-.4-.3-.4-.7t.4-1.2 2.5-3.7a.6.6 0 0 1 1 .6z"/><path class="sk-au" d="M13.2 8.6q-.1.6-.5 1t-1.1.5-1-.4q-.4-.3-.4-.9t.4-1 1-.5 1.1.3.5 1z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><path class="sk-w" d="M12.5 15.1q2.7-.3 4.7-.9t2.4 1.2-1.1 3.6-4.2 2.1-4.5-.7q-1.8-1.2-.9-3.2t3.6-2.1z"/><path class="sk-k" d="M18.3 7q1.9 3 2.1 3.7t.1 1.7-.4 2.1-.9 2-1.4 1.8q-1 .9-2 1.5t-2.1 1-2.2.5-2.1-.1-1.7-.5-1.5-.9-1.4-1.4-1-1.6-.6-2.1q-.3-1.1-.3-2.4t.3-2.2.7-1.9q.5-.8 1.1-1.6t1.2-1.1 1.2-.8q.6-.3 1.8-.5t2-.2 4.2.9a.5.5 0 0 1-.1.9q-3.3-.6-4.1-.6t-1.7.3-1.5.6q-.4.2-.8.6t-.9 1-.8 1.3-.5 1.5-.1 1.8.3 2 .5 1.5q.3.7.8 1.2t1.1 1.1q.6.4 1 .7t1.2.4 1.7.1 1.7-.2 1.7-.7 1.7-1.3 1.1-1.5.6-1.6.3-1.7 0-1.2-1.6-3.4a.8.8 0 0 1 1.3-.7zm-13.7 7.5q2 .6 2.7.8t1.4.2 1.9-.1 2.1-.6q1-.3 2.1-1.1t1.7-1.3 2-2.7a.5.5 0 0 1 .8.4q-1.4 2.4-2 3.1t-1.8 1.5-2.3 1.4-2.4.7q-1.3.3-2.2.2t-1.7-.3-2.7-1.2a.6.6 0 0 1 .4-1zm4.8-9.8q1.8.9 2.7 1.5t1.3 1.2 1.1 1.7.9 2.7q.3 1.4.3 2.8t-.2 2.3-.8 2.8a.5.5 0 0 1-.8-.2q.3-2 .4-2.7t-.1-2.1-.4-2.6-.8-2.2-.8-1.5q-.4-.5-1.1-1t-2.3-1.7a.6.6 0 0 1 .6-1zm-1.4-.5q-.4-.2-.7-2.2a.5.5 0 0 1 .9-.2q.9 1.6.8 2a.6.6 0 0 1-1 .4zm7.1 16.4q.3.2.6 1.5a.5.5 0 0 1-.8.4q-1-1.2-.8-1.5a.6.6 0 0 1 1-.4z"/><path class="sk-au" d="M10.1 10.6q-.1.6-.5 1t-1.1.3-1-.4-.3-.9.5-.9 1-.5q.6 0 1.1.4t.3 1z"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path class="sk-w" d="M8.8 10.4q3.8-.2 7.6 0t4.3 2.8 1 5.4q.5 3-4.1 3.1t-8.5-.3-4.2-3-.1-5.2 4-2.8z"/><path class="sk-k" d="M2.4 19.4q-.3-3.6-.4-5.4t-.1-3.6.1-3.7.4-2.4.7-.7 1.4-.5q.9-.1 2.8-.2t3.7 0 3.5.1 3.1.2 4.1.3a.5.5 0 0 1-.1.8q-2.6.1-4 .3t-3.1.1q-1.7.1-3.5.1t-3.6.1-2.6.1-.8 1.8 0 3.6 0 3.6-.1 5.4a.7.7 0 0 1-1.5 0zm19.3-14.8q.2 3.6.2 5.4t.1 3.5.1 3.5-.2 2.3-.6.9-.5.5-.8.2q-.5.1-2.4.1t-3.5-.1q-1.8 0-3.6-.1t-3.2-.2-2.8-.1a.5.5 0 0 1 0-.8q1.4-.1 2.8-.3t3.2-.3 3.6-.1 3.5.1 2.1 0 .3-1.9 0-3.6q-.1-1.8-.1-3.6t.4-5.5a.7.7 0 0 1 1.4.1zm-18 2.9q2.1-.2 3.5-.3t2.8 0q1.3-.1 2.7-.1t2.8 0 2.3.2 2.6.2a.5.5 0 0 1 0 .8q-1.7.1-2.6.2t-2.3.1-2.7 0-2.8.1-2.8 0-3.5-.1a.5.5 0 0 1 0-1.1zm3.1 2.7q.9.3 2.2 1.5t1.7 1.6a.5.5 0 0 1-.5.7q-.5-.1-2.1-1t-2.3-1.7a.7.7 0 0 1 1-1.1zm4.1 3.2q-.8 1-4 3.2a.5.5 0 0 1-.6-.7q2.7-2.7 3.8-3.4a.6.6 0 0 1 .8.9z"/><path class="sk-au" d="M13.5 13.9q1.2-.1 2.4 0t1.5.7-.1 1.2q-.2.6-1.5.7t-2.3.1-1.4-.6 0-1.3q.2-.6 1.4-.8z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><path class="sk-w" d="M9.7 12.8q2.7.1 5.6.6t3.6 2.2 1 4.3-3 2.5-6.5-1q-3.4-.8-3.8-2.5t-.1-4 3.2-2.1z"/><path class="sk-k" d="M7.5 11.2q-.2-2.3 0-3.5t.7-2.1 1-1.4 1.2-.9 1.1-.6 1.2-.1q.7-.1 1.4.1t1.1.5.8.6.7 1 .6 1.4.1 1.9-.3 2.1q-.3.8-.6 2.2a.5.5 0 0 1-.9-.2q.2-1.3.1-2.2t-.1-1.8-.2-1.5q-.2-.4-.4-.8t-.5-.6-.4-.3-.6-.3-.8-.2q-.5 0-.8 0t-.7.3-.8.6-.6 1-.9 4.9a.7.7 0 0 1-1.4-.1zm-4 8.3q0-2.7.1-4.4t.4-3 .7-1.7.5-.6q.3-.2.8-.3t2.3 0 3.8.3 3.4.6q1.6.4 4.3 1a.5.5 0 0 1-.1.9q-2.8-.1-4.4-.2t-3.4-.3-3.9-.4q-1.9-.2-1.9 0t-.2 1.1q-.2 1.1-.3 2.8t-.7 4.3a.7.7 0 0 1-1.4-.1zm16.2-6.9q.1.9-.1 2.7t-.4 2.9-.5 1.9a.5.5 0 0 1-.9 0q-.2-.9-.3-2.1t.2-3 .7-2.7a.7.7 0 0 1 1.3.3zm-3.3 9.8q-1.4 0-3.2-.2t-3.7-.4-5-1a.5.5 0 0 1 .1-.9q3.3-.3 5.1-.1t3.7.5 3.2.7a.7.7 0 0 1-.2 1.4zm-4.3-5.9q.2.4-.3 2.4a.5.5 0 0 1-.9-.2q-.1-1.8.1-2.2a.5.5 0 0 1 1.1 0z"/><path class="sk-au" d="M13.3 14.7q0 .6-.4 1.1t-1.1.5-1.1-.2-.5-.9.4-1.1q.3-.5 1-.6t1.1.2q.6.3.6 1z"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><path class="sk-w" d="M12.9 11.6q2.3-.1 3.3 1.3t1.4 3.5-.8 3.9-3.4 1.6-3.2-1.9-.3-5.1q.7-3.2 3-3.3z"/><path class="sk-k" d="M13.4 7.7q2.9 1.7 3.2 2.1t.7 1.2.4 2q.2 1.3.1 2.6t-.6 2.2q-.3.9-1 1.8t-1.3 1.3-1.2.7-1.1.3-1.4-.1-1.6-.6-1.3-.9q-.6-.6-1-1.2t-.7-1.4-.5-1.8 0-2.1.6-1.9.9-1.5.8-.8q.4-.3 2.7-1.7a.5.5 0 0 1 .5.8q-2.2 1.3-2.5 1.6t-.4.8q-.3.5-.5 1.3t-.2 1.6.1 1.6.4 1.3.5 1 .8.8q.4.4.8.7t1 .4.9.2.7-.1q.2 0 .7-.4t.9-1 .7-1.4.3-1.7-.1-2.1q-.1-1-.3-1.5t-.4-.8-2.4-2a.7.7 0 0 1 .8-1.3zm.9-1q-.3.8-1.1 1.2t-1.6.3-1.3-.8-.3-1.4 1-1.2 1.6-.3q.9 0 1.4.7t.3 1.5zm-7.7 5.1q-.6 0-1.4-.4t-1.1-.7-.5-.9-.4-.9a.5.5 0 0 1 .8-.6q.2.3.8.9t1.2.9 1.1.7a.6.6 0 0 1-.5 1zm-.2 4.3q-.7.2-1.5.3t-1.2.1-.8.2a.5.5 0 0 1-.4-.8q.3-.1.8-.5t1.4-.4 1.7.1a.5.5 0 0 1 0 1zm10.6-5.3q.5-.4 1.1-.7t1.9-1.9a.5.5 0 0 1 .8.6q-.8 1.4-1 1.7t-1.1.7q-.7.4-1.4.5a.5.5 0 0 1-.3-.9zm.6 4.2q.8-.2 1.7-.1t2.2 1.1a.5.5 0 0 1-.4.8q-.3-.1-1.6-.3t-1.9-.5a.5.5 0 0 1 0-1z"/><path class="sk-au" d="M14.9 13.3q0 .6-.4 1.1t-1 .5-1-.2-.5-.9q0-.5.3-1t1-.6 1.1.2.5.9z"/></symbol>
+  <symbol id="i-pr" viewBox="0 0 24 24"><path class="sk-k" d="M2.5 10.6q-.3-1.7-.4-3.4t-.1-2.8.4-1.4q.2-.3.4-.5t.6-.3 2.1-.2 5.2.4a.5.5 0 0 1 0 .9q-3.4.5-5 .5t-1.7.8.1 2.5q0 1.7-.1 3.5a.7.7 0 0 1-1.5 0zm9.3-7q.3 1.7.4 3.5t0 2.3-.4 1q-.3.3-.4.5t-.6.3q-.3.1-1 .2t-2.3-.1-2.2-.2-1.2-.1a.5.5 0 0 1 0-.8q.4-.1 1.1-.2t2.3-.4q1.7-.1 2.2-.1t.4-2.1.3-3.8a.7.7 0 0 1 1.4 0zm-6.4 2.7q.6-.3 3.5 0a.5.5 0 0 1 0 .8q-2.8.4-3.5.2a.5.5 0 0 1 0-1zm7.6-.4q1.3 0 2 .1t1.1.4q.4.1.7.4t.6.8.6 1.3.3 1.7q.1.7-.1 1.4t-.3 1.7a.5.5 0 0 1-.8 0q0-1.1-.2-2.3t-.4-1.9-.5-1-.5-.6-2.7-1a.5.5 0 0 1 .2-1zm2.4 5.4q.6.3 1.5 1.3t.9 1.3.2.4a.5.5 0 0 1-.6.6q-.3-.2-.5-.3t-1.1-.9q-.9-1-1.2-1.6a.6.6 0 0 1 .8-.8zm1.7 2.7q.4-.6 2.5-2.7a.5.5 0 0 1 .6.6q-1.8 2.4-2.4 2.7a.5.5 0 0 1-.7-.6zm-14.8 3.8q2.2-.4 4-.5t3.6-.2 3.7-.1 3.6.1 2.7.3 1.8.2a.5.5 0 0 1 0 .8q-.9.1-1.8.2t-2.7.2-3.6.2-3.6.1-3.6.1-4.1 0a.7.7 0 0 1 0-1.4z"/><path class="sk-au" d="M19.6 17.7q.1.9-.4 1.5t-1.3.9-1.5-.2-.8-1.2.3-1.4 1.3-1 1.5.2q.8.4.9 1.2z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path class="sk-k" d="M4.1 6.2q1.8-.3 3.6-.4t3.6-.2 3.6 0 5 .6a.5.5 0 0 1-.1.8q-3.1.5-4.9.5t-3.6.1-3.5.1-3.6-.1a.7.7 0 0 1-.1-1.4zm-.2 5.3q1.9-.4 3.7-.5t3.7-.1 6 .6a.5.5 0 0 1 0 .8q-4.1.5-6 .6t-3.6.1q-1.9 0-3.7-.2a.7.7 0 0 1-.1-1.3zm.5 5.2q1.8-.3 3.6-.3t3.6-.1 3.6 0 2.5.2 1.6.1a.5.5 0 0 1 .1.9q-.9.1-1.6.3t-2.5.3-3.6.2-3.7 0-3.6-.3a.7.7 0 0 1 0-1.3z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path class="sk-k" d="M6.7 5.5q1.4 1.2 2.6 2.5t2.5 2.6 2.6 2.7 2.3 2.5q.9 1.3 1.6 2a.5.5 0 0 1-.7.7q-.7-.6-1.3-.9t-1.3-1q-.8-.5-2.1-1.8t-2.6-2.7-2.5-2.7-2.3-3a.8.8 0 0 1 1.2-.9zm11.5.7q-1.9 2.1-3.2 3.4t-2.5 2.6-2.6 2.6q-1.2 1.3-1.9 1.9t-1.7 1.6a.5.5 0 0 1-.7-.6q.9-1.1 1.4-1.8t1.8-2.2 2.5-2.7 2.6-2.6 3.4-3a.6.6 0 0 1 .9.8z"/></symbol>
+  <symbol id="i-write" viewBox="0 0 24 24"><path class="sk-w" d="M8.6 11.6q1.2-2.1 2.6-3.4t3 0 2.8 3-.1 3.3-3.7 2.7-4.3 1.4-1.7-2.3 1.4-4.7z"/><path class="sk-k" d="M12.8 5q-2.6 2.7-3.1 3.2t-1.2 2.2q-.8 1.9-1.4 3.4t-1.2 3.2-1.6 3.6a.5.5 0 0 1-.9-.3q.5-2.1.9-3.8t1.1-3.3 1.3-3.4q.8-1.7 1-2t.9-.8 3.4-2.8a.6.6 0 0 1 .8.8zm-.9-.8q2.3 2.1 3.6 3.3t2.5 2.1 1.5 1.4.2.7q.1.3 0 .5t-.3.6-1 1.3-1.7 1.7-2.5 1.4-3.3 1.3-3.1 1-4.2 1.1a.5.5 0 0 1-.3-.9q2.9-1.1 4.1-1.6t2.9-1.2 3.2-1.3 2.2-1.2 1.3-1.4.6-.8-1-1-2.5-2.2-3.3-3.8a.8.8 0 0 1 1.1-1zm-2.8 11.4q-.4.6-2.5 2.4a.5.5 0 0 1-.6-.6q1.8-2.1 2.4-2.5a.5.5 0 0 1 .7.7zm-4.6 4.5q2.1.7 3.2.3t1.6-.4 1.1.4.8.3q.3.1 1.8-.3a.5.5 0 0 1 .2.9q-1.6.4-2 .4t-1.4-.2-1.6.1q-.8.2-1.2.2t-2.8-.8a.5.5 0 0 1 .3-.9z"/><path class="sk-au" d="M12.2 14q-.4.5-1 .5t-1.1-.2-.7-.9q-.1-.5.2-1t.9-.5q.6-.2 1.1.1t.8.9-.2 1.1z"/></symbol>
+  <symbol id="i-window" viewBox="0 0 24 24"><path class="sk-w" d="M12 11.4q3 .1 5.7.5t3.1 2.3.5 3.7-3.3 2.2-6.4.9-3.3-2.2.2-5.1 3.5-2.3z"/><path class="sk-k" d="M2.3 20.6q-.3-3.6-.3-5.4t-.2-3.7q0-1.9 0-3.7t.1-3.1.2-1.6.6-.6.7-.5q.2 0 1.1 0t2.6.2 3.5.5 3.4.7q1.8.3 3.1.7t3.5.8a.5.5 0 0 1-.2.8q-2.2-.2-3.5-.3t-3.1-.3-3.5-.5-3.4-.4q-1.7-.3-2.3-.4t-.7 1.1 0 2.9 0 3.7 0 3.7-.1 5.4a.7.7 0 0 1-1.5 0zm19.5-14.5q.2 3.1.2 4.8t.1 3.6 0 2.6-.3 1.2q-.3.3-.8.7t-1.9.6-3.2.5-3.6.6-3.4.4-5 .6a.5.5 0 0 1-.2-.8q3.5-.9 5-1.3t3.3-.7 3.6-.6 3.1-.5q1.1-.2 1.3-.2t.2-.7q-.1-.5-.1-2.4t-.1-3.6q.1-1.7.3-4.8a.7.7 0 0 1 1.5 0zm-18.1.6q2 0 3.4.1t2.8.3 2.7.3 2.8.4q1.3.2 2.2.4t2.9.6a.5.5 0 0 1-.2.8q-2-.1-2.9-.2t-2.2-.1q-1.4-.2-2.8-.4t-2.7-.3-2.7-.3-3.5-.6a.5.5 0 0 1 .2-1z"/><path class="sk-au" d="M15.2 14.5q-.1.6-.5 1t-1.1.5-1-.4q-.4-.3-.4-.9t.4-1 1-.5 1.1.3.5 1z"/></symbol>
+  <symbol id="d-graph" viewBox="0 0 240 24"><path class="sk-k" d="M93 12.8q-2.8.2-4.2.3t-2.8.1-2.8.2-2.8.1q-1.4.1-2.9.1t-2.8.1-2.8.1-2.8.1-2.8 0q-1.4.1-2.8.1t-2.8.1-2.9 0-2.8.1q-1.4 0-2.8 0t-2.8 0-2.8 0-2.8 0-2.9.1-2.8 0-2.8-.1-2.8 0-2.8 0-2.8 0-2.8 0-2.9-.1-2.8-.1-2.8-.1-2.8-.1-2.8-.2q-1.4 0-2.8-.1t-3.2-.1a.2.2 0 0 1 0-.4q1.8 0 3.2 0t2.8 0 2.8 0 2.8-.1 2.8 0 2.8-.1q1.5 0 2.9 0t2.8 0 2.8.1 2.8 0 2.8 0 2.8 0 2.8-.1 2.9 0 2.8 0 2.8 0 2.8-.1 2.8 0 2.8 0 2.8-.1 2.8 0 2.9-.1q1.4 0 2.8 0t2.8-.1 2.8-.1 2.8 0 2.8-.1 2.8-.1 2.8 0 2.9 0 4.2-.1a.4.4 0 0 1 0 .8zm54-1.4q2.8 0 4.2 0t2.8-.1 2.9 0 2.8 0 2.8 0 2.8.1 2.8 0 2.8 0 2.8 0 2.9 0 2.8 0 2.8 0 2.8 0 2.8 0 2.8-.1 2.8 0 2.8 0 2.9 0q1.4-.1 2.8-.1t2.8 0 2.8-.1 2.8 0 2.8-.1q1.4 0 2.8 0t2.8-.1 2.9 0 2.8 0 2.8 0 2.8 0 2.8 0 3.2-.1a.2.2 0 0 1 0 .4q-1.8.1-3.2.2t-2.8.1-2.8.2-2.8.2-2.8.1-2.8.2-2.8.1-2.8.1-2.9 0q-1.4.1-2.8.1t-2.8.1-2.8 0-2.8.1q-1.4 0-2.8 0t-2.9 0-2.8.1-2.8 0-2.8 0-2.8 0-2.8 0-2.8 0-2.9 0-2.8 0-2.8 0-2.8 0-2.8-.1-2.8 0-2.9-.1-2.8-.1-2.8-.1-4.2-.2a.4.4 0 0 1 0-.8zm-40.2-1.3q1.6-1.3 2.8-2.1t2.1-1.3 2.2-.6 2.7-.1 1.9.1 1.9.3a.2.2 0 0 1 0 .4q-2.4.4-3.8.4t-2.5.2-1.9.5-2 1-3 1.8a.3.3 0 0 1-.4-.6zm.3 3.5q2.1.5 3.4.9t2.7.8 2.6.8 2.6.5 2.6.1q1.4 0 2.7-.1t2.8-.4q1.4-.1 2.3-.2t3.8-.2a.2.2 0 0 1 0 .4q-2.7.5-3.6.8t-2.3.4q-1.4.3-2.8.5t-2.8.2-2.8 0-2.9-.5q-1.4-.3-2.7-.8t-2.6-1-3.2-1.4a.5.5 0 0 1 .2-.8zm18.7-5.2q-.6.7-1.5.7t-1.5-.4-.8-1.3.4-1.4 1.3-.6 1.6.3q.7.4.9 1.3t-.4 1.4zm12.8 6.3q.3.8-.2 1.5t-1.3 1-1.5-.1-.9-1q-.2-.8.2-1.5t1.2-1.1 1.5 0 1 1.2z"/><path class="sk-au" d="M106.7 11.7q0 1.2-.8 2.1t-2 1.1-2.1-.5-1-1.7q-.1-1.2.6-2.1t2-1.2 2.2.4 1.1 1.9z"/></symbol>
+  <symbol id="d-rule" viewBox="0 0 240 24"><path class="sk-k" d="M12 10.1q27.8.1 41.7.1t27.7-.1 28-.1a.1.1 0 0 1 0 .2q-14.1.7-28 .9t-27.7.1-41.7-.5a.3.3 0 0 1 0-.6zm15.1 3.5q27.8-.7 41.7-.7t23.1.2 16.5.5a.1.1 0 0 1 0 .2q-25.7.1-39.6.2t-41.7.2a.3.3 0 0 1 0-.6zm103.5-3.7q27.8.3 41.7.4t27.8 0 27.9.2a.1.1 0 0 1 0 .2q-14 .6-27.9.6t-27.8 0-41.7-.8a.3.3 0 0 1 0-.6zm1 3.6q27.8-.5 41.7-.5t23.2.2 18.5.7a.1.1 0 0 1 0 .2q-9.2.2-18.5.1t-23.2-.1-41.7 0a.3.3 0 0 1 0-.6zm-10.8-7.3q-3.8 4.9-4 5.4t3.1 6.2a.2.2 0 0 1-.2.2q-1.1-1.2-2.7-3.2t-1.5-2.4q-.1-.3.3-1t4.6-5.6a.3.3 0 0 1 .4.4zm-1 0q1.4 1.2 3.1 3.2t1.7 2.4-.3 1-3.9 5.4a.1.1 0 0 1-.2-.2q3-4.9 3.2-5.5t-4.2-5.9a.4.4 0 0 1 .6-.4z"/><path class="sk-au" d="M122.1 11.9q0 .9-.6 1.5t-1.5.6-1.4-.5-.6-1.3.6-1.3 1.4-.7q.9-.2 1.5.3t.6 1.4z"/></symbol>
+</svg>
+
+<a class="skip-link" href="#main" data-zh="跳到正文">Skip to content</a>
+
+<header class="header" id="top">
+  <div class="container bar">
+    <a class="brand" href="../" aria-label="ResearchTool, to the project page" data-zh-aria-label="ResearchTool，回到项目主页">
+      <img src="../brand/crest-mark.svg" alt="" width="32" height="32">
+      <span class="brand-name" translate="no">ResearchTool</span>
+    </a>
+    <nav class="nav" aria-label="Main" data-zh-aria-label="主导航">
+      <a href="../" data-zh="主页">Home</a>
+      <a href="#features" data-zh="功能">Features</a>
+      <a href="#ai" translate="no">AI</a>
+      <a href="#privacy" data-zh="隐私">Privacy</a>
+      <a href="#install" data-zh="安装">Install</a>
+      <a href="#faq" data-zh="常见问题">FAQ</a>
+    </nav>
+    <div class="actions">
+      <div class="seg" role="group" aria-label="Language" data-zh-aria-label="语言">
+        <a href="./" data-zh-href="../../docs/" data-set-lang="en" hreflang="en" lang="en" aria-current="page">EN</a>
+        <a href="../zh/docs/" data-zh-href="./" data-set-lang="zh" hreflang="zh-CN" lang="zh-CN">中文</a>
+      </div>
+      <a class="btn btn-gradient btn-gh" href="https://github.com/purple-ginseng/ResearchTool" aria-label="ResearchTool on GitHub" data-zh-aria-label="在 GitHub 上查看 ResearchTool">
+        <svg class="icon" aria-hidden="true"><use href="#i-github"/></svg><span class="gh-label" translate="no">GitHub</span>
+      </a>
+      <button class="burger" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu" data-zh-aria-label="菜单">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Main" data-zh-aria-label="主导航">
+    <div class="container">
+      <ul>
+        <li><a href="../"><span data-zh="主页">Home</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="#features"><span data-zh="功能">Features</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="#ai"><span translate="no">AI</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="#privacy"><span data-zh="隐私">Privacy</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="#install"><span data-zh="安装">Install</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="#faq"><span data-zh="常见问题">FAQ</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a class="mnav-gh" href="https://github.com/purple-ginseng/ResearchTool"><span data-zh="在 GitHub 上查看">View on GitHub</span><svg class="icon" aria-hidden="true"><use href="#i-github"/></svg></a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+  <!-- ============================================================ title and table of contents -->
+  <section class="doc-hero" aria-labelledby="doc-title">
+    <div class="container">
+      <p class="kicker" data-zh="文档">Docs</p>
+      <h1 class="h1" id="doc-title" data-zh="ResearchTool 的细节">ResearchTool in detail</h1>
+      <p class="lead" data-zh="主页没有展开的内容都在这里：逐步讲解每项功能、AI 命令行工具、逐个主机说明的隐私、安装方法和常见问题。">What the front page leaves out: each feature step by step, the AI CLIs, privacy host by host, installation and the FAQ.</p>
+      <nav class="toc" aria-label="On this page" data-zh-aria-label="本页目录">
+        <ol>
+          <li><a href="#collect" data-zh="01 · 收集">01 · Collect</a></li>
+          <li><a href="#read" data-zh="02 · 阅读">02 · Read</a></li>
+          <li><a href="#connect" data-zh="03 · 关联">03 · Connect</a></li>
+          <li><a href="#write" data-zh="04 · 写作">04 · Write</a></li>
+          <li><a href="#ai" data-zh="AI（可选）">AI (optional)</a></li>
+          <li><a href="#app" data-zh="应用里还有">Also in the app</a></li>
+          <li><a href="#privacy" data-zh="隐私">Privacy</a></li>
+          <li><a href="#install" data-zh="安装与环境要求">Install and requirements</a></li>
+          <li><a href="#faq" data-zh="常见问题">FAQ</a></li>
+          <li><a href="#more" data-zh="仓库里的更多文档">More in the repository</a></li>
+        </ol>
+      </nav>
+    </div>
+  </section>
+
+  <!-- ============================================================ features in detail: the four chapters, the AI, around the app -->
+  <section class="section" id="features" aria-labelledby="features-title">
+    <div class="container">
+      <div class="centered" data-reveal>
+        <p class="kicker" data-zh="功能">Features</p>
+        <h2 class="h2" id="features-title"><span data-zh="功能，">Features, </span><span class="mark" data-zh="逐步说明">step by step</span></h2>
+        <p class="section-lead" data-zh="研究的四个步骤，每一步都配有真实界面；点任意截图可以放大。">The four steps of a piece of research, each with the real screen; click any screenshot to enlarge it.</p>
+      </div>
+
+      <!-- ---------------------------------------------------------- 01 Collect -->
+      <article class="chapter-row" id="collect" aria-labelledby="collect-title" style="--step:var(--step-collect)">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">01</span> · <span data-zh="收集">Collect</span></p>
+          <h3 class="chapter-title" id="collect-title"><span data-zh="把手头">Bring in the </span><span class="mark" data-zh="整堆论文">pile</span><span data-zh="都带进来"> you have</span></h3>
+          <p class="ch-copy" data-zh="拖入 PDF、整个文件夹，或从 Zotero、Mendeley、JabRef 导出的 .bib 文件，也可以粘贴 arXiv ID、DOI、OpenReview 或出版社链接；重复的条目会被标出。论文按研究方向整理，一个方向有 4 篇或更多论文时可以分出子方向，颜色取该方向的不同深浅；装好 AI 命令行工具后，新论文会在后台自动归类（默认开启，可以关闭）。">Drop in PDFs, whole folders or a .bib file from Zotero, Mendeley or JabRef, or paste arXiv ids, DOIs, OpenReview and publisher links; duplicates are reported. Papers are organised into research lines, with sub-lines in shades of the line's colour once a line has 4 or more papers; with an AI CLI set up, new papers are filed for you in the background (on by default, and you can switch it off).</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="导入 PDF、文件夹和 .bib（BibTeX）文件，或粘贴 arXiv ID、DOI、OpenReview 链接">Import PDFs, folders and .bib (BibTeX) files, or paste arXiv ids, DOIs, OpenReview links</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="全文搜索 PDF、笔记和要点（支持中文）">Full-text search over PDFs, notes and key points (Chinese too)</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="⌘K / Ctrl+K「前往任何地方」；用 Crossref、DBLP 等核实发表出处">⌘K / Ctrl+K “Go to anything”; venues verified with Crossref, DBLP and more</span></li>
+          </ul>
+          <a class="btn btn-outline" href="#install"><span data-zh="导入你的文献库">Import your library</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <figure class="frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="frame-shot">
+              <button type="button" class="frame-art" data-zoom="../img/cards/library.webp" aria-label="Enlarge: Library" data-zh-aria-label="放大：文献库"><img src="../img/cards/library-600.webp" srcset="../img/cards/library-600.webp 600w, ../img/cards/library.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 520px" width="1200" height="750" loading="lazy" decoding="async" alt="The Library: categories nested under a research line on the left, the paper list with briefs and tags, and the open PDF" data-zh-alt="文献库：左侧是嵌套在研究方向下的类别，论文列表带简介和标签，右侧是打开的 PDF"></button>
+              <span class="pin" style="left:8.5%;top:16.3%" aria-hidden="true">1</span>
+              <span class="pin" style="left:36%;top:24.3%" aria-hidden="true">2</span>
+              <span class="pin" style="left:45%;top:8.8%" aria-hidden="true">3</span>
+            </div>
+            <figcaption><strong data-zh="能搜到 PDF 正文的文献库">A library you can search inside</strong> <span data-zh="导入后自动识别重复，按研究方向、标签和阅读状态整理。">Imports with duplicate detection, organised by research line, tag and reading status.</span></figcaption>
+          </figure>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span data-zh="导入文件，或按 ID 添加论文">Import files, or add a paper by its id</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span data-zh="研究方向及其子方向，都可折叠、都显示篇数">A research line and its sub-lines, each folding and showing its count</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span data-zh="打开「全文」开关，同时搜索 PDF、笔记和要点的正文">The Full text switch also searches the text of PDFs, notes and key points</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <!-- ---------------------------------------------------------- 02 Read -->
+      <article class="chapter-row flip" id="read" aria-labelledby="read-title" style="--step:var(--step-read)">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">02</span> · <span data-zh="阅读">Read</span></p>
+          <h3 class="chapter-title" id="read-title"><span data-zh="读过的每一句，都带着">Read once, keep the </span><span class="mark" data-zh="页码">page</span></h3>
+          <p class="ch-copy" data-zh="要点是撑起整篇论文的那些句子，每条都链接到 PDF 对应页，旁边可以写下自己的批注。在 PDF 上选中文字，「引用到笔记」会把它作为引用放进 Markdown 笔记并带上页码链接，所以每条引用都能跳回出处。">Key points are the sentences that carry the paper, each linked to its page in the PDF, with your own remarks beside them. Select text in the PDF and “Quote in notes” puts it into your Markdown note as a quote with its page link, so every quote leads back to where it came from.</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="PDF 搜索、目录、可点击的内部链接、彩色高亮">PDF search, contents, clickable internal links, colour highlights</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="Markdown 笔记：公式、图片、视频、版本历史">Markdown notes with formulas, pictures, videos and version history</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="句子级要点；本地找出论文里的图表；导出 .md（可在 Obsidian、Typora 或 VS Code 中打开）或论文包 .zip">Sentence-level key points, figures found locally, export as .md (opens in Obsidian, Typora or VS Code) or a .zip package</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="朗读：一个在你电脑上运行的神经网络语音，朗读选中的文字、整篇论文或笔记，支持中文和英文（可选，一次性下载约 805 MB）">Read aloud: a neural voice that runs on your computer reads the selection, the paper or the note, in English or Chinese (optional, one download of about 805 MB)</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="把笔记导出为 PDF：按 A4 或 Letter 排版，四周留一英寸页边距，过宽的表格、公式和图会缩到页面以内">Export a note as PDF: laid out for A4 or Letter with one-inch margins, with wide tables, formulas and figures fitted to the page</span></li>
+          </ul>
+          <a class="btn btn-outline" href="../?tour=4#demo" data-tour="4"><span data-zh="看阅读器演示">See the reader</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-play"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <div class="frame-stack">
+            <figure class="frame">
+              <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="frame-shot">
+                <button type="button" class="frame-art" data-zoom="../img/cards/reader.webp" aria-label="Enlarge: Reader and notes" data-zh-aria-label="放大：阅读器与笔记"><img src="../img/cards/reader-600.webp" srcset="../img/cards/reader-600.webp 600w, ../img/cards/reader.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 520px" width="1200" height="750" loading="lazy" decoding="async" alt="A paper in the reader with its Markdown note beside the PDF: a figure, headings, math and a table" data-zh-alt="阅读器中的论文，PDF 旁是 Markdown 笔记：插图、标题、公式和表格"></button>
+                <span class="pin" style="left:26%;top:56.5%" aria-hidden="true">1</span>
+                <span class="pin" style="left:67%;top:64.8%" aria-hidden="true">2</span>
+              </div>
+              <figcaption><strong data-zh="细读，同时做笔记">Read closely, note as you go</strong> <span data-zh="PDF 在左，笔记在右；引用和截图都带着页码链接。">PDF on the left, workspace on the right; quotes and snapshots link back to their page.</span></figcaption>
+            </figure>
+            <div class="zoom-inset" aria-hidden="true">
+              <div class="zoom-crop"><img src="../img/shots/04-keypoints-800.webp" srcset="../img/shots/04-keypoints-800.webp 800w, ../img/shots/04-keypoints.webp 1600w" sizes="700px" width="1600" height="1000" loading="lazy" decoding="async" alt=""></div>
+              <span class="pin" style="left:9%;top:16%">3</span>
+              <span class="pin" style="left:76%;top:52%">4</span>
+            </div>
+          </div>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span data-zh="彩色高亮留在页面上，PDF 文件本身不会被修改">Colour highlights stay on the page; the PDF file itself is not changed</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span data-zh="笔记里的引用和截图带着页码链接，点一下 PDF 就跳到那一页">Quotes and snapshots in the note carry a page link back into the PDF</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span data-zh="每条要点都有页码标签">Every key point has its page chip</span></li>
+            <li><span class="pin-n" aria-hidden="true">4</span><span data-zh="旁边是你自己的批注">Your own remark beside it</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <!-- ---------------------------------------------------------- 03 Connect -->
+      <article class="chapter-row" id="connect" aria-labelledby="connect-title" style="--step:var(--step-connect)">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">03</span> · <span data-zh="关联">Connect</span></p>
+          <h3 class="chapter-title" id="connect-title"><span data-zh="看清">See where the </span><span class="mark" data-zh="思路">ideas</span><span data-zh="从哪里来"> come from</span></h3>
+          <p class="ch-copy" data-zh="发展脉络展示一个研究方向所依托的前人工作，以及你的论文如何引用它们，数据来自 OpenAlex 和 Semantic Scholar，可以看时间轴上的「历史线」，也可以看「祖先」。「相关」标签页列出一篇论文的参考文献和引用它的论文；查询时只发送论文的 DOI 或 arXiv ID。">Lineage shows the works a research line builds on and how your papers cite them, from OpenAlex and Semantic Scholar, as a History line on a time axis or as Ancestry. The Related tab lists one paper's references and the papers citing it; a lookup sends only the paper's DOI or arXiv id.</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="可手动编辑的方法图解；练习题、抽认卡和每日间隔复习">Editable method diagrams; practice quizzes, flash cards and spaced daily review</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="参考文献、被引论文与发展脉络引用图（OpenAlex、Semantic Scholar）">References, citing papers and a Lineage citation graph (OpenAlex, Semantic Scholar)</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="最多 15 篇论文的对比表，每个单元格都标出页码">Comparison tables of up to 15 papers, every cell with its pages</span></li>
+          </ul>
+          <a class="btn btn-outline" href="../?tour=7#demo" data-tour="7"><span data-zh="看发展脉络演示">See the graph</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-play"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <figure class="frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="frame-shot">
+              <button type="button" class="frame-art" data-zoom="../img/cards/lineage.webp" aria-label="Enlarge: Explore" data-zh-aria-label="放大：探索"><img src="../img/cards/lineage-600.webp" srcset="../img/cards/lineage-600.webp 600w, ../img/cards/lineage.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 580px" width="1200" height="750" loading="lazy" decoding="async" alt="The Lineage window: a research line's papers on the left, the works they build on as a graph on a time axis, and details of the selected work" data-zh-alt="发展脉络窗口：左侧是一个研究方向的论文，中间是它们所依托的前人工作在时间轴上的图，右侧是选中工作的详情"></button>
+              <span class="pin" style="left:28%;top:15.2%" aria-hidden="true">1</span>
+              <span class="pin" style="left:50%;top:22.7%" aria-hidden="true">2</span>
+              <span class="pin" style="left:20%;top:48.8%" aria-hidden="true">3</span>
+              <span class="pin" style="left:19.6%;top:94.4%" aria-hidden="true">4</span>
+              <span class="pin" style="left:79.5%;top:48.6%" aria-hidden="true">5</span>
+            </div>
+            <figcaption><strong data-zh="看清论文之间的联系">See how papers connect</strong> <span data-zh="从一篇论文的方法，到一整条研究方向的来龙去脉。">From one paper's method to where a whole line of work came from.</span></figcaption>
+          </figure>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span data-zh="同一组论文的两种视图：历史线和祖先">History line or Ancestry: two views of the same set</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span data-zh="这组论文依托最多的 8 项工作">The 8 works the set builds on most</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span data-zh="每个研究方向或子方向一条泳道">One lane per research line or sub-line</span></li>
+            <li><span class="pin-n" aria-hidden="true">4</span><span data-zh="虚线圈：多数引用者来自最近 12 个月">A dashed ring: most of its citers are from the last 12 months</span></li>
+            <li><span class="pin-n" aria-hidden="true">5</span><span data-zh="你的论文如何引用它，附引用原句">How your papers cite it, with the citing sentences</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <div class="lineage-fig" data-view="history" data-reveal>
+        <div class="lin-head">
+          <p class="lin-title" data-zh="发展脉络的两种视图，以及「相关」标签页">Two views of Lineage, and the Related tab</p>
+          <div class="seg lin-toggle" role="group" aria-label="Emphasise a Lineage view" data-zh-aria-label="突出一种脉络视图">
+            <button type="button" data-view-btn="history" aria-pressed="true" data-zh="历史线">History line</button>
+            <button type="button" data-view-btn="ancestry" aria-pressed="false" data-zh="祖先">Ancestry</button>
+          </div>
+        </div>
+        <div class="lin-panels">
+          <figure class="lin-panel" data-panel="history">
+            <div class="ill-box" style="aspect-ratio:320/220" role="img" aria-label="History line: three lanes on a time axis, Line A, A / Sub-line and Line B; arrows run from each paper to the later papers that cite it." data-zh-aria-label="历史线：时间轴上的三条泳道，方向 A、A / 子方向和方向 B；箭头从每篇论文指向之后引用它的论文。">
+              <img class="ill" src="../img/sketch/G-05-lineage-history.svg" width="320" height="220" alt="" loading="lazy" decoding="async">
+              <span class="lbl" style="left:1.88%;top:28.32%;--fs:3.7" data-zh="方向 A">Line A</span>
+              <span class="lbl" style="left:1.88%;top:55.59%;--fs:3.7" data-zh="A / 子方向">A / Sub-line</span>
+              <span class="lbl" style="left:1.88%;top:82.86%;--fs:3.7" data-zh="方向 B">Line B</span>
+            </div>
+            <figcaption><strong data-zh="历史线">History line</strong> <span data-zh="论文排在时间轴上，每个研究方向或子方向一条泳道；箭头从每篇论文指向之后引用它的、你自己的论文。">Papers on a time axis, one lane per line or sub-line; an arrow runs from each paper to the later papers of yours that cite it.</span></figcaption>
+          </figure>
+          <figure class="lin-panel" data-panel="ancestry">
+            <div class="ill-box" style="aspect-ratio:320/220" role="img" aria-label="Ancestry: eight earlier works in a column on the left, with bundles of different widths running into the lanes Line A, A / Sub-line and Line B; a dashed ring marks one of them." data-zh-aria-label="祖先：左边一列是八项前人工作，宽窄不同的线束流向方向 A、A / 子方向和方向 B 三条泳道；其中一项带虚线圈。">
+              <img class="ill" src="../img/sketch/G-06-lineage-ancestry.svg" width="320" height="220" alt="" loading="lazy" decoding="async">
+              <span class="lbl r" style="left:98.12%;top:15.59%;--fs:3.7" data-zh="方向 A">Line A</span>
+              <span class="lbl r" style="left:98.12%;top:42.86%;--fs:3.7" data-zh="A / 子方向">A / Sub-line</span>
+              <span class="lbl r" style="left:98.12%;top:70.14%;--fs:3.7" data-zh="方向 B">Line B</span>
+            </div>
+            <figcaption><strong data-zh="祖先">Ancestry</strong> <span data-zh="左边一列是这组论文依托最多的 8 项工作，流向每条泳道的线束有多宽，就有多少篇论文引用它；论文取其主要祖先的颜色，虚线圈表示多数引用者来自最近 12 个月。">The 8 works the set builds on most, with a bundle into each lane as wide as the number of its papers that cite it; papers take the colour of their main ancestor, and a dashed ring marks an ancestor cited mostly in the last 12 months.</span></figcaption>
+          </figure>
+          <figure class="lin-panel lin-related">
+            <div class="ill-box" style="aspect-ratio:240/140" role="img" aria-label="Related tab: this paper in the middle, its references on the left and the papers citing it on the right." data-zh-aria-label="「相关」标签页：中间是这篇论文，左边是它的参考文献，右边是引用它的论文。">
+              <img class="ill" src="../img/sketch/G-07-related.svg" width="240" height="140" alt="" loading="lazy" decoding="async">
+              <span class="lbl c" style="left:50%;top:22.43%;--fs:4.8" data-zh="这篇论文">this paper</span>
+              <span class="lbl" style="left:0.83%;top:93.21%;--fs:4.67" data-zh="参考文献">References</span>
+              <span class="lbl r" style="left:99.17%;top:93.21%;--fs:4.67" data-zh="引用它的论文">Citing papers</span>
+            </div>
+            <figcaption><strong data-zh="「相关」标签页">Related tab</strong> <span data-zh="一篇论文的参考文献和引用它的论文，一键加入文献库。">One paper's references and the papers that cite it, each added in one click.</span></figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <svg class="divider" viewBox="0 0 240 24" aria-hidden="true" focusable="false"><use href="#d-graph"/></svg>
+
+      <!-- ---------------------------------------------------------- 04 Write -->
+      <article class="chapter-row flip" id="write" aria-labelledby="write-title" style="--step:var(--step-write);--dot-r:22%">
+        <div class="ch-text" data-reveal>
+          <p class="ch-kicker"><span translate="no">04</span> · <span data-zh="写作">Write</span></p>
+          <h3 class="chapter-title" id="write-title"><span data-zh="从笔记到 <code>\cite</code>，再到 ">From note to <code>\cite</code> to </span><span class="mark" translate="no">PDF</span></h3>
+          <p class="ch-copy" data-zh="用 <code>\cite</code> 选择器和自动补全从文献库引用；<code>references.bib</code> 由文献库重新生成，只包含项目实际引用的条目。<code>latexmk</code> 在你的电脑上编译出实时 PDF 预览，并支持双向 SyncTeX。">Cite from your library with the <code>\cite</code> pickers and completion; <code>references.bib</code> is regenerated from the library with only the entries the project cites. <code>latexmk</code> compiles on your computer into a live PDF preview, with SyncTeX in both directions.</p>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="latexmk 实时预览、可点击的日志、双向 SyncTeX">Live PDF preview with latexmk, clickable log, SyncTeX both ways</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="从文献库引用；references.bib 只包含实际引用的条目">Cite from your library; references.bib holds only what you cite</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="每次保存都是一个版本；可选通过 Overleaf 的 Git 集成同步">Every save is a version; optional Overleaf sync over Git</span></li>
+          </ul>
+          <a class="btn btn-outline" href="../?tour=8#demo" data-tour="8"><span data-zh="看编辑器演示">Open the editor tour</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-play"/></svg></a>
+        </div>
+        <div class="ch-fig" data-reveal>
+          <figure class="frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="frame-shot">
+              <button type="button" class="frame-art" data-zoom="../img/cards/editor.webp" aria-label="Enlarge: Editor" data-zh-aria-label="放大：编辑器"><img src="../img/cards/editor-600.webp" srcset="../img/cards/editor-600.webp 600w, ../img/cards/editor.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 520px" width="1200" height="750" loading="lazy" decoding="async" alt="The LaTeX Editor: the library beside the source and the compiled PDF preview" data-zh-alt="LaTeX 编辑器：文献库、源码和编译后的 PDF 预览并排"></button>
+              <span class="pin" style="left:14%;top:20.3%" aria-hidden="true">1</span>
+              <span class="pin" style="left:43%;top:28%" aria-hidden="true">2</span>
+              <span class="pin" style="left:79%;top:21%" aria-hidden="true">3</span>
+            </div>
+            <figcaption><strong data-zh="类似 Overleaf 的 LaTeX 编辑器">An Overleaf-style LaTeX editor</strong> <span data-zh="本地项目、磁盘上的文件夹或 Overleaf 克隆，都在这里写。">Local projects, a folder on disk or an Overleaf clone, all written here.</span></figcaption>
+          </figure>
+          <ol class="pin-notes">
+            <li><span class="pin-n" aria-hidden="true">1</span><span data-zh="源码旁边就是文献库，本项目的论文排在前面">The library beside your source, this project's papers first</span></li>
+            <li><span class="pin-n" aria-hidden="true">2</span><span data-zh="<code>\cite</code> 的键在输入时就会检查">A <code>\cite</code> key is checked as you type</span></li>
+            <li><span class="pin-n" aria-hidden="true">3</span><span data-zh="在本机用 latexmk 编译出的实时 PDF 预览">The live PDF preview, compiled on your computer with latexmk</span></li>
+          </ol>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================================================ the AI (optional), and what else is in the app -->
+  <section class="section doc-cont" aria-label="AI and the rest of the app" data-zh-aria-label="AI 与应用的其他部分">
+    <div class="container">
+      <!-- ---------------------------------------------------------- AI (optional) -->
+      <aside class="ai-aside" id="ai" aria-labelledby="ai-title" data-reveal>
+        <div class="ai-text">
+          <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-ai"/></svg></span><span class="badge badge-opt" data-zh="可选">Optional</span></div>
+          <h3 class="chapter-title ai-title" id="ai-title" data-zh="AI，用你自己的命令行工具和账号">AI with your own CLI and account</h3>
+          <p class="ch-copy" data-zh="AI 功能调用你本机登录了自己账号的一个命令行工具：默认 Claude Code，也可换成 OpenAI Codex、xAI Grok Build 或 Google Antigravity。应用本身不直接调用任何 AI API，也从不保存 API key；不用 AI 时，文献库、阅读器、笔记和编辑器照样完整可用。">AI features run one CLI on your computer, signed in with your own account: Claude Code by default, or OpenAI Codex, xAI Grok Build or Google Antigravity. The app calls no AI API itself and never stores an API key; without an AI CLI, library, reader, notes and editor still work fully.</p>
+          <p class="small-note" data-zh="能做什么：带页码引用的讲解和翻译、笔记初稿、改写选中文字、方法图解、练习题和对比表。面板会按论文和项目保留你的对话，点「历史」按钮就能找回之前的某一次。">What it does: explanations and translations with page citations, note drafts, rewrites, method diagrams, quizzes and comparison tables. The panel keeps your conversations for each paper and project, and the History button brings an earlier one back.</p>
+          <button type="button" class="ai-shot" data-zoom="../img/claude.webp" aria-label="Enlarge: AI panel" data-zh-aria-label="放大：AI 面板"><img src="../img/claude-600.webp" srcset="../img/claude-600.webp 600w, ../img/claude.webp 1200w" sizes="(max-width: 900px) calc(100vw - 2.5rem), 420px" width="1200" height="646" loading="lazy" decoding="async" alt="The Claude panel open beside a paper and its reading note (this library's notes are written in Chinese; the interface is English)" data-zh-alt="Claude 面板在论文和阅读笔记旁打开（这个文献库的笔记用中文撰写，界面为英文）"></button>
+        </div>
+        <div class="ai-visual">
+          <div class="table-scroll">
+            <table class="ai-table">
+              <caption class="visually-hidden" data-zh="各个 AI 命令行工具在 AI 面板中能否修改文件，以及能否在 Windows 上使用">What each AI CLI may do in the AI panel, and whether it works on Windows</caption>
+              <thead><tr><th scope="col" data-zh="命令行工具">CLI</th><th scope="col" data-zh="在面板中修改文件">Edits files in the panel</th><th scope="col" translate="no">Windows</th></tr></thead>
+              <tbody>
+                <tr><th scope="row"><span data-zh="Claude Code（默认）">Claude Code (default)</span> <code>claude</code></th><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-write"/></svg><span data-zh="可以">Yes</span></span></td><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="可以">Yes</span></span></td></tr>
+                <tr><th scope="row"><span translate="no">OpenAI Codex</span> <code>codex</code></th><td><span class="maybe"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-write"/></svg><span data-zh="只有勾选「允许 Codex 编辑文件」后（默认关闭）">Only with “Let Codex edit files” (off by default)</span></span></td><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="可以">Yes</span></span></td></tr>
+                <tr><th scope="row"><span translate="no">xAI Grok Build</span> <code>grok</code></th><td><span class="no"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"/></svg><span data-zh="不能，只读">No, read-only</span></span></td><td><span class="no"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-x"/></svg><span data-zh="不支持">No</span></span></td></tr>
+                <tr><th scope="row"><span translate="no">Google Antigravity</span> <code>agy</code> <span translate="no">1.5.13+</span></th><td><span class="no"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"/></svg><span data-zh="不能，只读">No, read-only</span></span></td><td><span class="yes"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="可以">Yes</span></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small-note" data-zh="不提供 Gemini CLI。AI 功能本身（图解、对比表、初稿）只读不写。">Gemini CLI is not offered. The AI features themselves (diagrams, tables, drafts) only read.</p>
+        </div>
+      </aside>
+
+      <!-- ---------------------------------------------------------- around the app -->
+      <div class="trio-head" id="app" data-reveal>
+        <h3 class="trio-title" data-zh="应用里还有">Also in the app</h3>
+      </div>
+      <div class="trio">
+        <article class="card" data-reveal>
+          <button type="button" class="card-art" data-zoom="../img/cards/overview.webp" aria-label="Enlarge: Overview" data-zh-aria-label="放大：概览"><img src="../img/cards/overview-600.webp" srcset="../img/cards/overview-600.webp 600w, ../img/cards/overview.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="The Overview: continue reading, questions due for review, reading stats and recent papers" data-zh-alt="概览页：继续阅读、待复习的题目、阅读统计和最近添加的论文"></button>
+          <div class="card-body">
+            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-overview"/></svg></span><span class="badge" data-zh="概览">Overview</span></div>
+            <h4 class="h3" data-zh="今天有什么要做，一眼看清">What needs you today, at a glance</h4>
+            <p class="muted" data-zh="启动页上有统计和快捷操作，每一项都能直接跳到对应位置。">A start page with counts and quick actions; every row leads to its place.</p>
+            <ul class="points">
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="继续阅读、阅读统计、最近添加的论文和笔记">Continue reading, reading stats, recent papers and notes</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="今天待复习的问题、还没有简介的论文">Questions due for review, papers without a brief</span></li>
+              <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="工作区健康：备份、回收站、找到的工具">Workspace health: backups, trash, tools found</span></li>
+            </ul>
+          </div>
+        </article>
+        <article class="card" data-reveal>
+          <button type="button" class="card-art" data-zoom="../img/cards/tour.webp" aria-label="Enlarge: Guided tour" data-zh-aria-label="放大：导览"><img src="../img/cards/tour-600.webp" srcset="../img/cards/tour-600.webp 600w, ../img/cards/tour.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="A step of the guided tour: the card explains the method diagram of the open paper" data-zh-alt="导览中的一步：卡片讲解打开的论文的方法图"></button>
+          <div class="card-body">
+            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-tour"/></svg></span></div>
+            <h4 class="h3" data-zh="8 章导览">A guided tour in 8 chapters</h4>
+            <p class="muted" data-zh="帮助 › 开始导览：从概览一路走到编辑器，每一步都指着真实的按钮。也可以只看当前页面的导览。">Help › Take the tour walks from the Overview to the Editor, pointing at the real buttons. Or take the tour of just the screen you are on.</p>
+          </div>
+        </article>
+        <article class="card" data-reveal>
+          <button type="button" class="card-art" data-zoom="../img/cards/zh.webp" aria-label="Enlarge: Chinese interface" data-zh-aria-label="放大：中文界面"><img src="../img/cards/zh-600.webp" srcset="../img/cards/zh-600.webp 600w, ../img/cards/zh.webp 1200w" sizes="(max-width: 640px) calc(100vw - 3.5rem), (max-width: 1023px) 46vw, 370px" width="1200" height="750" loading="lazy" decoding="async" alt="The Library and a reading note with the interface in Chinese" data-zh-alt="中文界面下的文献库和阅读笔记"></button>
+          <div class="card-body">
+            <div class="card-meta"><span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-lang"/></svg></span></div>
+            <h4 class="h3" data-zh="English 和<span lang=&quot;zh-CN&quot;>中文</span>界面">English and <span lang="zh-CN" style="white-space:nowrap">中文</span> interface</h4>
+            <p class="muted" data-zh="偏好设置 › 通用 › 显示语言。切换只改界面，不会翻译你的论文、笔记或 AI 的回答。">Preferences › General › Display language. The switch changes the interface only; your papers, notes and the AI's answers are never translated by it.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ privacy in detail: the dark band -->
+  <section class="section band-dark band-privacy" id="privacy" aria-labelledby="privacy-title">
+    <div class="container">
+      <div class="centered" data-reveal>
+        <p class="kicker" data-zh="本地优先">Local-first</p>
+        <h2 class="h2" id="privacy-title"><span data-zh="你的研究，留在">Your research stays on </span><span class="mark" data-zh="你的电脑上">your computer</span></h2>
+        <p class="section-lead" data-zh="没有账号，没有云端。下面写清楚什么留在本地、什么会联网。">No account and no cloud. Here is exactly what stays local and what goes online.</p>
+      </div>
+
+      <div class="lf" data-reveal>
+        <p class="visually-hidden" id="lf-desc" data-zh="示意图：你的电脑在 127.0.0.1 上运行 ResearchTool，工作区文件夹里是 PDF、笔记、LaTeX 项目和 library.json。只有这些会离开它：你主动发起的查询，只发送论文的 ID、DOI、链接或标题；可选的 Overleaf 同步，通过你自己的 git 与 git.overleaf.com 拉取和推送 LaTeX 项目；以及你设置的、用你自己账号登录的 AI 命令行工具，设置后它默认还会在后台为新导入的论文归类。来自其他电脑和网站的请求会被拒绝。">Diagram: your computer runs ResearchTool on 127.0.0.1, with a workspace folder of PDFs, notes, LaTeX projects and library.json. Only these leave it: lookups you start, which send a paper's id, DOI, link or title; optional Overleaf sync, which pulls and pushes a LaTeX project to git.overleaf.com through your own git; and, if you set one up, your own AI CLI signed in with your own account, which then also files newly imported papers in the background by default. Requests from other machines and web sites are refused.</p>
+        <div class="plate lf-plate">
+          <div class="ill-box lf-box" style="aspect-ratio:770/380" role="img" aria-labelledby="lf-desc">
+            <img class="ill" src="../img/sketch/G-09-local-first.svg" width="770" height="380" alt="" loading="lazy" decoding="async">
+            <span class="lbl c base" style="left:31.3%;top:91.26%;--fs:1.75" data-zh="你的电脑">your computer</span>
+            <span class="lbl file" style="left:12.73%;top:36.63%;--fs:1.79;--r:-1deg" data-zh="PDF 文件">PDFs</span>
+            <span class="lbl file" style="left:32.72%;top:36.39%;--fs:1.79;--r:0.8deg" data-zh="笔记 <code>.md</code>">notes <code>.md</code></span>
+            <span class="lbl file" style="left:12.72%;top:62.21%;--fs:1.79;--r:0.6deg" data-zh="LaTeX 项目">LaTeX <code>.tex</code></span>
+            <span class="lbl file" style="left:32.73%;top:62.4%;--fs:1.79;--r:-0.8deg" translate="no">library.json</span>
+            <span class="lbl c wide" style="left:82.66%;top:9.61%;--fs:1.45" data-zh="其他电脑和网站：被拒绝">other machines and sites: refused</span>
+            <span class="lbl c exit wide" style="left:72.99%;top:30.27%;--fs:1.58"><strong data-zh="你主动发起的查询">Lookups you start</strong><small data-zh="只发送 ID、DOI、链接或标题">only an id, DOI, link or title</small></span>
+            <span class="lbl c wide" style="left:90.65%;top:26.89%;--fs:1.58" data-zh="元数据服务">metadata services</span>
+            <span class="lbl c exit wide" style="left:72.99%;top:51.59%;--fs:1.58"><strong data-zh="可选：Overleaf 同步">Optional: Overleaf sync</strong><small data-zh="通过你自己的 git">through your own git</small></span>
+            <span class="lbl c wide" style="left:89.87%;top:66.39%;--fs:1.54" translate="no">git.overleaf.com</span>
+            <span class="lbl c exit wide" style="left:72.99%;top:81.12%;--fs:1.45"><strong data-zh="可选：你的 AI 命令行工具">Optional: your AI CLI</strong><small data-zh="用你自己的账号登录">signed in with your own account</small></span>
+            <span class="lbl c wide" style="left:90.13%;top:84.34%;--fs:1.45" data-zh="你的 AI 服务商">your AI provider</span>
+          </div>
+        </div>
+        <ul class="lf-legend" aria-hidden="true">
+          <li><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg><span data-zh="其他电脑和网站的请求被拒绝（Host / Origin 检查）">Other machines and web sites are refused (Host / Origin check)</span></li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><span data-zh="你主动发起的查询：只发送论文的 ID、DOI、链接或标题">Lookups you start: only a paper's id, DOI, link or title</span></li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-pr"/></svg><span data-zh="可选：Overleaf 同步，通过你自己的 git 与 git.overleaf.com 拉取和推送 LaTeX 项目">Optional: Overleaf sync, pulling and pushing a LaTeX project to git.overleaf.com through your own git</span></li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-ai"/></svg><span data-zh="可选：你的 AI 命令行工具，用你自己的账号登录；设置后它默认还会在后台为新导入的论文归类">Optional: your AI CLI, signed in with your own account; once set up, it also files newly imported papers in the background by default</span></li>
+        </ul>
+      </div>
+
+      <h3 class="h3 lf-sub" data-reveal data-zh="具体哪些留在本地、会联系哪些主机">Exactly what stays local, and which hosts are contacted</h3>
+      <div class="privacy-grid" data-reveal>
+        <div class="panel">
+          <h3 class="h3" data-zh="留在本地">Stays local</h3>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="PDF、笔记、高亮、要点和 LaTeX 项目都在一个普通文件夹（<code>workspace/</code>）里">PDFs, notes, highlights, key points and LaTeX projects live in one plain folder (<code>workspace/</code>)</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="服务器只监听 <strong>127.0.0.1</strong>，其他电脑和网站都访问不到">The server listens on <strong>127.0.0.1</strong> only; other machines and web sites cannot reach it</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="字体和脚本随应用打包，不从 CDN 加载；没有统计和追踪">Fonts and scripts are bundled, never loaded from a CDN; no telemetry, no analytics</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="回收站可撤销，每天自动给整个工作区做快照">An undoable trash and a daily snapshot of the whole workspace</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="朗读在你的电脑上完成，文字不会发给任何服务；AI 面板的对话保存在 <code>workspace/chats</code>">Reading aloud happens on your computer and the text goes to no service; the AI panel's conversations are kept in <code>workspace/chats</code></span></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3 class="h3" data-zh="只在查询、同步和使用 AI 时联网">Online only for lookups, sync and the AI</h3>
+          <p class="muted" data-zh="按 ID 添加论文、相关论文、发展脉络、核对元数据和发表出处时，只发送论文的 arXiv ID、DOI、链接或标题（核对发表出处时还会把第一作者的姓发给 Crossref），发往：">Adding a paper by id, Related, Lineage, metadata and venue checks send only a paper's arXiv id, DOI, link or title (a venue check also gives Crossref the first author's surname), to:</p>
+          <ul class="chips" aria-label="Metadata services" data-zh-aria-label="元数据服务" translate="no">
+            <li>arxiv.org</li><li>doi.org</li><li>api.crossref.org</li><li>api.openalex.org</li><li>api.semanticscholar.org</li><li>dblp.org</li><li>openreview.net</li><li>proceedings.mlr.press</li>
+          </ul>
+          <p class="small-note" data-zh="添加论文时，PDF 从 arXiv、OpenReview，或 OpenAlex 指出的出版社 / 资料库上的开放获取副本下载。查询结果缓存在 <code>workspace/cache</code>，发表出处的核对结果存在 <code>workspace/venues.json</code>。「查找链接」会询问 arXiv 和 huggingface.co（只发送 arXiv ID），并访问论文给出的项目页和代码链接；Overleaf 同步通过你自己的 <code>git</code> 连接 git.overleaf.com。朗读用的语音只在你点「下载语音」时从 registry.npmjs.org 和 huggingface.co 下载一次。听写在麦克风按钮开启期间使用浏览器的语音服务（Chrome 为 Google），前提是浏览器无法在本机识别语音。">When a paper is added, its PDF is downloaded from arXiv, OpenReview or the open-access copy OpenAlex names on a publisher or repository site. Answers are cached in <code>workspace/cache</code>, venue checks are kept in <code>workspace/venues.json</code>. “Find links” also asks arXiv and huggingface.co (only the arXiv id is sent) and visits the project and code links a paper names; Overleaf sync talks to git.overleaf.com through your own <code>git</code>. The read-aloud voice is fetched once from registry.npmjs.org and huggingface.co, only when you press “Download the voice”. Dictation uses your browser's speech service (in Chrome: Google) while the microphone button is on, if the browser cannot recognise speech on the computer.</p>
+        </div>
+        <div class="panel">
+          <h3 class="h3" data-zh="AI（可选）">AI (optional)</h3>
+          <ul class="points">
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="ResearchTool 不直接调用任何 AI API，也不保存 API key 或密码">ResearchTool calls no AI API itself and holds no API key or password</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="AI 功能运行你本机的命令行工具（<code>claude</code>、<code>codex</code>、<code>grok</code> 或 <code>agy</code>）；它发给 Anthropic、OpenAI、xAI 或 Google 的内容受你自己在该服务的账号条款约束">AI features run your local CLI (<code>claude</code>, <code>codex</code>, <code>grok</code> or <code>agy</code>); what it sends to Anthropic, OpenAI, xAI or Google falls under your own account with that provider</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="对比表只发送与各列匹配的段落，而不是整篇 PDF，开始前会显示 token 估算；生成笔记初稿时 Claude 会读取 PDF 页面，其他命令行工具得到的是提取出的正文">Comparison tables send only the passages that match the columns, never the whole PDF, and show a token estimate first; for a first draft Claude reads the paper's PDF pages, the other CLIs get its extracted text</span></li>
+            <li><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg><span data-zh="新导入论文的自动归类和简介默认开启：会在后台把标题、标签和最多 350 个字符的正文发给你选用的 AI 命令行工具；可在「用 Claude 分组」里关闭">Auto-filing and briefs of newly imported papers are on by default: they send the title, tags and up to 350 characters of the text to your AI CLI in the background; switch them off in “Group with Claude”</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="band-cta"><a class="btn btn-outline-white" href="https://github.com/purple-ginseng/ResearchTool/blob/main/docs/privacy.md"><span data-zh="阅读隐私说明">Read the privacy notes</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+    </div>
+  </section>
+
+  <!-- ============================================================ install and requirements -->
+  <section class="section" id="install" aria-labelledby="install-title">
+    <div class="container">
+      <div class="centered" data-reveal>
+        <p class="kicker" data-zh="开始使用">Get started</p>
+        <h2 class="h2" id="install-title"><span data-zh="安装与">Install and </span><span class="mark" data-zh="环境要求">requirements</span></h2>
+        <p class="section-lead" data-zh="服务器只用 Node 标准库，浏览器端的库也已打包，所以不需要 <code>npm install</code>，也不需要构建。可在 macOS、Linux（Ubuntu）和 Windows 10 / 11 上运行，命令都一样。">The server uses only Node's standard library and the browser libraries are bundled, so there is no <code>npm install</code> and no build. It runs on macOS, Linux (Ubuntu) and Windows 10 / 11 with the same commands.</p>
+      </div>
+      <div class="start-grid">
+        <ol class="steps" data-reveal>
+          <li class="step">
+            <span class="step-num" aria-hidden="true">1</span>
+            <div>
+              <h3 data-zh="克隆并启动">Clone and start</h3>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="t-title" data-zh="终端">Terminal</span>
+                  <button type="button" class="btn btn-sm copy-all" data-copy-all><svg class="icon icon-sm" aria-hidden="true"><use href="#i-copy"/></svg><span data-copy-label data-zh="全部复制">Copy all</span></button>
+                </div>
+                <ul class="cmds">
+                  <li class="cmd"><code>git clone https://github.com/purple-ginseng/ResearchTool.git</code><button type="button" class="copy" aria-label="Copy command" data-zh-aria-label="复制命令"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-copy"/></svg></button></li>
+                  <li class="cmd"><code>cd ResearchTool</code><button type="button" class="copy" aria-label="Copy command" data-zh-aria-label="复制命令"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-copy"/></svg></button></li>
+                  <li class="cmd"><code>node server.js</code><button type="button" class="copy" aria-label="Copy command" data-zh-aria-label="复制命令"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-copy"/></svg></button></li>
+                </ul>
+              </div>
+            </div>
+          </li>
+          <li class="step">
+            <span class="step-num" aria-hidden="true">2</span>
+            <div>
+              <h3 data-zh="在浏览器里打开">Open it in your browser</h3>
+              <div class="open-url"><span class="url-chip" translate="no"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-globe"/></svg>http://localhost:4790</span></div>
+              <p class="small-note" data-zh="数据存放在 <code>./workspace</code>（首次启动时创建）。想放到别处或再开一份，在 macOS / Linux 上：<code>RT_WORKSPACE=~/ResearchTool-data PORT=4791 node server.js</code>；在 Windows PowerShell 中：<code>$env:RT_WORKSPACE=&quot;$HOME\ResearchTool-data&quot;; $env:PORT=4791; node server.js</code>">Your data goes to <code>./workspace</code> (created on the first start). To keep it elsewhere or run a second copy, on macOS / Linux: <code>RT_WORKSPACE=~/ResearchTool-data PORT=4791 node server.js</code>; in Windows PowerShell: <code>$env:RT_WORKSPACE="$HOME\ResearchTool-data"; $env:PORT=4791; node server.js</code></p>
+            </div>
+          </li>
+          <li class="step">
+            <span class="step-num" aria-hidden="true">3</span>
+            <div>
+              <h3 data-zh="跟着导览走一遍">Take the tour</h3>
+              <p class="small-note" style="margin-top:0" data-zh="概览页上的「开始导览」或帮助 › 开始导览，几分钟熟悉整个应用。">“Take the tour” on the Overview, or Help › Take the tour, shows the whole app in a few minutes.</p>
+            </div>
+          </li>
+        </ol>
+        <aside class="req" aria-labelledby="req-title" data-reveal>
+          <h3 id="req-title" data-zh="环境要求">Requirements</h3>
+          <p class="muted" style="font-size:var(--text-sm)" data-zh="缺少某个工具只会关闭它对应的功能；概览页的「工作区健康」会列出找到了哪些工具。">Anything missing only disables its own feature; the Overview's “Workspace health” lists the tools it found.</p>
+          <div class="plate deps">
+            <div class="ill-box" style="aspect-ratio:440/290" aria-hidden="true">
+              <img class="ill" src="../img/sketch/G-10-requirements.svg" width="440" height="290" alt="" loading="lazy" decoding="async">
+              <span class="lbl c need" style="left:52.5%;top:25.69%;--fs:2.55" data-zh="必需">required</span>
+              <span class="lbl sat" style="left:13.48%;top:74.89%;--fs:2.76;--r:-5deg"><strong translate="no">poppler</strong><small data-zh="导入 PDF、找出图表">PDF import, figures</small></span>
+              <span class="lbl sat" style="left:37.39%;top:74.91%;--fs:2.76;--r:-2deg"><strong data-zh="TeX + latexmk">TeX + latexmk</strong><small data-zh="编译、SyncTeX">compiling, SyncTeX</small></span>
+              <span class="lbl sat" style="left:62.61%;top:74.91%;--fs:2.76;--r:2deg"><strong translate="no">git</strong><small data-zh="Overleaf 同步">Overleaf sync</small></span>
+              <span class="lbl sat" style="left:86.52%;top:74.89%;--fs:2.76;--r:5deg"><strong data-zh="AI 命令行工具">AI CLI</strong><small data-zh="AI 面板和各项 AI 功能">AI panel and features</small></span>
+            </div>
+          </div>
+          <ul class="req-list">
+            <li><strong translate="no">Node 18+</strong><span class="badge badge-ok" data-zh="必需">Required</span><span class="desc" data-zh="运行服务器（CI 测试 Node 18、20 和 24）。">Runs the server (CI tests Node 18, 20 and 24).</span></li>
+            <li><strong translate="no">poppler</strong><span class="badge" data-zh="推荐">Recommended</span><span class="desc" data-zh="<code>pdftotext</code>、<code>pdfinfo</code>、<code>pdftoppm</code>：导入 PDF、提取句子、找出图表。"><code>pdftotext</code>, <code>pdfinfo</code>, <code>pdftoppm</code>: PDF import, sentence extraction, finding figures.</span></li>
+            <li><strong data-zh="TeX 发行版">A TeX distribution</strong><span class="badge" data-zh="写作用">For writing</span><span class="desc" data-zh="<code>latexmk</code> + MacTeX、TeX Live 或 MiKTeX：编译、SyncTeX、字数统计。"><code>latexmk</code> + MacTeX, TeX Live or MiKTeX: compiling, SyncTeX, word counts.</span></li>
+            <li><strong translate="no">git</strong><span class="badge badge-opt" data-zh="可选">Optional</span><span class="desc" data-zh="与 Overleaf 同步（需要 Overleaf 的 Git 集成，这是 Overleaf 的付费 Premium 功能）。">Overleaf sync (needs Overleaf's Git integration, a paid Overleaf Premium feature).</span></li>
+            <li><strong data-zh="AI 命令行工具">An AI CLI</strong><span class="badge badge-opt" data-zh="可选">Optional</span><span class="desc" data-zh="<code>claude</code>（Claude Code，默认）、<code>codex</code>、<code>grok</code> 或 <code>agy</code> 1.5.13 及以上（Antigravity），用于 AI 面板和各项 AI 功能。"><code>claude</code> (Claude Code, default), <code>codex</code>, <code>grok</code> or <code>agy</code> 1.5.13+ (Antigravity), for the AI panel and the AI features.</span></li>
+          </ul>
+        </aside>
+      </div>
+      <div class="os" data-reveal>
+        <h3 class="h3 os-title" data-zh="按系统安装这些工具">Installing the tools on your system</h3>
+        <p class="muted os-lead" data-zh="ResearchTool 可在 macOS、Linux（Ubuntu）和 Windows 10 / 11 上运行，每次推送到 main 和每个 Pull Request 都会在这三个系统上跑测试。服务器直接启动每个工具，从不经过 shell。">ResearchTool runs on macOS, Linux (Ubuntu) and Windows 10 / 11, and its tests run on all three for every push to main and every pull request. The server starts each tool directly, never through a shell.</p>
+        <div class="os-grid">
+          <div class="panel os-card">
+            <h4 class="os-name"><span class="os-glyph" aria-hidden="true"><svg class="icon"><use href="#i-laptop"/></svg></span><span translate="no">macOS</span></h4>
+            <ul class="os-list">
+              <li data-zh="poppler：<code>brew install poppler</code>">poppler: <code>brew install poppler</code></li>
+              <li data-zh="TeX：MacTeX（或 BasicTeX 加 <code>latexmk</code>）">TeX: MacTeX (or BasicTeX plus <code>latexmk</code>)</li>
+              <li data-zh="git 随 Xcode 命令行工具安装：<code>xcode-select --install</code>">git comes with the Xcode command line tools: <code>xcode-select --install</code></li>
+              <li data-zh="拼写检查使用系统词典">Spelling uses the system dictionary</li>
+            </ul>
+          </div>
+          <div class="panel os-card">
+            <h4 class="os-name"><span class="os-glyph" aria-hidden="true"><svg class="icon"><use href="#i-terminal"/></svg></span><span translate="no">Ubuntu / Debian</span></h4>
+            <ul class="os-list">
+              <li data-zh="<code>sudo apt install poppler-utils latexmk texlive-latex-extra unzip git</code>"><code>sudo apt install poppler-utils latexmk texlive-latex-extra unzip git</code></li>
+              <li data-zh="拼写检查还需要词表：<code>sudo apt install wamerican</code>">For spelling, a word list too: <code>sudo apt install wamerican</code></li>
+              <li data-zh="原生的 macOS 文件夹选择框换成页面内的文件夹浏览">The in-page folder browser replaces the native macOS folder chooser</li>
+              <li data-zh="Grok Build 需要 Linux 内核 5.13 或更新">Grok Build needs Linux kernel 5.13 or newer</li>
+            </ul>
+          </div>
+          <div class="panel os-card">
+            <h4 class="os-name"><span class="os-glyph" aria-hidden="true"><svg class="icon"><use href="#i-window"/></svg></span><span translate="no">Windows 10 / 11</span></h4>
+            <ul class="os-list">
+              <li data-zh="poppler：<code>scoop install poppler</code>、<code>choco install poppler</code> 或 conda-forge 都可以">poppler: <code>scoop install poppler</code>, <code>choco install poppler</code> or conda-forge</li>
+              <li data-zh="TeX：TeX Live，或 MiKTeX 加一个 Perl（例如 Strawberry Perl），并把 MiKTeX 的「自动安装缺失的宏包」设为「是」或「否」，不要设为「询问」">TeX: TeX Live, or MiKTeX plus a Perl (such as Strawberry Perl), with MiKTeX's “install missing packages” set to Yes or No, not Ask</li>
+              <li data-zh="Git for Windows：用于 Overleaf 同步，原生的 <code>claude</code> 命令行也需要它">Git for Windows: for Overleaf sync, and needed by the native <code>claude</code> CLI</li>
+              <li data-zh="AI：Claude Code、Codex 和 Antigravity 可在 Windows 上使用；Grok Build 不行（它的只读沙箱只在 macOS 和 Linux 上有）">AI: Claude Code, Codex and Antigravity work on Windows; Grok Build does not (its read-only sandbox exists only on macOS and Linux)</li>
+              <li data-zh="Windows 没有系统词表，拼写检查关闭；其他写作检查照常可用">Spell check is off (Windows has no system word list); the other writing checks work</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ FAQ -->
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="container">
+      <svg class="divider" viewBox="0 0 240 24" aria-hidden="true" focusable="false"><use href="#d-rule"/></svg>
+      <div class="centered" data-reveal>
+        <p class="kicker" data-zh="常见问题">FAQ</p>
+        <h2 class="h2" id="faq-title"><span data-zh="几个常见问题，">Questions, answered </span><span class="mark" data-zh="坦诚">honestly</span><span data-zh="回答"></span></h2>
+      </div>
+      <div class="faq">
+        <details data-reveal>
+          <summary><span data-zh="真的免费吗？">Is it free?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="是的。ResearchTool 以 MIT 许可开源，没有付费版本，也不需要注册账号。只有你自己选择使用的外部服务（比如你选用的 AI 命令行工具，或属于 Overleaf Premium 功能的 Git 集成）才有各自的条款。">Yes. ResearchTool is open source under the MIT licence, with no paid tier and no sign-up. Only outside services you choose to use (such as the AI CLI you pick, or Overleaf's Git integration, which is a Premium feature) have their own terms.</p></div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="必须用 Claude 或其他 AI 吗？">Does it need Claude or another AI?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="不需要。没有 AI 命令行工具时，文献库、阅读器、笔记、相关论文、发展脉络和 LaTeX 编辑器都完整可用。图解、练习题、讲解、对比表、笔记初稿和自动归类这些 AI 功能需要你本机安装并登录一个 AI 命令行工具：默认是 Claude Code，也可以用 OpenAI Codex、xAI Grok Build 或 Google Antigravity。">No. Without an AI CLI the library, reader, notes, Related, Lineage and the LaTeX editor all work. The AI features (diagrams, quizzes, explanations, comparison tables, note drafts, auto-filing) need one AI command-line tool installed and signed in on your computer: Claude Code by default, or OpenAI Codex, xAI Grok Build or Google Antigravity.</p></div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="可以用哪些 AI 工具？AI 会改我的文件吗？">Which AI tools can I use, and can they change my files?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body">
+            <p data-zh="在偏好设置 › AI 中选一个，用你自己的账号登录：Claude Code（<code>claude</code>，默认）、OpenAI Codex（<code>codex</code>）、xAI Grok Build（<code>grok</code>，仅 macOS 和 Linux）或 Google Antigravity（<code>agy</code> 1.5.13 及以上，个人 Google 账号可用）。不提供 Gemini CLI。ResearchTool 从不索要也从不保存 API key。">Pick one in Preferences › AI, signed in with your own account: Claude Code (<code>claude</code>, the default), OpenAI Codex (<code>codex</code>), xAI Grok Build (<code>grok</code>, macOS and Linux only) or Google Antigravity (<code>agy</code> 1.5.13 or later; a personal Google account works). Gemini CLI is not offered. ResearchTool never asks for an API key and never stores one.</p>
+            <p data-zh="在 AI 面板里，Claude Code 可以修改文件。Codex 只有在勾选「允许 Codex 编辑文件」后才可以（默认关闭），而且只能改打开的 LaTeX 项目和你的阅读笔记；每次运行前会先复制 <code>library.json</code>，项目里的每处改动都记入历史、可以恢复。Grok Build 和 Antigravity 只读。图解、对比表、初稿等 AI 功能本身只读不写。只有 Claude 会直接读取 PDF 页面，其他命令行工具得到的是提取出的正文。">In the AI panel, Claude Code can edit files. Codex can only if you tick “Let Codex edit files” (off by default), and then only the open LaTeX project and your reading notes; <code>library.json</code> is copied before each such run, and every project change is kept in the history and can be restored. Grok Build and Antigravity are read-only. The AI features themselves (diagrams, tables, drafts) only read. Only Claude reads PDF pages itself; the other CLIs get the extracted text.</p>
+          </div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="能导入 Zotero、Mendeley 或 JabRef 的文献库吗？">Can I bring my library from Zotero, Mendeley or JabRef?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="可以，通过 BibTeX：从你现在的文献管理软件导出 .bib 文件再导入，PDF 和整个文件夹也能直接导入；粘贴 BibTeX、arXiv ID、DOI、OpenReview 或出版社链接同样可以，重复的条目会被标出。.bib 里的注释标题或 JabRef 分组可以用来重新整理文献库。反过来，「导出参考文献」会写出 <code>references.bib</code>、<code>notes.md</code> 和 <code>library.csv</code>，论文包（.zip）里的 Markdown 可在 Obsidian、Typora 或 VS Code 中打开。">Yes, through BibTeX: export a .bib file from your current reference manager and import it, along with PDFs or whole folders; pasted BibTeX, arXiv ids, DOIs and OpenReview or publisher links work too, and duplicates are reported. Comment headings or JabRef groups in a .bib can regroup the library. The other way, Export references writes <code>references.bib</code>, <code>notes.md</code> and <code>library.csv</code>, and the Markdown of a paper package (.zip) opens in Obsidian, Typora or VS Code.</p></div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="能和 Overleaf 一起用吗？">Does it work with Overleaf?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="可以，通过 Overleaf 自己的 Git 集成（Overleaf Premium 功能）：导入一个 Overleaf 项目后，在编辑器里拉取和推送；两边改了同一处时由你选择保留哪个版本。令牌存放在 git 的凭据存储里，ResearchTool 不会接触你的 Overleaf 密码。编译在本机用 <code>latexmk</code> 完成（pdfLaTeX、XeLaTeX 或 LuaLaTeX），并支持双向 SyncTeX。ResearchTool 是给一个人用的工作区，没有多人实时协作。">Yes, through Overleaf's own Git integration, which is an Overleaf Premium feature: import an Overleaf project, then pull and push from the editor; if both sides changed the same lines you choose which version wins. The token stays in git's credential store, and ResearchTool never sees your Overleaf password. Compiling happens on your computer with <code>latexmk</code> (pdfLaTeX, XeLaTeX or LuaLaTeX), with SyncTeX both ways. ResearchTool is a workspace for one person, with no real-time co-editing.</p></div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="能帮我做文献综述吗？">Can it help with a literature review?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="「相关」标签页列出一篇论文的参考文献和引用它的论文（OpenAlex、Semantic Scholar），一键加入文献库；发展脉络展示一篇论文、一个研究方向或整个文献库所依托的前人工作、后续工作和相似工作，思路类似 Connected Papers。有 AI 命令行工具时，还可以为最多 15 篇论文填一张带页码的对比表、向它们一起提一个问题，或根据你的笔记起草只引用文献库里论文的 LaTeX 相关工作。AI 的输出是草稿，需要对照论文核实。">The Related tab lists a paper's references and the papers citing it (OpenAlex, Semantic Scholar), each added in one click; Lineage shows the prior, derivative and similar works of a paper, a research line or the whole library, in the spirit of Connected Papers. With an AI CLI you can also fill a comparison table of up to 15 papers with page references, ask one question of all of them, or draft related work in LaTeX from your notes that cites only papers in your library. AI output is a draft to check against the papers.</p></div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="我的数据存在哪里？">Where is my data?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="在应用文件夹下的 <code>workspace/</code> 里（也可以用 <code>RT_WORKSPACE</code> 指定别的位置）：<code>library.json</code>、PDF、Markdown 笔记、LaTeX 项目和它们的历史版本，都是普通文件。删除的东西先进回收站，设置里可以把每日快照备份到另一块磁盘。">In <code>workspace/</code> next to the app (or wherever <code>RT_WORKSPACE</code> points): <code>library.json</code>, the PDFs, Markdown notes, LaTeX projects and their history, all as plain files. Deleted things go to a trash first, and Settings can keep daily snapshots on another disk.</p></div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="支持哪些系统？">Which systems does it run on?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body">
+            <p data-zh="macOS、Linux（Ubuntu）和 Windows 10 / 11。每次推送到 main 和每个 Pull Request 都会在 CI 中于这三个系统上跑测试，包括用 poppler 导入 PDF。">macOS, Linux (Ubuntu) and Windows 10 / 11. The tests run in CI on all three for every push to main and every pull request, PDF import with poppler included.</p>
+            <p data-zh="有几处因系统而异：在 Linux 和 Windows 上，原生的 macOS 文件夹选择框换成页面内的文件夹浏览（Windows 上从「此电脑」可以进入其他磁盘）；拼写检查使用系统词表（Debian / Ubuntu 上安装 <code>wamerican</code>），Windows 没有词表所以关闭；Overleaf 同步的令牌存放在 git 的凭据存储里（macOS 钥匙串、Windows 凭据管理器或 Linux 上的 libsecret 等）。各系统的安装命令见上面的「安装与环境要求」。">A few things differ: on Linux and Windows the in-page folder browser replaces the native macOS folder chooser (on Windows, “This PC” leads to other drives); spell check uses the system word list (<code>wamerican</code> on Debian / Ubuntu) and is off on Windows, which has none; Overleaf sync keeps its token in git's credential store (the macOS Keychain, the Windows Credential Manager or a Linux helper such as libsecret). The install commands for each system are under Install and requirements above.</p>
+            <p data-zh="AI 命令行工具中，Grok Build 不支持 Windows；Claude Code、Codex 和 Antigravity 都可以。ResearchTool 是个人项目，按现状分享。如果在你的系统上遇到问题，欢迎在 issue 里说说发生了什么。">Of the AI CLIs, Grok Build does not work on Windows; Claude Code, Codex and Antigravity do. ResearchTool is a personal project, shared as it is. If something does not work on your system, an issue describing what happened is very welcome.</p>
+          </div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="有中文界面吗？">Is there a Chinese interface?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="有。偏好设置 › 通用 › 显示语言，可在 English 和中文之间切换，导览也有中文版。全文搜索支持中文；AI 初稿和分类名称的语言另有设置。">Yes. Preferences › General › Display language switches between English and 中文, and the guided tour is translated too. Full-text search handles Chinese, and the language of AI drafts and of category names has its own settings.</p></div>
+        </details>
+        <details data-reveal>
+          <summary><span data-zh="可以离线使用吗？">Does it work offline?</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+          <div class="faq-body"><p data-zh="可以。所有浏览器端的库和字体都随应用打包。只有按 ID 添加论文、相关论文、发展脉络、元数据与发表出处核对、查找链接、Overleaf 同步，以及 AI 功能需要联网。">Yes. All browser libraries and fonts ship with the app. Only adding papers by id, Related, Lineage, metadata and venue checks, Find links, Overleaf sync and the AI features need a connection.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ the longer guides on GitHub -->
+  <section class="section" id="more" aria-labelledby="more-title">
+    <div class="container">
+      <div class="centered" data-reveal>
+        <p class="kicker" translate="no">GitHub</p>
+        <h2 class="h2" id="more-title"><span data-zh="仓库里的">More in the </span><span class="mark" data-zh="更多文档">repository</span></h2>
+        <p class="section-lead" data-zh="仓库里还有六份更长的文档，和代码放在一起。">Six longer guides live next to the code on GitHub.</p>
+      </div>
+      <div class="contrib">
+        <div class="panel" data-reveal>
+          <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-terminal"/></svg></span>
+          <h3 class="h3" data-zh="安装">Install</h3>
+          <p class="muted" data-zh="快速开始的细节、更新、环境要求，以及 macOS、Linux 和 Windows。">Quick start in detail, updating, requirements, and macOS, Linux and Windows.</p>
+          <a href="https://github.com/purple-ginseng/ResearchTool/blob/main/docs/install.md"><span translate="no">docs/install.md</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="panel" data-reveal>
+          <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-tour"/></svg></span>
+          <h3 class="h3" data-zh="使用指南">User guide</h3>
+          <p class="muted" data-zh="快捷键、概览、文献库与阅读器、笔记、朗读、导出为 PDF、探索、编辑器、连接 Overleaf、语言和导览。">Keyboard, Overview, Library and reader, notes, read aloud, export as PDF, Explore, Editor, connecting Overleaf, language and the guided tour.</p>
+          <a href="https://github.com/purple-ginseng/ResearchTool/blob/main/docs/guide.md"><span translate="no">docs/guide.md</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="panel" data-reveal>
+          <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-ai"/></svg></span>
+          <h3 class="h3" translate="no">AI</h3>
+          <p class="muted" data-zh="AI 集成、使用 Claude Code、AI 服务商和对话历史。">AI integration, using Claude Code, AI providers and chat history.</p>
+          <a href="https://github.com/purple-ginseng/ResearchTool/blob/main/docs/ai.md"><span translate="no">docs/ai.md</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="panel" data-reveal>
+          <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-lock"/></svg></span>
+          <h3 class="h3" data-zh="隐私">Privacy</h3>
+          <p class="muted" data-zh="隐私、哪些会联网、数据存在哪里、回收站与备份。">Privacy, what goes online, where things live, trash and backup.</p>
+          <a href="https://github.com/purple-ginseng/ResearchTool/blob/main/docs/privacy.md"><span translate="no">docs/privacy.md</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="panel" data-reveal>
+          <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-bug"/></svg></span>
+          <h3 class="h3" data-zh="故障排查">Troubleshooting</h3>
+          <p class="muted" data-zh="出问题时先检查什么。">What to check when something does not work.</p>
+          <a href="https://github.com/purple-ginseng/ResearchTool/blob/main/docs/troubleshooting.md"><span translate="no">docs/troubleshooting.md</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="panel" data-reveal>
+          <span class="panel-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="#i-code"/></svg></span>
+          <h3 class="h3" data-zh="配置">Configuration</h3>
+          <p class="muted" data-zh="环境变量。">Environment variables.</p>
+          <a href="https://github.com/purple-ginseng/ResearchTool/blob/main/docs/configuration.md"><span translate="no">docs/configuration.md</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+      <p class="band-cta"><a class="btn btn-outline" href="../"><span data-zh="回到项目主页">Back to the project page</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="foot-strip" aria-hidden="true"></div>
+  <div class="container">
+    <div class="foot-grid four">
+      <div class="foot-brand">
+        <a class="brand" href="../"><img src="../brand/crest-mark.svg" alt="" width="32" height="32"><span class="brand-name" translate="no">ResearchTool</span></a>
+        <p class="foot-motto" lang="la">Lux et Scientia</p>
+        <p class="foot-text" data-zh="一个开源的本地研究工作区：文献管理、PDF 阅读器、笔记和 LaTeX 编辑器，运行在你自己的电脑上。">An open-source, local research workspace: a reference manager, PDF reader, notes and a LaTeX editor that run on your own computer.</p>
+      </div>
+      <div>
+        <h2 class="foot-title" data-zh="本页">On this page</h2>
+        <ul class="foot-list">
+          <li><a href="#features" data-zh="功能">Features</a></li>
+          <li><a href="#ai" translate="no">AI</a></li>
+          <li><a href="#privacy" data-zh="隐私">Privacy</a></li>
+          <li><a href="#install" data-zh="安装与环境要求">Install and requirements</a></li>
+          <li><a href="#faq" data-zh="常见问题">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="foot-title" data-zh="项目主页">Project page</h2>
+        <ul class="foot-list">
+          <li><a href="../" data-zh="主页">Home</a></li>
+          <li><a href="../#demo" data-zh="演示">Demo</a></li>
+          <li><a href="../#screenshots" data-zh="截图">Screenshots</a></li>
+          <li><a href="../#get-started" data-zh="开始使用">Get started</a></li>
+          <li><a href="../#open-source" data-zh="开源">Open source</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="foot-title" data-zh="开源">Open source</h2>
+        <ul class="foot-list">
+          <li><a href="https://github.com/purple-ginseng/ResearchTool" data-zh="GitHub 仓库">GitHub repository</a></li>
+          <li><a href="https://github.com/purple-ginseng/ResearchTool/issues" translate="no">Issues</a></li>
+          <li><a href="https://github.com/purple-ginseng/ResearchTool/releases" translate="no">Releases</a></li>
+          <li><a href="https://github.com/purple-ginseng/ResearchTool/blob/HEAD/CONTRIBUTING.md" data-zh="贡献指南">Contributing</a></li>
+          <li><a href="https://github.com/purple-ginseng/ResearchTool/blob/HEAD/LICENSE" data-zh="MIT 许可">MIT licence</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span><span translate="no">© 2026 purple-ginseng ·</span> <a href="https://github.com/purple-ginseng/ResearchTool/blob/HEAD/LICENSE" data-zh="MIT 许可">MIT licence</a></span>
+      <span data-zh="本页面不使用 Cookie、统计或追踪。">This page uses no cookies, analytics or trackers.</span>
+    </div>
+  </div>
+</footer>
+
+<dialog class="lightbox" id="lightbox" aria-label="Screenshot" data-zh-aria-label="截图">
+  <button type="button" class="close" aria-label="Close" data-zh-aria-label="关闭"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <button type="button" class="lb-nav lb-prev" hidden aria-label="Previous screenshot" data-zh-aria-label="上一张"><svg class="icon" aria-hidden="true"><use href="#i-left"/></svg></button>
+  <button type="button" class="lb-nav lb-next" hidden aria-label="Next screenshot" data-zh-aria-label="下一张"><svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></button>
+  <span class="lb-count" hidden aria-live="polite"></span>
+  <figure><img id="lightbox-img" alt="" hidden><figcaption id="lightbox-cap"></figcaption></figure>
+</dialog>
+
+<script src="../js/site.js"></script>
+</body>
+</html>

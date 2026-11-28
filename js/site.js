@@ -1,9 +1,10 @@
-/* ResearchTool project page: language links (one static page per language: / and zh/), hero loop, demo video + chapters, copy buttons, gallery lightbox, reveal. No cookies, no network calls. */
+/* ResearchTool project page and docs page: language links (one static page per language: / and zh/, docs/ and zh/docs/), hero loop, demo video + chapters, copy buttons, gallery lightbox, reveal. No cookies, no network calls.
+   The docs page has no hero loop, no demo video and no gallery: every part below first looks for its elements. */
 (function () {
   'use strict';
   var root = document.documentElement;
   var LS_KEY = 'rt-site-lang';
-  var BASE = root.getAttribute('data-base') || '';   /* '../' on zh/index.html */
+  var BASE = root.getAttribute('data-base') || '';   /* the way to the site root: '' on index.html, '../' on zh/index.html and docs/index.html, '../../' on zh/docs/index.html */
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ------------------------------------------------------------ demo data (real chapter marks of the two videos, ms) */
@@ -157,9 +158,10 @@
   }
   var stops = Array.prototype.slice.call(document.querySelectorAll('#timeline .stop'));
   stops.forEach(function (s) { s.addEventListener('click', function () { seekGroup(+s.getAttribute('data-group')); }); });
-  /* "See the reader" and the other chapter links: go to the demo and start that chapter */
+  /* "See the reader" and the other chapter links: go to the demo and start that chapter. On the docs page they are plain links to
+     the project page (../?tour=4#demo), which starts the chapter when it opens: see "go" at the end. */
   document.querySelectorAll('a[data-tour]').forEach(function (a) {
-    a.addEventListener('click', function (e) { e.preventDefault(); seekGroup(+a.getAttribute('data-tour')); });
+    a.addEventListener('click', function (e) { if (!video) return; e.preventDefault(); seekGroup(+a.getAttribute('data-tour')); });
   });
   /* The <source> in the HTML is picked once by the browser; with preload="none" that downloads nothing.
      An explicit load() does start buffering in Chromium, so it is only called once the visitor has started
@@ -167,7 +169,7 @@
   var pendingLoad = false;
   var fallback = document.getElementById('video-fallback');
   function started() { return video.readyState > 0 || !video.paused || video.currentTime > 0; }
-  video.addEventListener('play', function () {
+  if (video) video.addEventListener('play', function () {
     if (!pendingLoad) return;
     pendingLoad = false;
     video.load();
@@ -211,8 +213,10 @@
   document.querySelectorAll('[data-video-lang]').forEach(function (b) {
     b.addEventListener('click', function () { setVideo(b.getAttribute('data-video-lang'), true); });
   });
-  video.addEventListener('timeupdate', markChapter);
-  video.addEventListener('seeked', markChapter);
+  if (video) {
+    video.addEventListener('timeupdate', markChapter);
+    video.addEventListener('seeked', markChapter);
+  }
 
   /* ------------------------------------------------------------ copy buttons */
   function legacyCopy(text) {
@@ -404,11 +408,16 @@
     var secIO = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
-        var id = en.target.id === 'privacy' ? 'features' : en.target.id === 'faq' ? 'open-source' : en.target.id;
+        var id = en.target.getAttribute('data-nav') || en.target.id;
         navLinks.forEach(function (a) { if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
-    ['demo', 'features', 'screenshots', 'privacy', 'get-started', 'open-source', 'faq'].forEach(function (id) { var s = document.getElementById(id); if (s) secIO.observe(s); });
+    /* every section a link of the nav points to on this page, and the sections that light up another link (data-nav="features") */
+    navLinks.forEach(function (a) {
+      var h = a.getAttribute('href') || '', s = h.charAt(0) === '#' ? document.getElementById(h.slice(1)) : null;
+      if (s) secIO.observe(s);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (s) { secIO.observe(s); });
   }
 
   /* ------------------------------------------------------------ Lineage figure: emphasise History line or Ancestry */
@@ -467,5 +476,10 @@
   }
 
   /* ------------------------------------------------------------ go */
-  setVideo(pageLang, false);
+  if (video) {
+    setVideo(pageLang, false);
+    /* a chapter link of the docs page: ?tour=4#demo starts chapter 4 (if the browser will not play unasked, the video waits there) */
+    var tour = /[?&]tour=([1-8])(?:&|$)/.exec(location.search);
+    if (tour) seekGroup(+tour[1]);
+  }
 })();

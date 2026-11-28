@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-/* The automated checks of the project page. No dependencies; Node 18 or newer. Run from the site folder (the gh-pages checkout):
+/* The automated checks of the project page and its docs page. No dependencies; Node 18 or newer. Run from the site folder (the gh-pages checkout):
  *
  *   node scripts/check-site.mjs            every check; prints one line per check, then the page weight; exit 1 if any check fails
  *   node scripts/check-site.mjs --quiet    only the failures and the weight table
  *
- * Run it after ANY change to index.html, css/site.css, js/site.js or the files they load, after `node scripts/build-zh.mjs`,
- * and before committing. Nothing is fetched and nothing is written.
+ * Run it after ANY change to index.html, docs/index.html, css/site.css, js/site.js or the files they load, after
+ * `node scripts/build-zh.mjs`, and before committing. Nothing is fetched and nothing is written.
  *
- * What it checks, on the three pages index.html (/), zh/index.html (/zh/) and 404.html:
+ * What it checks, on the five pages index.html (/), zh/index.html (/zh/), docs/index.html (/docs/), zh/docs/index.html (/zh/docs/)
+ * and 404.html (PAGES below says, page by page, what is by nature different: its address, its language twin, the kinds of node
+ * of its main JSON-LD graph, and whether it shows the FAQ):
  *
  *   links        every local href, src, srcset, poster, data-zoom, every url() of css/site.css, every 'img/â€¦' or 'media/â€¦' path in
  *                js/site.js and every URL of this site in the meta tags, the JSON-LD and sitemap.xml points to a file that exists;
@@ -27,12 +29,15 @@
  *                the plates and the journey tiles keep their ground in forced-colours mode
  *   ids, h1      no id is used twice on a page; each page has exactly one <h1>
  *   JSON-LD      every block parses; the main graph (#ld-main) of / and /zh/ still holds a WebSite, WebPage, Person,
- *                SoftwareApplication, SoftwareSourceCode and VideoObject node; the FAQPage block (#ld-faq) of each page says what
- *                its visible FAQ says, question by question
- *   languages    <html lang>, the canonical link, og:url and the hreflang links of / and /zh/ point where they should, both ways;
- *                each of the two pages has a title, a description and one non-empty og:title, og:description, og:image, og:type
- *                and twitter:card; sitemap.xml lists both pages with the same alternates
- *   zh           zh/index.html is what scripts/build-zh.mjs would write now, and nothing is left untranslated (--check --strict)
+ *                SoftwareApplication, SoftwareSourceCode and VideoObject node, the one of /docs/ and /zh/docs/ a WebPage node; the
+ *                FAQ and its FAQPage block (#ld-faq) sit on the docs pages and nowhere else, and the block says what the visible
+ *                FAQ of its page says, question by question
+ *   languages    <html lang>, the canonical link, og:url and the hreflang links of each page and its language twin (/ and /zh/,
+ *                /docs/ and /zh/docs/) point where they should, both ways; each of the four pages has a title, a description and
+ *                one non-empty og:title, og:description, og:image, og:type and twitter:card; sitemap.xml lists the four pages with
+ *                the same alternates
+ *   zh           zh/index.html and zh/docs/index.html are what scripts/build-zh.mjs would write now, and nothing is left
+ *                untranslated (--check --strict)
  *   no CDN       nothing is loaded from another host: scripts, styles, fonts, images, and nothing inside the SVG files. No inline
  *                script, event handler, style sheet or style attribute, and neither css/site.css nor js/site.js, holds the address
  *                of another host at all (comments apart), so a load that only starts at run time is caught as well. The one
@@ -57,9 +62,16 @@ import { createHash } from 'node:crypto';
 const SITE = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_URL = 'https://purple-ginseng.github.io/ResearchTool/';
 const BASE_PATH = new URL(BASE_URL).pathname;                      // /ResearchTool/
+/* What the main JSON-LD graph of / and /zh/ has to hold (two VideoObject nodes today; one is asked for), and the one of the docs pages. */
+const LD_TYPES = ['WebSite', 'WebPage', 'Person', 'SoftwareApplication', 'SoftwareSourceCode', 'VideoObject'];
+const LD_TYPES_DOCS = ['WebPage'];
+/* The pages. en / zh: the addresses of the page and of its language twin (what canonical, og:url, hreflang and the sitemap must
+   say); ld: the kinds of node of its main graph; faq: whether the visible FAQ, and so the FAQPage block, is on this page. */
 const PAGES = [
-  { file: 'index.html', url: BASE_URL, lang: 'en' },
-  { file: 'zh/index.html', url: BASE_URL + 'zh/', lang: 'zh-CN' },
+  { file: 'index.html', url: BASE_URL, lang: 'en', en: BASE_URL, zh: BASE_URL + 'zh/', ld: LD_TYPES, faq: false },
+  { file: 'zh/index.html', url: BASE_URL + 'zh/', lang: 'zh-CN', en: BASE_URL, zh: BASE_URL + 'zh/', ld: LD_TYPES, faq: false },
+  { file: 'docs/index.html', url: BASE_URL + 'docs/', lang: 'en', en: BASE_URL + 'docs/', zh: BASE_URL + 'zh/docs/', ld: LD_TYPES_DOCS, faq: true },
+  { file: 'zh/docs/index.html', url: BASE_URL + 'zh/docs/', lang: 'zh-CN', en: BASE_URL + 'docs/', zh: BASE_URL + 'zh/docs/', ld: LD_TYPES_DOCS, faq: true },
   { file: '404.html', url: null, lang: 'en' },
 ];
 /* The only resource the page may load from another host (see "no CDN" above). */
@@ -77,9 +89,7 @@ const BUDGET = {
   sketchRaw: 240_000,     // every Margin Sketch drawing a page can load: the inline sprite plus img/sketch/, raw
   sketchSent: 89_000,     // the same, sent
 };
-/* What the main JSON-LD graph of / and /zh/ has to hold (two VideoObject nodes today; one is asked for). */
-const LD_TYPES = ['WebSite', 'WebPage', 'Person', 'SoftwareApplication', 'SoftwareSourceCode', 'VideoObject'];
-/* One of each, not empty, on / and on /zh/. */
+/* One of each, not empty, on each of the four pages. */
 const SOCIAL_META = ['og:title', 'og:description', 'og:image', 'og:type', 'twitter:card'];
 /* sha1 (first 10 hex digits) of every path of the line-drawn sprite of commit 0f55540, i-github excluded */
 const OLD_COMMIT = '0f55540';
@@ -286,7 +296,7 @@ const jsSymbols = [...js.matchAll(/['"]#((?:i|j|d|o)-[a-z0-9-]+)['"]/g)].map((m)
     const t = localTarget('index.html', m[1]);
     if (t && (t.bad || !existsSync(join(SITE, t.file)))) bad.push(`sitemap.xml ${m[1]}: no such file`);
   }
-  check('links: every local URL of the three pages, the CSS, the script and the sitemap leads to a file (and every #fragment to an id)', bad);
+  check(`links: every local URL of the ${pages.length} pages, the CSS, the script and the sitemap leads to a file (and every #fragment to an id)`, bad);
 }
 
 /* ---------------------------------------------------------------- sprite */
@@ -311,7 +321,7 @@ const spriteClasses = new Set();                                    // the sk-â€
       for (const id of symbols.keys()) if (!used.has(id)) bad.push(`${p.file}: <symbol id="${id}"> is never used`);
     }
   }
-  check('sprite: every <use> has its <symbol>, and every <symbol> is used', bad, `${sprite['index.html'].size} symbols`);
+  check('sprite: every <use> has its <symbol>, and every <symbol> is used', bad, pages.filter((p) => sprite[p.file].size).map((p) => `${p.file} ${sprite[p.file].size}`).join(', ') + ' symbols');
 }
 {
   const bad = [];
@@ -338,7 +348,7 @@ const spriteClasses = new Set();                                    // the sk-â€
       for (const d of body.matchAll(/\sd="([^"]*)"/g)) if (old.has(sha(d[1].trim().replace(/\s+/g, ' ')))) bad.push(`${p.file}: #${id} still holds a path of the old line-drawn sprite`);
     }
   }
-  if (!sprite['index.html'].has('i-github')) bad.push('index.html: the i-github symbol is missing');
+  for (const p of pages.filter((q) => q.url)) if (!sprite[p.file].has('i-github')) bad.push(`${p.file}: the i-github symbol is missing`);
   check('sprite: every symbol except i-github is redrawn (no path of the old sprite), i-github is untouched', bad, 'compared with ' + source);
 }
 
@@ -414,13 +424,19 @@ const spriteClasses = new Set();                                    // the sk-â€
       byId.set(t.attrs.get('id') || '', new Set(nodes.flatMap((n) => [].concat(n['@type'] || []))));
       for (const node of nodes) if (node['@type'] === 'FAQPage') faq = node;
     }
-    if (p.url) {                                                    // the two language pages carry the whole graph
-      if (!byId.has('ld-main')) bad.push(`${p.file}: no <script type="application/ld+json" id="ld-main"> (the main graph)`);
-      else for (const type of LD_TYPES) if (!byId.get('ld-main').has(type)) bad.push(`${p.file}: the main graph (#ld-main) has no ${type} node`);
-      if (!byId.has('ld-faq')) bad.push(`${p.file}: no <script type="application/ld+json" id="ld-faq"> (the FAQPage block)`);
-      else if (!byId.get('ld-faq').has('FAQPage')) bad.push(`${p.file}: #ld-faq holds no FAQPage node`);
-    }
     const section = inner(p.html, /<section\b[^>]*\bid="faq"[^>]*>/g);
+    if (p.url) {                                                    // the project page carries the whole graph, the docs page its own WebPage
+      if (!byId.has('ld-main')) bad.push(`${p.file}: no <script type="application/ld+json" id="ld-main"> (the main graph)`);
+      else for (const type of p.ld) if (!byId.get('ld-main').has(type)) bad.push(`${p.file}: the main graph (#ld-main) has no ${type} node`);
+      if (p.faq) {                                                  // the FAQ lives on this page: the structured data sits with it
+        if (!section) bad.push(`${p.file}: no #faq section (the FAQ belongs on this page)`);
+        if (!byId.has('ld-faq')) bad.push(`${p.file}: no <script type="application/ld+json" id="ld-faq"> (the FAQPage block)`);
+        else if (!byId.get('ld-faq').has('FAQPage')) bad.push(`${p.file}: #ld-faq holds no FAQPage node`);
+      } else {                                                      // and nowhere else
+        if (section) bad.push(`${p.file}: a #faq section, but the FAQ belongs on the docs page`);
+        if (byId.has('ld-faq') || faq) bad.push(`${p.file}: FAQPage JSON-LD on a page that does not show the FAQ`);
+      }
+    }
     if (!section) { if (faq) bad.push(`${p.file}: a FAQPage block but no #faq section`); continue; }
     if (!faq) { bad.push(`${p.file}: #faq has no FAQPage JSON-LD`); continue; }
     /* the Chinese text of the English page lives in data-zh attributes: not visible, so not compared */
@@ -436,14 +452,15 @@ const spriteClasses = new Set();                                    // the sk-â€
     });
     if (faq.url !== p.url) bad.push(`${p.file}: the FAQPage url is ${faq.url}`);
   }
-  check('JSON-LD: every block parses, the main graph holds its ' + LD_TYPES.length + ' kinds of node, and each FAQPage block says what the visible FAQ says', bad, `${blocks} blocks, ${questions} questions`);
+  check('JSON-LD: every block parses, each main graph holds its kinds of node (' + LD_TYPES.length + ' on the project page, ' + LD_TYPES_DOCS.length + ' on the docs page), and the FAQPage block sits on the page that shows the FAQ and says what it says', bad, `${blocks} blocks, ${questions} questions`);
 }
 
 /* ---------------------------------------------------------------- languages: canonical, hreflang, sitemap */
 {
   const bad = [];
-  const want = { en: BASE_URL, 'zh-CN': BASE_URL + 'zh/', zh: BASE_URL + 'zh/', 'x-default': BASE_URL };
+  const wanted = (p) => ({ en: p.en, 'zh-CN': p.zh, zh: p.zh, 'x-default': p.en });   // a page and its language twin
   for (const p of pages.filter((q) => q.url)) {
+    const want = wanted(p);
     const html = p.tags.find((t) => t.name === 'html');
     if (html.attrs.get('lang') !== p.lang) bad.push(`${p.file}: <html lang="${html.attrs.get('lang')}">, expected ${p.lang}`);
     const canon = p.tags.filter((t) => t.name === 'link' && t.attrs.get('rel') === 'canonical').map((t) => t.attrs.get('href'));
@@ -467,17 +484,18 @@ const spriteClasses = new Set();                                    // the sk-â€
   for (const p of pages.filter((q) => q.url)) {
     const entry = urls.find((u) => u.includes(`<loc>${p.url}</loc>`));
     if (!entry) { bad.push(`sitemap.xml does not list ${p.url}`); continue; }
-    for (const [lang, url] of Object.entries(want)) if (!entry.includes(`hreflang="${lang}" href="${url}"`)) bad.push(`sitemap.xml: ${p.url} lacks hreflang="${lang}" -> ${url}`);
+    for (const [lang, url] of Object.entries(wanted(p))) if (!entry.includes(`hreflang="${lang}" href="${url}"`)) bad.push(`sitemap.xml: ${p.url} lacks hreflang="${lang}" -> ${url}`);
   }
-  if (urls.length !== 2) bad.push(`sitemap.xml lists ${urls.length} pages, expected 2`);
-  check('languages: canonical, og:url and hreflang of / and /zh/ agree, both have their Open Graph and Twitter tags, and sitemap.xml lists both pages', bad);
+  const listed = pages.filter((q) => q.url).length;
+  if (urls.length !== listed) bad.push(`sitemap.xml lists ${urls.length} pages, expected ${listed}`);
+  check('languages: canonical, og:url and hreflang of each page and its language twin agree, every page has its Open Graph and Twitter tags, and sitemap.xml lists the ' + listed + ' pages', bad);
 }
 
-/* ---------------------------------------------------------------- zh/index.html is current */
+/* ---------------------------------------------------------------- zh/index.html and zh/docs/index.html are current */
 {
   const r = spawnSync(process.execPath, [join(SITE, 'scripts', 'build-zh.mjs'), '--check', '--strict'], { cwd: SITE, encoding: 'utf8' });
   const out = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean);
-  check('zh: zh/index.html is up to date and fully translated (build-zh.mjs --check --strict)', r.status === 0 ? [] : out.length ? out : ['build-zh.mjs exited with ' + r.status]);
+  check('zh: zh/index.html and zh/docs/index.html are up to date and fully translated (build-zh.mjs --check --strict)', r.status === 0 ? [] : out.length ? out : ['build-zh.mjs exited with ' + r.status]);
 }
 
 /* ---------------------------------------------------------------- nothing is loaded from another host */

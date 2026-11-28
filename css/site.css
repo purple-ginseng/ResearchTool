@@ -870,3 +870,37 @@ html[lang='zh-CN'] .lbl.dup { width: auto; white-space: nowrap; }   /* six chara
   .lin-panels > .lin-panel { flex: 0 0 86%; scroll-snap-align: start; }
   .lin-related { max-width: none; padding-top: 0; }
 }
+
+/* ================================================================================================================
+   two pages: the short project page (index.html) and the docs page (docs/index.html) that carries the detail
+   ================================================================================================================ */
+/* project page: a chapter in short (one sentence, three points, one picture, a link to its section of the docs) */
+.chapter-row.brief { align-items: center; margin-top: clamp(3.5rem, 7vw, 6rem); }
+.chapter-row.brief .ch-text { position: static; }
+.chapter-row.brief .ch-fig > .frame { width: 100%; margin-top: 0; }
+.ai-aside.brief { align-items: center; }
+.ai-text .points { margin: var(--space-4) 0 var(--space-6); }
+.req-more { margin: var(--space-5) 0 0; }
+.lf-cap.panel { gap: var(--space-1); }
+/* the header has six links now: between the burger breakpoint and a wide window they sit closer, and the last one (also in the footer) waits */
+.nav a { white-space: nowrap; }
+@media (min-width: 901px) and (max-width: 1100px) { .nav { margin-left: var(--space-2); } .nav a { padding: 0 10px; } }
+@media (min-width: 901px) and (max-width: 1040px) { .nav .nav-opt { display: none; } }
+@media (min-width: 861px) { .foot-grid.four { grid-template-columns: 1.6fr repeat(3, 1fr); } }
+
+/* docs page: title, table of contents, and the sections that follow one another without a heading band */
+.doc-hero { padding-block: clamp(2.5rem, 6vw, 4.5rem) 0; }
+.doc-hero .h1 { margin-bottom: var(--space-4); }
+.doc-hero .lead { max-width: 46rem; margin-bottom: 0; }
+.doc-hero + .section { padding-top: clamp(3rem, 6vw, 5rem); }
+.doc-cont { padding-top: 0; }
+.doc-cont .ai-aside { margin-top: 0; }
+.toc ol { list-style: none; margin: var(--space-6) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.toc a {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border); background: #fff; color: var(--color-text-muted); font: 600 0.8125rem / 1 var(--font-body); text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.toc a:hover { color: var(--color-text); border-color: var(--color-border-strong); }
+@media (pointer: coarse) { .toc a { min-height: 44px; } }
+.lf-sub { margin: clamp(2rem, 4vw, 3rem) 0 var(--space-4); }

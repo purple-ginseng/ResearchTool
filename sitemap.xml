@@ -51,4 +51,20 @@
       <video:family_friendly>yes</video:family_friendly>
     </video:video>
   </url>
+  <url>
+    <loc>https://purple-ginseng.github.io/ResearchTool/docs/</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://purple-ginseng.github.io/ResearchTool/docs/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://purple-ginseng.github.io/ResearchTool/zh/docs/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://purple-ginseng.github.io/ResearchTool/zh/docs/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://purple-ginseng.github.io/ResearchTool/docs/"/>
+  </url>
+  <url>
+    <loc>https://purple-ginseng.github.io/ResearchTool/zh/docs/</loc>
+    <lastmod>2026-11-28</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://purple-ginseng.github.io/ResearchTool/docs/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://purple-ginseng.github.io/ResearchTool/zh/docs/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://purple-ginseng.github.io/ResearchTool/zh/docs/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://purple-ginseng.github.io/ResearchTool/docs/"/>
+  </url>
 </urlset>

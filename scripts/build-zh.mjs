@@ -1,36 +1,47 @@
 #!/usr/bin/env node
-/* Generates zh/index.html, the static Simplified Chinese project page, from index.html, and keeps the FAQPage
- * JSON-LD of index.html in step with its visible FAQ. No dependencies; Node 18 or newer.
+/* Generates the static Simplified Chinese pages from the English ones, and keeps the FAQPage JSON-LD of a page in step
+ * with its visible FAQ. No dependencies; Node 18 or newer.
  *
- * HOW TO RE-RUN: after ANY change to index.html, run from the site folder (the gh-pages checkout)
+ *   index.html       ->  zh/index.html         the project page
+ *   docs/index.html  ->  zh/docs/index.html    the docs page (it shows the FAQ, so it carries the FAQPage JSON-LD)
  *
- *   node scripts/build-zh.mjs           sync the FAQ JSON-LD in index.html, then write zh/index.html
- *   node scripts/build-zh.mjs --check   change nothing; exit 1 if index.html's FAQ JSON-LD or zh/index.html is stale
+ * HOW TO RE-RUN: after ANY change to index.html or docs/index.html, run from the site folder (the gh-pages checkout)
+ *
+ *   node scripts/build-zh.mjs           sync the FAQ JSON-LD in the English pages, then write the two Chinese pages
+ *   node scripts/build-zh.mjs --check   change nothing; exit 1 if a FAQ JSON-LD or a Chinese page is stale
  *   add --strict                        also fail on English text that has neither data-zh nor translate="no"
  *
- * and commit index.html and zh/index.html together. Never edit zh/index.html by hand.
+ * and commit the English and the Chinese pages together. Never edit a file under zh/ by hand.
  *
- * index.html is the single source of truth: English content plus the Chinese text in
+ * An English page is the single source of truth of its Chinese twin: English content plus the Chinese text in
  *   data-zh="..."        -> replaces the element's inner HTML on the Chinese page
- *   data-zh-<attr>="..." -> replaces (or adds) attribute <attr>; the value is written as seen from zh/ and is used as-is
- * Every other relative URL (src, href, srcset, poster, data-zoom) gets a ../ prefix, so zh/ shares the English page's
- * assets. Canonical and og:url point to /zh/, <html> gets lang="zh-CN" data-lang="zh" data-base="../", and the
- * 中文 link of the EN / 中文 switch becomes the current page.
+ *   data-zh-<attr>="..." -> replaces (or adds) attribute <attr>; the value is written as seen from the Chinese page and is used as-is
+ * The Chinese twin always sits one folder deeper (zh/ for /, zh/docs/ for docs/), so every other relative URL of a file
+ * (src, href, srcset, poster, data-zoom) gets one ../ prefix and the Chinese page shares the English page's assets. A link
+ * to another PAGE of the site (an <a href> whose path ends in "/": docs/, docs/#faq, ../, ../?tour=4#demo) is left as it
+ * is, because zh/ mirrors the English tree: the same relative link leads to the Chinese twin of its target. The EN / 中文
+ * switch is the exception and carries data-zh-href. Canonical and og:url point to the Chinese URL, <html> gets
+ * lang="zh-CN" data-lang="zh" and a data-base one level deeper, and the 中文 link of the switch becomes the current page.
  *
- * JSON-LD: the FAQPage block (<script id="ld-faq">) is rebuilt from each page's own <details> in #faq, so the
- * structured data always says what the visible FAQ says. In the main graph (<script id="ld-main">) the Chinese page
- * gets its own WebPage node (zh/ url, Chinese name) and the Chinese SoftwareApplication texts from ZH_LD below; keep
- * ZH_LD in step when the English description, featureList or screenshots change (the build fails on a count mismatch).
+ * JSON-LD: the FAQPage block (<script id="ld-faq">) is rebuilt from the page's own <details> in #faq, so the structured
+ * data always says what the visible FAQ says; a page without a FAQ has no such block. In the main graph
+ * (<script id="ld-main">) the Chinese page gets its own WebPage node (Chinese url and name, and the Chinese meta
+ * description where the node has a description) and, on the project page, the Chinese SoftwareApplication texts from
+ * ZH_LD below; keep ZH_LD in step when the English description, featureList or screenshots change (the build fails on a
+ * count mismatch).
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SITE = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SRC = join(SITE, 'index.html');
-const OUT = join(SITE, 'zh', 'index.html');
 const BASE_URL = 'https://purple-ginseng.github.io/ResearchTool/';
 const ZH_URL = BASE_URL + 'zh/';
+/* The pages: the English source, the Chinese page it becomes, and the address of each. */
+export const PAGES = [
+  { src: 'index.html', out: 'zh/index.html', url: BASE_URL, zhUrl: ZH_URL },
+  { src: 'docs/index.html', out: 'zh/docs/index.html', url: BASE_URL + 'docs/', zhUrl: ZH_URL + 'docs/' },
+];
 const URL_ATTRS = new Set(['src', 'href', 'srcset', 'poster', 'data-zoom']);
 
 /* Chinese texts of the SoftwareApplication node; same order as the English ones in index.html. */
@@ -80,6 +91,8 @@ const decode = (s) => s.replace(/&(#x[0-9a-f]+|#\d+|quot|amp|lt|gt|apos|nbsp);/g
   return { quot: '"', amp: '&', lt: '<', gt: '>', apos: "'", nbsp: ' ' }[k];
 });
 const isRelative = (u) => u !== '' && !/^(?:[a-z][a-z0-9+.-]*:|\/|#|\?)/i.test(u);
+/* a link to a page of the site, not to a file: the path (before ? and #) ends in "/" */
+const isPageLink = (u) => isRelative(u) && /\/$/.test(u.split(/[?#]/)[0]);
 const rebase = (name, v) => name === 'srcset'
   ? v.split(',').map((part) => { const p = part.trim(); return isRelative(p) ? '../' + p : p; }).join(', ')
   : (isRelative(v) ? '../' + v : v);
@@ -107,12 +120,14 @@ const formatFaq = (o) => '\n' + JSON.stringify(o, null, 1) + '\n';
 const formatGraph = (o) => '\n{"@context":' + JSON.stringify(o['@context']) + ',"@graph":[\n'
   + o['@graph'].map((n) => JSON.stringify(n)).join(',\n') + '\n]}\n';
 
-function zhGraph(body, page, problems) {
+function zhGraph(body, page, problems, zhUrl) {
   const data = JSON.parse(body);
   const title = text((page.match(/<title[^>]*>([\s\S]*?)<\/title>/) || [, ''])[1]);
+  const description = decode((page.match(/<meta name="description" content="([^"]*)"/) || [, ''])[1]);
   for (const n of data['@graph'] || []) {
     if (n['@type'] === 'WebPage') {
-      Object.assign(n, { '@id': ZH_URL + '#webpage', url: ZH_URL, name: title, inLanguage: 'zh-CN' });
+      Object.assign(n, { '@id': zhUrl + '#webpage', url: zhUrl, name: title, inLanguage: 'zh-CN' });
+      if (n.description !== undefined) n.description = description;
     } else if (n['@type'] === 'SoftwareApplication') {
       if ((n.featureList || []).length !== ZH_LD.featureList.length) problems.push(`featureList has ${(n.featureList || []).length} English and ${ZH_LD.featureList.length} Chinese items: update ZH_LD`);
       if ((n.screenshot || []).length !== ZH_LD.screenshotCaptions.length) problems.push('screenshot count differs from ZH_LD.screenshotCaptions: update ZH_LD');
@@ -128,12 +143,13 @@ function zhGraph(body, page, problems) {
 }
 
 /* ---------------------------------------------------------------- the English page: FAQ JSON-LD from the visible FAQ */
-export function syncEnglish(src) {
-  return src.replace(LD, (all, open, id, body, close) => (id === 'ld-faq' ? open + formatFaq(faqFrom(src, BASE_URL, 'en')) + close : all));
+export function syncEnglish(src, url = BASE_URL) {
+  return src.replace(LD, (all, open, id, body, close) => (id === 'ld-faq' ? open + formatFaq(faqFrom(src, url, 'en')) + close : all));
 }
 
 /* ---------------------------------------------------------------- the Chinese page */
-export function buildZh(src) {
+export function buildZh(src, page = PAGES[0]) {
+  const zhUrl = page.zhUrl;
   let out = '', i = 0, m;
   const problems = [], warnings = [];
   const stack = [];                                                   // open elements: [name, exempt]
@@ -165,20 +181,21 @@ export function buildZh(src) {
     // 1. data-zh-<attr> overrides; everything else relative gets ../
     const overrides = new Map(attrs.filter(([k]) => k.startsWith('data-zh-')).map(([k, v]) => [k.slice(8), v]));
     attrs = attrs.filter(([k]) => k !== 'data-zh' && !k.startsWith('data-zh-'))
-      .map(([k, v]) => [k, overrides.has(k) ? overrides.get(k) : (URL_ATTRS.has(k) && v !== null ? rebase(k, v) : v)]);
+      .map(([k, v]) => [k, overrides.has(k) ? overrides.get(k) : (URL_ATTRS.has(k) && v !== null && !(name === 'a' && k === 'href' && isPageLink(v)) ? rebase(k, v) : v)]);
     for (const [k, v] of overrides) if (!attrs.some((a) => a[0] === k)) attrs.push([k, v]);
 
     // 2. page-level specifics
     if (name === 'html') {
+      const base = '../' + (get('data-base') || '');                 // one folder deeper than the English page
       attrs = attrs.filter(([k]) => !['lang', 'data-lang', 'data-base'].includes(k));
-      attrs.unshift(['lang', 'zh-CN'], ['data-lang', 'zh'], ['data-base', '../']);
+      attrs.unshift(['lang', 'zh-CN'], ['data-lang', 'zh'], ['data-base', base]);
     }
     if (get('data-set-lang') !== undefined) {                        // current-language marker
       attrs = attrs.filter(([k]) => k !== 'aria-current');
       if (get('data-set-lang') === 'zh') attrs.push(['aria-current', 'page']);
     }
-    if (name === 'meta' && get('property') === 'og:url') attrs = attrs.map(([k, v]) => [k, k === 'content' ? ZH_URL : v]);
-    if (name === 'link' && get('rel') === 'canonical') attrs = attrs.map(([k, v]) => [k, k === 'href' ? ZH_URL : v]);
+    if (name === 'meta' && get('property') === 'og:url') attrs = attrs.map(([k, v]) => [k, k === 'content' ? zhUrl : v]);
+    if (name === 'link' && get('rel') === 'canonical') attrs = attrs.map(([k, v]) => [k, k === 'href' ? zhUrl : v]);
 
     const tag = `<${rawName}${serialize(attrs)}${selfClose ? '/' : ''}>`;
     out += tag === `<${rawName}${serialize(parseAttrs(attrStr))}${selfClose ? '/' : ''}>` ? whole : tag;   // untouched tags stay byte-identical
@@ -203,31 +220,42 @@ export function buildZh(src) {
   out += src.slice(i);
   out = out.replace(LD, (all, open, id, body, close) => {
     try {
-      return open + (id === 'ld-faq' ? formatFaq(faqFrom(out, ZH_URL, 'zh-CN')) : zhGraph(body, out, problems)) + close;
+      return open + (id === 'ld-faq' ? formatFaq(faqFrom(out, zhUrl, 'zh-CN')) : zhGraph(body, out, problems, zhUrl)) + close;
     } catch (e) { problems.push(`JSON-LD ${id}: ${e.message}`); return all; }
   });
-  out = out.replace(/^(<!doctype html>\s*)/i, '$1<!-- Generated by scripts/build-zh.mjs from ../index.html. Do not edit: change index.html (data-zh attributes) and run node scripts/build-zh.mjs. -->\n');
+  out = out.replace(/^(<!doctype html>\s*)/i, `$1<!-- Generated by scripts/build-zh.mjs from ${'../'.repeat(page.out.split('/').length - 1)}${page.src}. Do not edit: change ${page.src} (data-zh attributes) and run node scripts/build-zh.mjs. -->\n`);
   return { html: out, problems, warnings };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const check = process.argv.includes('--check');
-  const original = readFileSync(SRC, 'utf8');
-  const src = syncEnglish(original);
-  const { html, problems, warnings } = buildZh(src);
-  warnings.forEach((w) => console.warn('build-zh: warning: ' + w));
-  problems.forEach((p) => console.error('build-zh: ' + p));
-  if (problems.length || (warnings.length && process.argv.includes('--strict'))) process.exit(2);
-  if (check) {
-    const faqOk = src === original;
-    const zhOk = existsSync(OUT) && readFileSync(OUT, 'utf8') === html;
-    if (!faqOk) console.log('index.html: the FAQPage JSON-LD does not match the visible FAQ');
-    console.log(zhOk ? 'zh/index.html is up to date' : 'zh/index.html is out of date');
-    if (!faqOk || !zhOk) { console.log('run: node scripts/build-zh.mjs'); process.exit(1); }
-    process.exit(0);
+  const check = process.argv.includes('--check'), strict = process.argv.includes('--strict');
+  let failed = false, stale = false;
+  const todo = [];
+  for (const page of PAGES) {
+    const original = readFileSync(join(SITE, page.src), 'utf8');
+    const src = syncEnglish(original, page.url);
+    const { html, problems, warnings } = buildZh(src, page);
+    warnings.forEach((w) => console.warn(`build-zh: warning: ${page.src} ${w}`));
+    problems.forEach((p) => console.error(`build-zh: ${page.src}: ${p}`));
+    if (problems.length || (warnings.length && strict)) failed = true;
+    todo.push({ page, original, src, html });
   }
-  if (src !== original) { writeFileSync(SRC, src); console.log('updated the FAQPage JSON-LD in index.html'); }
-  mkdirSync(dirname(OUT), { recursive: true });
-  writeFileSync(OUT, html);
-  console.log('wrote zh/index.html');
+  if (failed) process.exit(2);
+  for (const { page, original, src, html } of todo) {
+    const out = join(SITE, page.out);
+    if (check) {
+      const faqOk = src === original;
+      const zhOk = existsSync(out) && readFileSync(out, 'utf8') === html;
+      if (!faqOk) console.log(`${page.src}: the FAQPage JSON-LD does not match the visible FAQ`);
+      console.log(zhOk ? `${page.out} is up to date` : `${page.out} is out of date`);
+      if (!faqOk || !zhOk) stale = true;
+      continue;
+    }
+    if (src !== original) { writeFileSync(join(SITE, page.src), src); console.log(`updated the FAQPage JSON-LD in ${page.src}`); }
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, html);
+    console.log(`wrote ${page.out}`);
+  }
+  if (stale) { console.log('run: node scripts/build-zh.mjs'); process.exit(1); }
+  process.exit(0);
 }
