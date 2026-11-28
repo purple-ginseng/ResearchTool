@@ -133,9 +133,11 @@
       document.body.append(frame);
       const doc = frame.contentDocument;
       doc.open(); doc.write('<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>'); doc.close();
-      doc.title = P.fileName(note.citekey, note.title);
+      // inline LaTeX of a title as text ("$\\pi_0$" -> "π₀"), the way the Library shows it (RT.texPlain, lineage.js)
+      const title = RT.texPlain ? RT.texPlain(note.title || '') : String(note.title || '');
+      doc.title = P.fileName(note.citekey, title);
       const meta = [note.authors, note.year, note.citekey].filter(Boolean).join(' · ');
-      doc.body.innerHTML = `${note.title ? `<header class="np-head"><h1 class="np-title">${esc(note.title)}</h1>${meta ? `<p class="np-meta">${esc(meta)}</p>` : ''}</header>` : ''}<div class="np-body vditor-reset"></div>`;
+      doc.body.innerHTML = `${title ? `<header class="np-head"><h1 class="np-title">${esc(title)}</h1>${meta ? `<p class="np-meta">${esc(meta)}</p>` : ''}</header>` : ''}<div class="np-body vditor-reset"></div>`;
       // drawn in the page itself (the renderers need its scripts), in a box as wide as the paper, then moved over
       const stage = document.createElement('div');
       stage.className = 'vditor-reset';

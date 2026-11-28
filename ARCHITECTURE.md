@@ -3,6 +3,8 @@
 No build step, no frameworks, no npm runtime dependencies. Node `http` server (Node 18+, tested on Node 24) + vanilla browser JS.
 User data lives in the workspace (`workspace/`, or `RT_WORKSPACE`). The display-language layer (English / 中文) is
 described in [docs/preferences.md](docs/preferences.md).
+The documentation for users is `README.md` (the short front page) and `docs/install.md`, `docs/guide.md`, `docs/ai.md`,
+`docs/privacy.md`, `docs/troubleshooting.md` and `docs/configuration.md`.
 
 ## Module map
 
@@ -754,7 +756,7 @@ paper with a PDF is open: paper-based claims end with `(p. N)`, the rest with `(
 `RT.reader.page(n)`. Inside the note editor the content is not changed: plain "(p. N)" in an `[!ai]` callout is
 painted with the CSS Custom Highlight API (`::highlight(rt-pcite)`) and hit-tested on click.
 
-Workspace folders (all under `core.WS`; the README table "Where things live" describes them for the user):
+Workspace folders (all under `core.WS`; the table "Where things live" in docs/privacy.md describes them for the user):
 `library.json`, `settings.json`, `venues.json` (`{v: 1, items: {itemId: venue record}}`, lib/venues.js; records of deleted
 papers stay for a restore), `pdfs/`, `sentences/`, `notes/` (+ `notes/assets/<id>/`), `highlights/`, `diagrams/`,
 `quizzes/` (quizzes, answers and the `review` map), `compare/`, `projects/`, `history/`, `history-notes/`, `export/`,
@@ -1168,7 +1170,7 @@ was.
 `dirty`, and the advice for `dirty` ("your changes are in the way") is wrong. So `{interrupted: {head, sha}}` is
 remembered (memory and the state file): while HEAD is still `head` and the tree is not clean, step 6 answers
 `interrupted`, every check stops there (no second merge on top), and the page shows the repair instead of "was
-updated" (README, Troubleshooting: `git reset --hard origin/main`). The mark ends when a look finds the tree
+updated" (docs/troubleshooting.md: `git reset --hard origin/main`). The mark ends when a look finds the tree
 clean or HEAD elsewhere - the one thing a look may write (it takes the mark out of the state file) - and the
 plain status drops the reason as soon as HEAD has moved. A forged mark in the state file can only turn `dirty`
 into `interrupted` for the same HEAD. `tick()` (75 s after the start - `RT_UPDATE_FIRST_MS` - then hourly, unref'd timers) reads the setting every
@@ -1191,7 +1193,7 @@ objects and `refs/remotes/origin/main`), nothing else.
 
 **Trust.** With the box ticked, whoever can push to `main` of the official repository runs code on that computer:
 the new front end at the next reload, the new server code at the next restart - "restart needed" is a notice, not
-a gate. The Preferences text and the README say so. Fast-forward-only means no rollback can be pushed. Do not rename
+a gate. The Preferences text and docs/install.md ("Updating") say so. Fast-forward-only means no rollback can be pushed. Do not rename
 the repository or the account lightly: GitHub redirects the old address only until someone else takes the old
 name, and from then on old clones would take their updates from that someone. Before any rename, ship a release
 whose `OFFICIAL_URL` / `OFFICIAL_RE` name the new address, and give it time to reach the clones. A release that needs a manual step raises `updateEpoch` in
@@ -1503,7 +1505,7 @@ pushes new versions and an "app" clone in a temporary folder and gives `createUp
 repository as the address and a matcher that accepts it, with a temporary HOME (no global git settings). Besides
 the reasons and the update itself it plants what must never run (hooks, fsmonitor, uploadpack, a clean / smudge
 filter, `core.alternateRefsCommand`) with a marker file and a control that shows the plant works; makes a real
-half checkout (a folder without write permission, POSIX) and runs the README's repair on it; puts a stand-in
+half checkout (a folder without write permission, POSIX) and runs the repair of docs/troubleshooting.md on it; puts a stand-in
 `git` that sleeps on `fetch` / `status` / `merge` on the PATH for the timeouts; asks git itself which `http.*`
 value applies to the official address under the app's options (`config --get-urlmatch`, no request); points one
 updater at a listener on 127.0.0.1 that answers 404 to see that no `Authorization` header or cookie of the

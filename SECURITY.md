@@ -22,8 +22,8 @@ ResearchTool is a single-user application meant to run on your own computer.
 - There is no login: anyone who can use your computer account can use the app and read the workspace folder.
 - The app stores no passwords, tokens or API keys. Claude Code, the other AI CLIs and git keep their own credentials
   (on macOS, Claude Code and git in the Keychain).
-- AI features run one local AI CLI (Claude Code by default, or Codex, Grok Build or Antigravity); see the README's
-  "AI integration" and "AI providers" sections for what that involves and how the other CLIs are kept read-only.
+- AI features run one local AI CLI (Claude Code by default, or Codex, Grok Build or Antigravity); see [docs/ai.md](docs/ai.md)
+  ("How it works" and "AI providers") for what that involves and how the other CLIs are kept read-only.
   A way around those read-only settings (a provider CLI made to write, run a command or read outside the folders it
   is given) counts as a security problem.
 - Help › Copy diagnostics redacts paths, e-mail addresses and keys before copying, but an error message can still

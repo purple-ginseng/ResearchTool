@@ -55,6 +55,9 @@ test('the page loads note-pdf.js before the reader; the note menu offers the exp
   const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'note-pdf.js'), 'utf8');
   assert.ok(!/fetch\(|XMLHttpRequest|sendBeacon|https?:\/\//.test(src), 'no request of its own');
   assert.match(src, /th, \.np-body td \{ white-space: normal !important;/, 'table cells wrap on paper');
+  assert.match(src, /const title = RT\.texPlain \? RT\.texPlain\(note\.title/, 'LaTeX in a title is shown as text');
+  assert.match(src, /P\.fileName\(note\.citekey, title\)/); assert.match(src, /np-title">\$\{esc\(title\)\}/); assert.ok(!/esc\(note\.title\)/.test(src));
+  assert.equal(require('../public/js/lineage.js').texPlain('$\\pi_0$: A Vision-Language-Action Flow Model'), 'π₀: A Vision-Language-Action Flow Model');
   assert.match(src, /break-inside: avoid/); assert.match(src, /@page \{ size:/);
 });
 

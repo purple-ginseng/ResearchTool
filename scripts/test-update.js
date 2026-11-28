@@ -12,7 +12,7 @@
 // uploadpack, a stash, a filter, core.alternateRefsCommand, a refspec of a remote named like the address), the
 // settings inside .git that stop an update (configProblem, gitDirProblem), that the request carries no header or
 // cookie of the user's git settings and checks the certificate whatever they say, a fast-forward that stops half way
-// (and the repair the README gives), git that hangs (a stand-in that sleeps), the page's notice and status line
+// (and the repair docs/troubleshooting.md gives), git that hangs (a stand-in that sleeps), the page's notice and status line
 // (public/js/update.js, run in a vm with a stand-in for RT), what a new version must never contain (a file in workspace/ or backups/, a symbolic link, a
 // submodule, a name Windows cannot write, a case collision, a newer Node, a higher update epoch), one check at a
 // time, the rate limit, the daily tick (and that it starts nothing with the box off), the kill switch, the setting's
@@ -1077,7 +1077,7 @@ function plantHook(app, name, marker) {
 
   // ---------- a fast-forward that stops half way ----------
   if (!IS_WIN && !(process.getuid && process.getuid() === 0)) {
-    await test('a fast-forward that stops half way (a folder that cannot be written): "interrupted" - not "updated", not "you changed program files" - also after a restart; the repair in the README works', async () => {
+    await test('a fast-forward that stops half way (a folder that cannot be written): "interrupted" - not "updated", not "you changed program files" - also after a restart; the repair in docs/troubleshooting.md works', async () => {
       const fx = fixture(), stateFile = path.join(fx.dir, 'update.json'), h = head(fx.app);
       write(fx.app, 'workspace/library.json', '{"items":[{"id":"mine"}]}');
       const next = fx.push({ 'package.json': PKG('1.1.0'), 'lib/a.js': 'module.exports = 2;\n', 'public/js/x.js': '// page two\n', 'public/js/new.js': 'new\n', 'zz-new.js': 'new\n' });
@@ -1108,7 +1108,7 @@ function plantHook(app, name, marker) {
         s = await u.status({ local: true });
         assert.equal(s.reason, 'interrupted'); assert.equal(s.supported, false);
       } finally { fs.chmodSync(locked, 0o755); }
-      // what the README no longer says: git refuses to "finish" a fast-forward over files it already wrote
+      // what docs/troubleshooting.md no longer says: git refuses to "finish" a fast-forward over files it already wrote
       assert.throws(() => G(fx.app, 'merge', '--ff-only', 'origin/main'), /would be overwritten/);
       // what it says now
       G(fx.app, 'reset', '-q', '--hard', 'origin/main');
