@@ -69,7 +69,8 @@ test('mathBars: a bar inside a formula of a table row no longer ends the cell; e
   assert.equal(N.mathBars('| $p(a|b)$ | head |\n| --- | --- |'), '| $p(a\\|b)$ | head |\n| --- | --- |', 'the header row too');
   assert.equal(N.mathBars('> ```\n> code\n\n' + H + '| $a|b$ | c |'), '> ```\n> code\n\n' + H + '| $a\\|b$ | c |', 'code of a quote ends with the quote');
   assert.equal(N.mathBars('``` x ```\n\n' + H + '| $a|b$ | c |'), '``` x ```\n\n' + H + '| $a\\|b$ | c |', 'a code span is not a fence');
-  assert.equal(N.mathBars('1. step\n\n    ' + H.replace('\n', '\n    ') + '    | $a|b$ | c |'), '1. step\n\n    ' + H.replace('\n', '\n    ') + '    | $a\\|b$ | c |', 'a table of a list item');
+  const HI = '    | a | b |\n    | :---: | --- |\n'; // (the header, indented as in a list item)
+  assert.equal(N.mathBars('1. step\n\n' + HI + '    | $a|b$ | c |'), '1. step\n\n' + HI + '    | $a\\|b$ | c |', 'a table of a list item');
   assert.equal(N.mathBars(H + '| $a|b$ |\r\n| $c|d$ |\r'), H + '| $a\\|b$ |\r\n| $c\\|d$ |\r');
   assert.equal(N.mathBars(null), ''); assert.equal(N.mathBars('a\n' + H + '| $x|y$ |\nb').split('\n').length, 5);
   const t = Date.now();
