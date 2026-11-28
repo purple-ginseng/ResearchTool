@@ -1213,7 +1213,7 @@
           let text = '';
           try { text = S.pdfText(await (await pdf.getPage(n)).getTextContent()); } catch (e) { console.error(e); }
           if (!live()) return null;
-          if (text) { if (moved) goPage(n); moved = true; return text; }
+          if (text) { const page = n, turn = moved; moved = true; return { text, onStart: () => { if (turn && live()) goPage(page); } }; }
           moved = true;
         }
         return null;
@@ -2309,6 +2309,11 @@
     const it = current(); if (!it) return;
     if (act === 'save') await saveAll('manual');
     else if (act === 'history') await openHistory();
+    else if (act === 'export-pdf') {
+      if (!(note.ed && note.id === it.id)) return toast('Open the note first.');
+      const f = it.fields || {};
+      await RT.notePdf.print({ md: note.ed.value(), title: f.title || it.citekey, authors: String(f.author || '').split(/\s+and\s+/).filter(Boolean).map((a) => a.split(',')[0].trim()).slice(0, 4).join(', ') + (String(f.author || '').split(/\s+and\s+/).length > 4 ? ' et al.' : ''), year: f.year || '', citekey: it.citekey, options: previewOptions() });
+    }
     else if (act === 'export-md') await download(`/api/items/${it.id}/note/export?format=md`);
     else if (act === 'export-zip') await exportNoteZip(it);
     else if (act === 'export-zip-nopdf') await exportNoteZip(it, false);
@@ -2332,6 +2337,7 @@
       { label: 'Save now', icon: 'save', kbd: [RT.modKey || '⌘', 'S'], onClick: act('save') },
       { label: 'History…', icon: 'history', title: 'Compare and restore earlier versions of this note', onClick: act('history') },
       { heading: 'Export' },
+      { label: 'Export note as PDF…', icon: 'pdf', id: 'note-export-pdf', title: 'The note as a PDF, laid out for the page: wide tables and formulas are scaled to fit, pictures and diagrams stay inside the page, code wraps. It opens the print window of the browser - choose "Save as PDF" there.', onClick: act('export-pdf') },
       { label: 'Export paper package (.zip)', icon: 'archive', title: "One .zip with everything about the paper: the note as Markdown (a header with the authors, venue and links) with its pictures in assets/, the PDF, the BibTeX entry and the paper's links (project page, code, arXiv, DOI) - unzip it and open the .md in Obsidian, Typora, VS Code, or import the folder into Notion, Feishu, Yuque", onClick: act('export-zip') },
       { label: '… without the PDF', icon: 'archive', title: 'The same package without the PDF file: the links line points to the arXiv PDF when there is one', onClick: act('export-zip-nopdf') },
       { label: 'Export note (.md, pictures inside)', icon: 'export', title: 'One .md file with every picture inside it (base64 data: URIs): Typora, Obsidian and VS Code show it without a folder. Videos are left out.', onClick: act('export-md-embedded') },

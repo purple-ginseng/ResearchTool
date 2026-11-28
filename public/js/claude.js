@@ -1,7 +1,10 @@
 /* Claude panel (right-hand aside #claude). The context sent with a prompt comes from the provider that the
    active view registered with RT.claudeContext.register(viewId, fn).
-   Every paper and every LaTeX project has its own conversation (messages + the CLI's session id), kept in this
-   browser's localStorage under rt.claude.chats (bounded) and shown again after a reload. The answer is drawn while
+   Every paper and every LaTeX project has its own conversations (messages + the CLI's session id). The open one is
+   kept in this browser's localStorage under rt.claude.chats (bounded) and shown again after a reload; all of them
+   are kept in the workspace (lib/routes/chats.js, <workspace>/chats/). "New chat" starts another conversation
+   about the same paper and the earlier ones stay: the History button lists them, and those of the other papers,
+   to be read again or continued. The answer is drawn while
    it is written (text deltas of POST /api/claude); the Send button is a Stop button while a run is going.
    With another AI provider than Claude (Preferences › AI, RT.ai) the panel is a read-only chat: that CLI can read the
    workspace but edits nothing - unless it is Codex with "Let Codex edit files" ticked (caps.agentic is then true, and
@@ -16,7 +19,8 @@
       <span class="claude-mark">${RT.icon('sparkle')}</span><strong>Claude Code</strong>
       <span id="claude-ctx" class="chip" hidden></span>
       <div class="spacer"></div>
-      <button id="claude-new" class="ib" title="New chat: clear the conversation about this paper or project and start a fresh one" aria-label="New chat">${RT.icon('plus')}</button>
+      <button id="claude-history" class="ib" title="History: the earlier conversations about this paper or project, and those about your other papers" aria-label="Conversation history" aria-haspopup="menu">${RT.icon('history')}</button>
+      <button id="claude-new" class="ib" title="New chat: start a fresh conversation about this paper or project. The current one stays in the history." aria-label="New chat">${RT.icon('plus')}</button>
     </div>
     <div id="claude-log">
       <div class="msg hint" id="claude-hint" title="Runs your local claude CLI inside the workspace folder. It can read your library and notes and edit the files of your LaTeX project directly.">Local <code>claude</code> CLI — reads your library and notes, edits your LaTeX project. Try: “Draft a related-work paragraph from my key points.”</div>
@@ -35,29 +39,43 @@
   // ---------------- conversations: one per paper / project, kept across reloads ----------------
   const STORE = 'rt.claude.chats', MAX_CHATS = 40, MAX_MSGS = 60, MAX_MSG_CHARS = 12000, MAX_STORE_CHARS = 1500000;
   const KEEP = new Set(['user', 'bot', 'tool', 'err']);
-  const chats = new Map(); // key -> { key, session, log: [{c, t}], busy, abort, live: null | {text}, status, dead }
+  const chats = new Map(); // key -> { key, id, session, log: [{c, t}], busy, abort, live: null | {text}, status, dead, archived }
+  // the id of a conversation (a paper can have several): 12 letters and digits
+  const newId = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
   const keyOf = (c) => (c && c.itemId ? 'item:' + c.itemId : c && (c.projectId || c.project) ? 'project:' + (c.projectId || c.project) : 'general');
   const readStore = () => { const o = RT.ls.json(STORE, null); return o && typeof o === 'object' && o.chats && typeof o.chats === 'object' ? o : { v: 1, chats: {} }; };
   function getChat(key) {
     let c = chats.get(key);
     if (c) return c;
     const st = readStore().chats[key];
-    c = { key, session: null, p: 'claude', log: [], busy: false, abort: null, live: null, status: '', dead: false };
+    c = { key, id: newId(), session: null, p: 'claude', log: [], busy: false, abort: null, live: null, status: '', dead: false, archived: false };
     if (st && typeof st === 'object') {
+      if (typeof st.i === 'string' && /^[a-z0-9]{6,24}$/.test(st.i)) c.id = st.i;
       if (typeof st.s === 'string' && /^[0-9a-f-]{8,64}$/i.test(st.s)) c.session = st.s;
       if (typeof st.p === 'string' && /^[a-z]{2,12}$/.test(st.p)) c.p = st.p; // the AI provider of the session (older chats: Claude)
       if (Array.isArray(st.log)) c.log = st.log.filter((e) => Array.isArray(e) && KEEP.has(e[0]) && typeof e[1] === 'string').map((e) => ({ c: e[0], t: e[1] }));
     }
     chats.set(key, c);
+    if (c.log.length) keep(c); // (a conversation from before the history existed is put into it)
     return c;
+  }
+  // the workspace's copy of a conversation (lib/routes/chats.js): a moment after the last change, or at once
+  function keep(chat, now = false) {
+    clearTimeout(chat.keepTimer);
+    if (chat.dead || !chat.log.length) return;
+    const go = () => fetch(`/api/chats/${encodeURIComponent(chat.key)}/${chat.id}`, { method: 'PUT', keepalive: now, headers: { 'Content-Type': 'application/json', 'X-RT': '1' },
+      body: JSON.stringify({ s: chat.session, p: chat.p || 'claude', log: chat.log.map((e) => [e.c, e.t]) }) }).catch(() => { /* the next change tries again */ });
+    if (now) go(); else chat.keepTimer = setTimeout(go, 1200);
   }
   // write one conversation back (the stored object is read again first, so another window's conversations stay)
   function saveChat(chat) {
     if (chat.dead) return;
+    keep(chat);
+    if (chat.archived || chats.get(chat.key) !== chat) return; // an earlier conversation: only the workspace has it
     const o = readStore();
     if (!chat.log.length && !chat.session) delete o.chats[chat.key];
     else {
-      o.chats[chat.key] = { s: chat.session, p: chat.p || 'claude', t: Date.now(),
+      o.chats[chat.key] = { i: chat.id, s: chat.session, p: chat.p || 'claude', t: Date.now(),
         log: chat.log.slice(-MAX_MSGS).map((e) => [e.c, e.t.length > MAX_MSG_CHARS ? e.t.slice(0, MAX_MSG_CHARS) + '\n\n… (shortened)' : e.t]) };
     }
     const oldest = () => Object.keys(o.chats).filter((k) => k !== chat.key).sort((a, b) => (o.chats[a].t || 0) - (o.chats[b].t || 0))[0];
@@ -104,15 +122,88 @@
   }
   $('#btn-claude').addEventListener('click', () => toggle());
   $('#claude-log').addEventListener('scroll', (e) => { const l = e.currentTarget; stick = l.scrollHeight - l.scrollTop - l.clientHeight < 60; });
+  // put a conversation aside: it stays in the history, an answer that is being written is stopped
+  function archive(chat) {
+    chat.archived = true;
+    if (chat.busy) stop(chat);
+    if (chat.live && chat.live.text.trim()) { chat.log.push({ c: 'bot', t: chat.live.text }); chat.live = null; }
+    keep(chat, true);
+    if (chats.get(chat.key) === chat) chats.delete(chat.key);
+    const o = readStore();
+    if (o.chats[chat.key] && (o.chats[chat.key].i || '') === chat.id) { delete o.chats[chat.key]; RT.ls.set(STORE, JSON.stringify(o)); }
+  }
   $('#claude-new').addEventListener('click', () => {
     const old = active;
-    old.dead = true; // a run of the old conversation stops writing
-    if (old.abort) old.abort.abort();
-    chats.delete(old.key);
-    const o = readStore(); delete o.chats[old.key]; RT.ls.set(STORE, JSON.stringify(o));
+    if (!old.log.length && !old.busy) { $('#claude-input').focus(); return; } // it is new already
+    archive(old);
     active = getChat(old.key);
     renderLog(); reflect();
     $('#claude-input').focus();
+  });
+
+  // ---------------- history: the earlier conversations of this paper, and those of the others ----------------
+  const tr = (t, ...a) => (RT.i18n && typeof RT.i18n.t === 'function' ? RT.i18n.t(t, ...a) : t.replace(/\{(\d)\}/g, (m, k) => a[k]));
+  const when = (t) => { const d = new Date(t); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString([], { day: 'numeric', month: 'short', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }); };
+  let projectNames = null;
+  async function nameOf(key) {
+    const [kind, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)];
+    if (key === 'general') return tr('General questions');
+    if (kind === 'item') { const it = RT.library && RT.library.items ? RT.library.items().find((x) => x.id === id) : null; return it ? ((it.fields && it.fields.title) || it.title || it.citekey || id) : tr('A paper that is no longer in the library'); }
+    if (!projectNames) { projectNames = new Map(); try { for (const pr of await RT.api('/api/projects?lite=1')) projectNames.set(pr.id, pr.name || pr.id); } catch { /* shown without names */ } }
+    return projectNames.get(id) || tr('A project that is no longer there');
+  }
+  // open a kept conversation in the panel (of the paper or project that is showing, or of the one that is opened next)
+  async function openThread(key, id) {
+    const cur = chats.get(key);
+    if (cur && cur.id === id) return cur;
+    const t = await RT.api(`/api/chats/${encodeURIComponent(key)}/${id}`);
+    if (cur) archive(cur);
+    const c = { key, id: t.id, session: t.s || null, p: t.p || 'claude', log: (t.log || []).map((e) => ({ c: e[0], t: e[1] })), busy: false, abort: null, live: null, status: '', dead: false, archived: false };
+    chats.set(key, c);
+    saveChat(c);
+    if (key === active.key) { active = c; stick = true; if (shown()) renderLog(); else stale = true; reflect(); }
+    return c;
+  }
+  async function goTo(key, id) {
+    try {
+      await openThread(key, id);
+      if (key === active.key) return;
+      const [kind, ref] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)];
+      if (kind === 'item' && RT.library && RT.library.select) { if (RT.setView) RT.setView('library'); RT.library.select(ref); }
+      else if (kind === 'project' && RT.write && RT.write.openProject) await RT.write.openProject(ref);
+      else RT.toast('Open that paper or project to see the conversation.');
+    } catch (e) { RT.toast(e.message, 'bad'); }
+  }
+  $('#claude-history').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    let all;
+    try { all = await RT.api('/api/chats'); } catch (err) { RT.toast(err.message, 'bad'); return; }
+    projectNames = null;
+    const key = active.key, mine = (all.find((x) => x.key === key) || { threads: [] }).threads;
+    const line = (th) => `${th.title} · ${when(th.t)}`;
+    const items = [{ heading: tr(key === 'general' ? 'General questions' : key.startsWith('item:') ? 'This paper' : 'This project') }];
+    if (!mine.length) items.push({ label: tr('No conversation yet'), disabled: true });
+    for (const th of mine) items.push({ label: line(th), icon: th.id === active.id ? 'check' : 'history', title: tr('{0} questions. Click to read it again or to go on with it.', th.n), onClick: () => goTo(key, th.id) });
+    if (mine.some((th) => th.id === active.id)) {
+      items.push({ label: tr('Delete this conversation'), icon: 'delete', danger: true, onClick: async () => {
+        if (!(await RT.confirm('Delete the conversation that is showing? This cannot be undone.', { title: 'History', okText: 'Delete' }))) return;
+        const old = active; old.dead = true; clearTimeout(old.keepTimer); if (old.abort) old.abort.abort();
+        chats.delete(old.key);
+        const o = readStore(); delete o.chats[old.key]; RT.ls.set(STORE, JSON.stringify(o));
+        try { await RT.api(`/api/chats/${encodeURIComponent(old.key)}/${old.id}`, { method: 'DELETE' }); } catch (err) { RT.toast(err.message, 'bad'); }
+        active = getChat(old.key); renderLog(); reflect();
+      } });
+    }
+    const others = all.filter((x) => x.key !== key).slice(0, 15);
+    if (others.length) {
+      items.push({ sep: true }, { heading: tr('Other papers and projects') });
+      for (const o of others) {
+        const name = await nameOf(o.key), th = o.threads[0];
+        items.push({ label: `${name.length > 46 ? name.slice(0, 45) + '…' : name} — ${th.title.length > 40 ? th.title.slice(0, 39) + '…' : th.title}`, icon: o.key.startsWith('project:') ? 'folder' : 'paper',
+          title: tr('{0} conversations, the last one {1}. Click to open it there.', o.threads.length, when(o.t)), onClick: () => goTo(o.key, th.id) });
+      }
+    }
+    RT.menu(btn, items, { align: 'end' });
   });
 
   // the passage that goes along with the next question (selected in the PDF or in the editor)
@@ -284,7 +375,7 @@
     const status = (t) => { chat.status = t; if (chat === active) wait(); };
     for (;;) {
       const { value, done } = await reader.read(); if (done) break;
-      if (chat.dead) { reader.cancel().catch(() => {}); break; } // "New chat" was pressed: this run is over
+      if (chat.dead) { reader.cancel().catch(() => {}); break; } // the conversation was deleted: this run is over
       buf += dec.decode(value, { stream: true });
       let nl;
       while ((nl = buf.indexOf('\n')) >= 0) {
@@ -361,7 +452,7 @@
   // leaving the page ends the runs (the server stops them): keep what was written so far
   window.addEventListener('pagehide', () => {
     for (const chat of chats.values()) {
-      if (!chat.busy || chat.dead) continue;
+      if (!chat.busy || chat.dead) { if (!chat.dead) keep(chat, true); continue; }
       if (chat.live && chat.live.text.trim()) chat.log.push({ c: 'bot', t: chat.live.text });
       chat.log.push({ c: 'tool', t: '▸ Interrupted when the page was closed or reloaded.' });
       chat.live = null; saveChat(chat);
