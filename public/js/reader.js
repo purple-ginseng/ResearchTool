@@ -126,6 +126,11 @@
   }
 
   // ====================================================================== Markdown editor (Vditor)
+  // Text on its way into the editor: a "|" inside a formula of a table row is escaped first (RT.notePdf.mathBars),
+  // or the editor would end the cell there and show the formula as its source. The note's file is not touched by
+  // opening it (the note counts as changed only against what the editor gives back); the escaped bar is written
+  // with the next edit, and it is the way Markdown spells a bar in a table cell.
+  const bars = (md) => RT.notePdf.mathBars(String(md || ''));
   const IC = (html, cls = '') => `<span class="rd-tbi ${cls}">${html}</span>`;
   const previewOptions = () => ({
     cdn: RT.vendor.VDITOR_CDN, mode: isDark() ? 'dark' : 'light', lang: uiLang(),
@@ -176,7 +181,7 @@
     const api_ = {
       vd: null,
       value: () => canon(vd.getValue()),
-      set(md) { md = dropStaleAsks(md); sizeRules(md); vd.setValue(String(md || ''), true); lastRange = null; decorate(); renderPreview(); },
+      set(md) { md = dropStaleAsks(md); sizeRules(md); vd.setValue(bars(md), true); lastRange = null; decorate(); renderPreview(); },
       focus() { vd.focus(); },
       disable(on) { if (on) vd.disabled(); else vd.enable(); },
       // put the caret back where it was in the editor (or at the end) before inserting from outside
@@ -190,7 +195,7 @@
       },
       // Insert Markdown at the caret. Vditor's insertValue() takes HTML, so Markdown goes through insertMD (Lute
       // renders it for the current mode) and plain strings are HTML-escaped first.
-      insert(md) { api_.restoreCaret(); vd.insertMD(String(md)); changed(); },
+      insert(md) { api_.restoreCaret(); vd.insertMD(bars(md)); changed(); },
       // Put words in at the caret the way typing does (dictation): the editor treats them as typed text.
       type(text) { api_.restoreCaret(); if (!document.execCommand('insertText', false, String(text))) vd.insertValue(esc(String(text))); changed(); },
       // Insert a block (callout, formula, table, image, quote) as its own block right after the block that holds
@@ -208,7 +213,7 @@
           const r = document.createRange(); r.setStart(p, 0); r.collapse(true);
           sel.removeAllRanges(); sel.addRange(r);
         }
-        vd.insertMD(String(md).trim() + '\n');
+        vd.insertMD(bars(md).trim() + '\n');
         // an inserted diagram / chart block is only drawn when the document is rendered as a whole
         if (/^(```|~~~)\s*(mermaid|echarts|flowchart|graphviz|plantuml|mindmap)\b/m.test(String(md))) { vd.setValue(vd.getValue()); lastRange = null; decorate(); }
         changed();
@@ -337,7 +342,7 @@
       rsEl = null; rs.hidden = true;
       if (!done) { m.style.width = ''; m.style.height = ''; return toast('This one cannot be resized here: it is not written as a Markdown picture or a <video> tag.', 'bad'); }
       const top = contentEl().scrollTop;
-      sizeRules(md); vd.setValue(md); lastRange = null; decorate();
+      sizeRules(md); vd.setValue(bars(md)); lastRange = null; decorate();
       contentEl().scrollTop = top;
       changed();
     }
@@ -426,7 +431,7 @@
       const md = vd.getValue(), next = fn(md);
       if (next === md) return false;
       const top = contentEl().scrollTop, mark = caretMark();
-      sizeRules(next); vd.setValue(next); lastRange = null; decorate();
+      sizeRules(next); vd.setValue(bars(next)); lastRange = null; decorate();
       contentEl().scrollTop = top; caretBack(mark);
       changed();
       return true;
@@ -689,7 +694,7 @@
     // "> [!abstract] 🏕️" (adds a title line), so it is switched off for the editing views.
     try { vd.vditor.lute.SetCallout(false); } catch { /* older lute */ }
     sizeRules(opts.value);
-    vd.setValue(dropStaleAsks(opts.value), true);
+    vd.setValue(bars(dropStaleAsks(opts.value)), true);
     for (const m of ['ir', 'wysiwyg', 'sv']) if (vd.vditor[m]) mo.observe(vd.vditor[m].element, { childList: true, subtree: true, characterData: true });
     moPreview.observe(preview, { childList: true, subtree: true });
     // Vditor's "copy code" button works through an inline onclick, which the page's CSP blocks (and scrub() removes)
